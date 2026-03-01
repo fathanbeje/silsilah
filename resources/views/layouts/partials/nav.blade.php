@@ -3,7 +3,8 @@
         <div class="navbar-header">
 
             <!-- Collapsed Hamburger -->
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#app-navbar-collapse">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                data-target="#app-navbar-collapse">
                 <span class="sr-only">Toggle Navigation</span>
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
@@ -44,11 +45,11 @@
                                 <li><a href="{{ route('backups.index') }}">{{ __('backup.list') }}</a></li>
                             @endif
                             <li><a href="{{ route('profile') }}">{{ __('app.my_profile') }}</a></li>
+                            <li><a href="{{ route('gedcom.index') }}">Import GEDCOM</a></li>
                             <li><a href="{{ route('password_change') }}">{{ __('auth.change_password') }}</a></li>
                             <li>
-                                <a href="{{ route('logout') }}"
-                                    onclick="event.preventDefault();
-                                             document.getElementById('logout-form').submit();">
+                                <a href="{{ route('logout') }}" onclick="event.preventDefault();
+                                                 document.getElementById('logout-form').submit();">
                                     Logout
                                 </a>
 

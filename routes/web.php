@@ -8,6 +8,7 @@ use App\Http\Controllers\FamilyActionsController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\UserMarriagesController;
 use App\Http\Controllers\UsersController;
+use App\Http\Controllers\GedcomController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -56,6 +57,10 @@ Route::middleware('auth')->group(function () {
     Route::get('users/{user}/marriages', [UserMarriagesController::class, 'index'])->name('users.marriages');
 
     Route::get('birthdays', [BirthdayController::class, 'index'])->name('birthdays.index');
+    
+    Route::get('gedcom/import', [GedcomController::class, 'index'])->name('gedcom.index');
+    Route::post('gedcom/import', [GedcomController::class, 'store'])->name('gedcom.store');
+
     /**
      * Couple/Marriages Routes
      */
