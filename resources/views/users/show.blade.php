@@ -28,7 +28,28 @@
 @section ('script')
 <script>
 (function () {
-    $('select').select2();
+    var matcher = function(params, data) {
+        if ($.trim(params.term) === '') {
+            return data;
+        }
+
+        if (typeof data.text === 'undefined') {
+            return null;
+        }
+
+        var searchTerms = params.term.toLowerCase().split(/\s+/).filter(Boolean);
+        var candidateText = data.text.toLowerCase();
+        var isMatch = searchTerms.every(function(term) {
+            return candidateText.indexOf(term) > -1;
+        });
+
+        return isMatch ? data : null;
+    };
+
+    $('select').select2({
+        matcher: matcher
+    });
+
     $('input[name=marriage_date]').datetimepicker({
         timepicker:false,
         format:'Y-m-d',

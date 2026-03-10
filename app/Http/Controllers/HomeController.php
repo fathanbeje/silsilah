@@ -20,8 +20,8 @@ class HomeController extends Controller
             $usersMariageList[$spouse->pivot->id] = $user->name.' & '.$spouse->name;
         }
 
-        $malePersonList = User::where('gender_id', 1)->pluck('nickname', 'id');
-        $femalePersonList = User::where('gender_id', 2)->pluck('nickname', 'id');
+        $malePersonList = $this->getPersonList(1);
+        $femalePersonList = $this->getPersonList(2);
 
         return view('users.show', [
             'user' => $user,
@@ -29,5 +29,22 @@ class HomeController extends Controller
             'malePersonList' => $malePersonList,
             'femalePersonList' => $femalePersonList,
         ]);
+    }
+
+    private function getPersonList(int $genderId)
+    {
+        return User::query()
+            ->where('gender_id', $genderId)
+            ->orderBy('nickname')
+            ->get(['id', 'nickname', 'name'])
+            ->mapWithKeys(function (User $user) {
+                $label = $user->nickname;
+
+                if ($user->name && $user->name !== $user->nickname) {
+                    $label .= ' - '.$user->name;
+                }
+
+                return [$user->id => $label];
+            });
     }
 }

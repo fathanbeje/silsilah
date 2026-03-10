@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\BackupsController;
+use App\Http\Controllers\BirthOrderController;
 use App\Http\Controllers\BirthdayController;
 use App\Http\Controllers\CouplesController;
 use App\Http\Controllers\FamilyActionsController;
@@ -79,7 +80,7 @@ Route::middleware('auth')->group(function () {
 /**
  * Admin only routes
  */
-Route::group(['middleware' => 'admin'], function () {
+Route::group(['middleware' => ['auth', 'admin']], function () {
     /**
      * Backup Restore Database Routes
      */
@@ -89,4 +90,9 @@ Route::group(['middleware' => 'admin'], function () {
         Route::get('backups/{fileName}/dl', 'download')->name('backups.download');
     });
     Route::resource('backups', BackupsController::class);
+
+    Route::controller(BirthOrderController::class)->group(function () {
+        Route::get('birth-orders', 'index')->name('birth-orders.index');
+        Route::post('birth-orders', 'update')->name('birth-orders.update');
+    });
 });

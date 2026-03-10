@@ -31,6 +31,7 @@ class GedcomController extends Controller
 
         $currentObj = null;
         $currentObjId = null;
+        $currentEvent = null;
 
         foreach ($lines as $line) {
             $line = trim($line);
@@ -43,6 +44,8 @@ class GedcomController extends Controller
             $value = $parts[2] ?? '';
 
             if ($level == '0') {
+                $currentEvent = null;
+
                 if ($value == 'INDI') {
                     $currentObj = 'INDI';
                     $currentObjId = trim($tag, '@');
@@ -55,6 +58,10 @@ class GedcomController extends Controller
                         'father_id' => null,
                         'mother_id' => null,
                         'parent_id' => null,
+                        'dob' => null,
+                        'yob' => null,
+                        'dod' => null,
+                        'yod' => null,
                         'manager_id' => auth()->id(),
                         'created_at' => now(),
                         'updated_at' => now(),
@@ -72,14 +79,34 @@ class GedcomController extends Controller
                     $currentObj = null;
                 }
             } elseif ($currentObj == 'INDI') {
-                if ($tag == 'NAME') {
-                    // example value: John /Doe/
-                    $cleanName = str_replace('/', '', $value);
-                    $indis[$currentObjId]['name'] = $cleanName;
-                    $nicknameParts = explode(' ', trim($cleanName));
-                    $indis[$currentObjId]['nickname'] = $nicknameParts[0] ?: 'Unknown';
-                } elseif ($tag == 'SEX') {
-                    $indis[$currentObjId]['gender_id'] = ($value == 'F' || $value == '2') ? 2 : 1;
+                if ($level == '1') {
+                    $currentEvent = null;
+
+                    if ($tag == 'NAME') {
+                        // example value: John /Doe/
+                        $cleanName = str_replace('/', '', $value);
+                        $indis[$currentObjId]['name'] = $cleanName;
+                        $nicknameParts = explode(' ', trim($cleanName));
+                        $indis[$currentObjId]['nickname'] = $nicknameParts[0] ?: 'Unknown';
+                    } elseif ($tag == 'SEX') {
+                        $indis[$currentObjId]['gender_id'] = ($value == 'F' || $value == '2') ? 2 : 1;
+                    } elseif ($tag == 'BIRT') {
+                        $currentEvent = 'BIRT';
+                    } elseif ($tag == 'DEAT') {
+                        $currentEvent = 'DEAT';
+                    }
+                } elseif ($level == '2' && $currentEvent == 'BIRT' && $tag == 'DATE') {
+                    $birthData = $this->parseGedcomBirthDate($value);
+                    if ($birthData) {
+                        $indis[$currentObjId]['dob'] = $birthData['dob'];
+                        $indis[$currentObjId]['yob'] = $birthData['yob'];
+                    }
+                } elseif ($level == '2' && $currentEvent == 'DEAT' && $tag == 'DATE') {
+                    $deathData = $this->parseGedcomDeathDate($value);
+                    if ($deathData) {
+                        $indis[$currentObjId]['dod'] = $deathData['dod'];
+                        $indis[$currentObjId]['yod'] = $deathData['yod'];
+                    }
                 }
             } elseif ($currentObj == 'FAM') {
                 if ($tag == 'HUSB') {
@@ -132,5 +159,120 @@ class GedcomController extends Controller
         }
 
         return redirect()->route('gedcom.index')->with('success', 'File GEDCOM berhasil diimpor!');
+    }
+
+    private function parseGedcomBirthDate(string $rawDate): ?array
+    {
+        $normalized = strtoupper(trim(preg_replace('/\s+/', ' ', $rawDate)));
+        $monthMap = [
+            'JAN' => '01',
+            'FEB' => '02',
+            'MAR' => '03',
+            'APR' => '04',
+            'MAY' => '05',
+            'JUN' => '06',
+            'JUL' => '07',
+            'AUG' => '08',
+            'SEP' => '09',
+            'OCT' => '10',
+            'NOV' => '11',
+            'DEC' => '12',
+        ];
+
+        if (preg_match('/^(\d{1,2}) ([A-Z]{3}) (\d{4})$/', $normalized, $matches)) {
+            $month = $monthMap[$matches[2]] ?? null;
+            if (!$month) {
+                return null;
+            }
+
+            $day = str_pad($matches[1], 2, '0', STR_PAD_LEFT);
+            $year = $matches[3];
+
+            return [
+                'dob' => $year.'-'.$month.'-'.$day,
+                'yob' => $this->normalizeYearForColumn($year),
+            ];
+        }
+
+        if (preg_match('/^\d{4}$/', $normalized)) {
+            return [
+                'dob' => null,
+                'yob' => $this->normalizeYearForColumn($normalized),
+            ];
+        }
+
+        if (preg_match('/(\d{4})$/', $normalized, $matches)) {
+            return [
+                'dob' => null,
+                'yob' => $this->normalizeYearForColumn($matches[1]),
+            ];
+        }
+
+        return null;
+    }
+
+    private function parseGedcomDeathDate(string $rawDate): ?array
+    {
+        $normalized = strtoupper(trim(preg_replace('/\s+/', ' ', $rawDate)));
+
+        if (preg_match('/^(BEF|AFT|ABT|EST|CAL|BET|FROM|TO)\b/', $normalized)) {
+            return [
+                'dod' => null,
+                'yod' => null,
+            ];
+        }
+
+        $monthMap = [
+            'JAN' => '01',
+            'FEB' => '02',
+            'MAR' => '03',
+            'APR' => '04',
+            'MAY' => '05',
+            'JUN' => '06',
+            'JUL' => '07',
+            'AUG' => '08',
+            'SEP' => '09',
+            'OCT' => '10',
+            'NOV' => '11',
+            'DEC' => '12',
+        ];
+
+        if (preg_match('/^(\d{1,2}) ([A-Z]{3}) (\d{4})$/', $normalized, $matches)) {
+            $month = $monthMap[$matches[2]] ?? null;
+            if (!$month) {
+                return null;
+            }
+
+            $day = str_pad($matches[1], 2, '0', STR_PAD_LEFT);
+            $year = $matches[3];
+
+            return [
+                'dod' => $year.'-'.$month.'-'.$day,
+                'yod' => $this->normalizeYearForColumn($year),
+            ];
+        }
+
+        if (preg_match('/^\d{4}$/', $normalized)) {
+            return [
+                'dod' => null,
+                'yod' => $this->normalizeYearForColumn($normalized),
+            ];
+        }
+
+        return [
+            'dod' => null,
+            'yod' => null,
+        ];
+    }
+
+    private function normalizeYearForColumn(string $year): ?string
+    {
+        $yearInt = (int) $year;
+
+        if ($yearInt < 1901 || $yearInt > 2155) {
+            return null;
+        }
+
+        return (string) $yearInt;
     }
 }

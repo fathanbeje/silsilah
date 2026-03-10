@@ -232,7 +232,19 @@ class UsersController extends Controller
      */
     private function getPersonList(int $genderId)
     {
-        return User::where('gender_id', $genderId)->pluck('nickname', 'id');
+        return User::query()
+            ->where('gender_id', $genderId)
+            ->orderBy('nickname')
+            ->get(['id', 'nickname', 'name'])
+            ->mapWithKeys(function (User $user) {
+                $label = $user->nickname;
+
+                if ($user->name && $user->name !== $user->nickname) {
+                    $label .= ' - '.$user->name;
+                }
+
+                return [$user->id => $label];
+            });
     }
 
     /**
