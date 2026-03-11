@@ -84,6 +84,10 @@ class FamilyViewBuilder
 
         return [
             'user' => $user,
+            'node_id' => $user->id,
+            'node_depth' => $depth,
+            'has_children' => $children->isNotEmpty(),
+            'default_expanded' => $depth === 1,
             'spouse_labels' => $this->partnerCandidates($user)->values(),
             'children' => $children,
         ];

@@ -98,9 +98,10 @@
             var branch = entry.querySelector(':scope > [data-tree-branch]');
             var card = entry.querySelector(':scope > [data-tree-card] [data-tree-box]');
             if (!branch || !card) return;
+            if (branch.hidden || window.getComputedStyle(branch).display === 'none') return;
 
             var childEntries = Array.prototype.filter.call(branch.children, function (child) {
-                return child.hasAttribute('data-tree-entry');
+                return child.hasAttribute('data-tree-entry') && window.getComputedStyle(child).display !== 'none';
             });
 
             if (!childEntries.length) return;
@@ -170,6 +171,48 @@
                 renderTreeConnectors();
             });
         }
+
+        function setExpanded(entry, expanded) {
+            var branch = entry.querySelector(':scope > [data-tree-branch]');
+            var box = entry.querySelector(':scope > [data-tree-card] [data-tree-box]');
+
+            if (!branch || !box || entry.classList.contains('entry-root')) return;
+
+            entry.setAttribute('data-expanded', expanded ? 'true' : 'false');
+            branch.hidden = !expanded;
+
+            if (box.hasAttribute('aria-expanded')) {
+                box.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+            }
+
+            queueRender();
+        }
+
+        function toggleEntry(entry) {
+            if (!entry || entry.getAttribute('data-has-children') !== 'true') return;
+            if (entry.classList.contains('entry-root')) return;
+
+            setExpanded(entry, entry.getAttribute('data-expanded') !== 'true');
+        }
+
+        wrapper.addEventListener('click', function (event) {
+            if (event.target.closest('a')) return;
+
+            var toggleBox = event.target.closest('[data-tree-toggle]');
+            if (!toggleBox) return;
+
+            toggleEntry(toggleBox.closest('[data-tree-entry]'));
+        });
+
+        wrapper.addEventListener('keydown', function (event) {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+
+            var toggleBox = event.target.closest('[data-tree-toggle]');
+            if (!toggleBox) return;
+
+            event.preventDefault();
+            toggleEntry(toggleBox.closest('[data-tree-entry]'));
+        });
 
         window.addEventListener('load', queueRender);
         window.addEventListener('resize', queueRender);
