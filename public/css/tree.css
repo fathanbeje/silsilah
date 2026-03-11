@@ -129,6 +129,7 @@ body {
     width: var(--tree-node-width);
     transform: translateY(-50%);
     text-align: center;
+    z-index: 2;
 }
 
 .tree-node-box {
@@ -186,6 +187,38 @@ body {
 
 .tree-summary-strip {
     padding-bottom: 20px;
+}
+
+.tree-connectors {
+    position: absolute;
+    inset: 0;
+    overflow: visible;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.tree-connector-outline,
+.tree-connector {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.tree-connector-outline {
+    stroke: rgba(255, 255, 255, 0.88);
+    stroke-width: 5.5;
+}
+
+.tree-connector {
+    stroke: var(--tree-line-color);
+    stroke-width: 2.2;
+}
+
+.tree-diagram--enhanced .branch:before,
+.tree-diagram--enhanced .branch:after,
+.tree-diagram--enhanced .entry:before,
+.tree-diagram--enhanced .entry:after {
+    display: none;
 }
 
 @media (max-width: 991px) {
