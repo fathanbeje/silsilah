@@ -5,6 +5,14 @@
 @section('content')
 <h3 class="page-header">Deploy Sync</h3>
 
+@if (session('success'))
+    <div class="alert alert-success" style="white-space: pre-wrap;">{{ session('success') }}</div>
+@endif
+
+@if (session('error'))
+    <div class="alert alert-danger" style="white-space: pre-wrap;">{{ session('error') }}</div>
+@endif
+
 <div class="row">
     <div class="col-md-6">
         <div class="panel panel-default">
