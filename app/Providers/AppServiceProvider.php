@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -18,6 +19,8 @@ class AppServiceProvider extends ServiceProvider
         // Only force HTTPS when the deployment explicitly enables it.
         if ($this->app->environment() === 'production' && env('APP_FORCE_HTTPS', false)) {
             $this->app['request']->server->set('HTTPS', true);
+            URL::forceRootUrl(config('app.url'));
+            URL::forceScheme('https');
         }
 
         \Validator::extend('current_password', function ($attribute, $value, $parameters, $validator) {

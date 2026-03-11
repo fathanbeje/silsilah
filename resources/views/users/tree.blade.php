@@ -107,5 +107,5 @@ $udhegTotal = 0;
 @endsection
 
 @section ('ext_css')
-<link rel="stylesheet" href="{{ asset('css/tree.css') }}">
+<link rel="stylesheet" href="{{ secure_asset('css/tree.css') }}">
 @endsection

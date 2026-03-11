@@ -16,13 +16,13 @@
 @endsection
 
 @section ('ext_css')
-<link rel="stylesheet" href="{{ asset('css/plugins/select2.min.css') }}">
-<link rel="stylesheet" href="{{ asset('css/plugins/jquery.datetimepicker.css') }}">
+<link rel="stylesheet" href="{{ secure_asset('css/plugins/select2.min.css') }}">
+<link rel="stylesheet" href="{{ secure_asset('css/plugins/jquery.datetimepicker.css') }}">
 @endsection
 
 @section ('ext_js')
-<script src="{{ asset('js/plugins/select2.min.js') }}"></script>
-<script src="{{ asset('js/plugins/jquery.datetimepicker.js') }}"></script>
+<script src="{{ secure_asset('js/plugins/select2.min.js') }}"></script>
+<script src="{{ secure_asset('js/plugins/jquery.datetimepicker.js') }}"></script>
 @endsection
 
 @section ('script')

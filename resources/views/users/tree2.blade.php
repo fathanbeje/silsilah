@@ -53,5 +53,5 @@
 @endsection
 
 @section ('ext_css')
-<link rel="stylesheet" href="{{ asset('css/tree2.css') }}">
+<link rel="stylesheet" href="{{ secure_asset('css/tree2.css') }}">
 @endsection
