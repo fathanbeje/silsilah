@@ -19,8 +19,8 @@ class AppServiceProvider extends ServiceProvider
     {
         require_once app_path() . '/Helpers/functions.php';
 
-        // Only force HTTPS when the deployment explicitly enables it.
-        if ($this->app->environment() === 'production' && env('APP_FORCE_HTTPS', false)) {
+        // Let each deployment decide via APP_FORCE_HTTPS, regardless of APP_ENV.
+        if (env('APP_FORCE_HTTPS', false)) {
             $this->app['request']->server->set('HTTPS', true);
             URL::forceRootUrl(config('app.url'));
             URL::forceScheme('https');
