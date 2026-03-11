@@ -53,6 +53,7 @@
         var svg = null;
         var renderQueued = false;
         var resizeObserver = null;
+        var connectorPalette = ['#b7cde0', '#bed8cf', '#c8d2e8', '#d1d9c9', '#d8cde3', '#d4dde8'];
 
         function ensureSvg() {
             if (svg) return svg;
@@ -79,14 +80,21 @@
             };
         }
 
-        function createPath(d, className) {
+        function connectorColor(depth) {
+            return connectorPalette[Math.max(0, depth - 1) % connectorPalette.length];
+        }
+
+        function createPath(d, className, stroke) {
             var path = document.createElementNS(NS, 'path');
             path.setAttribute('d', d);
             path.setAttribute('class', className);
+            if (stroke) {
+                path.setAttribute('stroke', stroke);
+            }
             return path;
         }
 
-        function renderBranch(entry) {
+        function renderBranch(entry, depth) {
             var branch = entry.querySelector(':scope > [data-tree-branch]');
             var card = entry.querySelector(':scope > [data-tree-card] [data-tree-box]');
             if (!branch || !card) return;
@@ -117,19 +125,20 @@
             var maxY = Math.max.apply(null, childRects.map(function (item) {
                 return item.rect.centerY;
             }));
+            var stroke = connectorColor(depth);
 
             svg.appendChild(createPath('M ' + parentX + ' ' + parentY + ' L ' + spineX + ' ' + parentY, 'tree-connector-outline'));
-            svg.appendChild(createPath('M ' + parentX + ' ' + parentY + ' L ' + spineX + ' ' + parentY, 'tree-connector'));
+            svg.appendChild(createPath('M ' + parentX + ' ' + parentY + ' L ' + spineX + ' ' + parentY, 'tree-connector', stroke));
 
             if (childRects.length > 1) {
                 svg.appendChild(createPath('M ' + spineX + ' ' + minY + ' L ' + spineX + ' ' + maxY, 'tree-connector-outline'));
-                svg.appendChild(createPath('M ' + spineX + ' ' + minY + ' L ' + spineX + ' ' + maxY, 'tree-connector'));
+                svg.appendChild(createPath('M ' + spineX + ' ' + minY + ' L ' + spineX + ' ' + maxY, 'tree-connector', stroke));
             }
 
             childRects.forEach(function (item) {
                 svg.appendChild(createPath('M ' + spineX + ' ' + item.rect.centerY + ' L ' + item.rect.left + ' ' + item.rect.centerY, 'tree-connector-outline'));
-                svg.appendChild(createPath('M ' + spineX + ' ' + item.rect.centerY + ' L ' + item.rect.left + ' ' + item.rect.centerY, 'tree-connector'));
-                renderBranch(item.entry);
+                svg.appendChild(createPath('M ' + spineX + ' ' + item.rect.centerY + ' L ' + item.rect.left + ' ' + item.rect.centerY, 'tree-connector', stroke));
+                renderBranch(item.entry, depth + 1);
             });
         }
 
@@ -147,7 +156,7 @@
 
             Array.prototype.forEach.call(wrapper.children, function (child) {
                 if (child.hasAttribute && child.hasAttribute('data-tree-entry')) {
-                    renderBranch(child);
+                    renderBranch(child, 1);
                 }
             });
         }

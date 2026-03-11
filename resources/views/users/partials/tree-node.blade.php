@@ -1,7 +1,7 @@
 @php
     $displaySpouseLabels = $node['spouse_labels'];
     $supportRowCount = $displaySpouseLabels->count();
-    $entryMinHeight = max(78, 58 + ($supportRowCount * 24));
+    $entryMinHeight = max(64, 50 + ($supportRowCount * 18));
 @endphp
 
 <div class="entry {{ $node['children']->count() === 1 ? 'sole' : '' }} {{ !empty($isRoot) ? 'entry-root' : '' }}" data-tree-entry style="min-height: {{ $entryMinHeight }}px;">

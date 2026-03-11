@@ -31,7 +31,7 @@ body {
     position: relative;
     display: inline-block;
     min-width: 100%;
-    padding: 8px 24px 18px 12px;
+    padding: 4px 24px 8px 12px;
     background: var(--tree-bg);
     border-radius: 28px;
 }
@@ -40,7 +40,7 @@ body {
     overflow-x: auto;
     overflow-y: hidden;
     margin: 6px -5px 16px;
-    padding: 12px 5px 18px;
+    padding: 8px 5px 10px;
     background: var(--tree-bg);
     border-radius: 28px;
 }
@@ -48,7 +48,7 @@ body {
 .branch {
     position: relative;
     margin-left: var(--tree-branch-offset);
-    padding: 6px 0;
+    padding: 2px 0;
 }
 
 .branch:before {
@@ -76,7 +76,7 @@ body {
 
 .entry {
     position: relative;
-    min-height: 74px;
+    min-height: 64px;
 }
 
 .entry:before {
@@ -134,21 +134,21 @@ body {
 
 .tree-node-box {
     width: 100%;
-    padding: 11px 14px 12px;
-    border-radius: 20px;
+    padding: 9px 12px 10px;
+    border-radius: 18px;
     border: 1px solid #c1d4e6;
     background:
         radial-gradient(circle at top left, rgba(255, 255, 255, 0.95), transparent 35%),
         linear-gradient(180deg, #ffffff, #f2f7fb);
     box-shadow:
-        0 16px 34px rgba(27, 54, 78, 0.09),
+        0 12px 24px rgba(27, 54, 78, 0.08),
         inset 0 1px 0 rgba(255, 255, 255, 0.94);
 }
 
 .tree-node-box__primary {
     color: #21415d;
     font-weight: 700;
-    line-height: 1.4;
+    line-height: 1.35;
     letter-spacing: 0.01em;
 }
 
@@ -159,9 +159,9 @@ body {
 .tree-node-box__spouses {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    margin-top: 8px;
-    padding-top: 8px;
+    gap: 3px;
+    margin-top: 6px;
+    padding-top: 6px;
     border-top: 1px solid var(--tree-line-color-soft);
 }
 
@@ -171,8 +171,8 @@ body {
     justify-content: center;
     gap: 6px;
     color: #176087;
-    font-size: 11px;
-    line-height: 1.45;
+    font-size: 10px;
+    line-height: 1.35;
     font-weight: 600;
 }
 
@@ -186,7 +186,7 @@ body {
 }
 
 .tree-summary-strip {
-    padding-bottom: 20px;
+    padding-bottom: 12px;
 }
 
 .tree-connectors {
@@ -232,7 +232,7 @@ body {
     }
 
     .entry {
-        min-height: 74px;
+        min-height: 64px;
     }
 }
 
