@@ -1,7 +1,7 @@
 @php
     $hasOriginFamily = !empty($node['origin_family']) && (!empty($node['origin_family']['spouse']) || !empty($node['origin_family']['is_unmapped']));
     $supportRowCount = $node['spouse_labels']->count() + ($hasOriginFamily ? 1 : 0);
-    $entryMinHeight = max(118, 96 + ($supportRowCount * 38));
+    $entryMinHeight = max(126, 96 + ($supportRowCount * 42));
 @endphp
 
 <div class="entry {{ $node['children']->count() === 1 ? 'sole' : '' }} {{ !empty($isRoot) ? 'entry-root' : '' }}" style="min-height: {{ $entryMinHeight }}px;">
@@ -11,7 +11,7 @@
         <div class="tree-node-card__supporting">
             @if ($hasOriginFamily)
             <div class="tree-node-card__origin">
-                {{ trans('app.family_branch_origin') }}
+                <span class="tree-node-card__origin-prefix">{{ trans('app.family_branch_origin') }}</span>
                 @if (!empty($node['origin_family']['spouse']))
                     {{ $node['origin_family']['spouse']->name }}
                 @else
