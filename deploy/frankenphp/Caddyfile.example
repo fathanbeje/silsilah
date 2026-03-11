@@ -33,15 +33,11 @@
     php_server {
         worker {
             file /www/wwwroot/bani-syamsuri.eu.org/worker/entry.php
-            num {$APP_WORKER_NUM}
-            env APP_ENABLE_WORKER {$APP_ENABLE_WORKER}
-            env APP_WORKER_MAX_REQUESTS {$APP_WORKER_MAX_REQUESTS}
-            env APP_WORKER_GC_EVERY {$APP_WORKER_GC_EVERY}
-            env APP_WORKER_HEALTH_PATH {$APP_WORKER_HEALTH_PATH}
-            env APP_ENV {$APP_ENV}
-            env APP_DEBUG {$APP_DEBUG}
-            env APP_URL {$APP_URL}
-            env APP_FORCE_HTTPS {$APP_FORCE_HTTPS}
+            num 4
+            env APP_ENABLE_WORKER 1
+            env APP_WORKER_MAX_REQUESTS 500
+            env APP_WORKER_GC_EVERY 1
+            env APP_WORKER_HEALTH_PATH /_franken/health
         }
     }
 
