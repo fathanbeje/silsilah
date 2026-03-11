@@ -14,6 +14,7 @@ use App\Http\Controllers\UserEditRequestsController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\GedcomController;
 use App\Http\Controllers\DeploySyncController;
+use App\Http\Controllers\DomainFamilyScopesController;
 use App\Http\Controllers\RegistrationRequestsController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -35,14 +36,14 @@ Route::controller(UsersController::class)->group(function () {
     Route::get('/', 'search')->name('users.search');
     Route::get('profile-search', 'search')->name('users.search.page');
     Route::get('profile-search/autocomplete', 'autocomplete')->name('users.autocomplete');
-    Route::get('users/{user}/chart', 'chart')->name('users.chart');
+    Route::get('users/{user}/chart', 'chart')->middleware('family.scope')->name('users.chart');
 });
 
-Route::post('users/{user}/claim-registration', [ClaimRegistrationController::class, 'store'])->name('claim-registration.store');
-Route::post('users/{user}/registration-requests', [RegistrationRequestsController::class, 'store'])->name('registration-requests.store');
+Route::post('users/{user}/claim-registration', [ClaimRegistrationController::class, 'store'])->middleware('family.scope')->name('claim-registration.store');
+Route::post('users/{user}/registration-requests', [RegistrationRequestsController::class, 'store'])->middleware('family.scope')->name('registration-requests.store');
 Route::middleware('guest')->group(function () {
-    Route::get('users/{user}/edit-requests/create', [PublicUserEditRequestsController::class, 'create'])->name('user-edit-requests.create');
-    Route::post('users/{user}/edit-requests', [PublicUserEditRequestsController::class, 'store'])->name('user-edit-requests.store');
+    Route::get('users/{user}/edit-requests/create', [PublicUserEditRequestsController::class, 'create'])->middleware('family.scope')->name('user-edit-requests.create');
+    Route::post('users/{user}/edit-requests', [PublicUserEditRequestsController::class, 'store'])->middleware('family.scope')->name('user-edit-requests.store');
 });
 
 Route::middleware('auth')->group(function () {
@@ -115,6 +116,8 @@ Route::group(['middleware' => ['auth', 'admin']], function () {
         Route::get('deploy-sync', 'index')->name('deploy-sync.index');
         Route::post('deploy-sync/run', 'run')->name('deploy-sync.run');
     });
+
+    Route::resource('domain-family-scopes', DomainFamilyScopesController::class)->except(['show']);
 
     Route::controller(RegistrationRequestsController::class)->group(function () {
         Route::get('registration-requests', 'index')->name('registration-requests.index');

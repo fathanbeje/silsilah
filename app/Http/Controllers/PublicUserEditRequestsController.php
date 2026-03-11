@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\CemeteryLocationOptions;
+use App\Services\FamilyScopeResolver;
 use App\User;
 use App\UserEditRequest;
 use Illuminate\Http\Request;
@@ -15,13 +16,17 @@ use Ramsey\Uuid\Uuid;
 
 class PublicUserEditRequestsController extends Controller
 {
-    public function __construct(private CemeteryLocationOptions $cemeteryLocationOptions)
+    public function __construct(
+        private CemeteryLocationOptions $cemeteryLocationOptions,
+        private FamilyScopeResolver $familyScopeResolver
+    )
     {
         $this->middleware('guest');
     }
 
     public function create(User $user)
     {
+        $this->abortIfUserOutsideScope($user);
         $user->loadMissing(['couples', 'metadata']);
 
         return view('user-edit-requests.partials.public-form', [
@@ -38,6 +43,8 @@ class PublicUserEditRequestsController extends Controller
 
     public function store(Request $request, User $user)
     {
+        $this->abortIfUserOutsideScope($user);
+
         $validator = Validator::make($request->all(), [
             'requester_name' => 'required|string|max:255',
             'requester_whatsapp' => 'required|string|max:50',
@@ -317,5 +324,16 @@ class PublicUserEditRequestsController extends Controller
         }
 
         return back()->withErrors($errors)->withInput();
+    }
+
+    private function abortIfUserOutsideScope(User $user): void
+    {
+        if (!$this->familyScopeResolver->hasActiveScope()) {
+            return;
+        }
+
+        if (!$this->familyScopeResolver->isVisibleUser($user)) {
+            abort(404);
+        }
     }
 }

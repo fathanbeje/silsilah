@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\RegistrationRequest;
+use App\Services\FamilyScopeResolver;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
 class RegistrationRequestsController extends Controller
 {
-    public function __construct()
+    public function __construct(private FamilyScopeResolver $familyScopeResolver)
     {
         $this->middleware('guest')->only('store');
         $this->middleware(['auth', 'admin'])->except('store');
@@ -27,6 +28,8 @@ class RegistrationRequestsController extends Controller
 
     public function store(Request $request, User $user)
     {
+        $this->abortIfUserOutsideScope($user);
+
         if ($user->email) {
             return back()->withErrors([
                 'request_email' => trans('auth.claim_unavailable'),
@@ -71,5 +74,16 @@ class RegistrationRequestsController extends Controller
         ]);
 
         return back()->with('status', trans('auth.registration_request_updated'));
+    }
+
+    private function abortIfUserOutsideScope(User $user): void
+    {
+        if (!$this->familyScopeResolver->hasActiveScope()) {
+            return;
+        }
+
+        if (!$this->familyScopeResolver->isVisibleUser($user)) {
+            abort(404);
+        }
     }
 }

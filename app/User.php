@@ -205,12 +205,16 @@ class User extends Authenticatable
 
     public function fatherLink()
     {
-        return $this->father_id ? link_to_route('users.show', $this->father->display_name, [$this->father_id]) : null;
+        $father = $this->relationLoaded('father') ? $this->getRelation('father') : $this->father;
+
+        return $father ? link_to_route('users.show', $father->display_name, [$father->id]) : null;
     }
 
     public function motherLink()
     {
-        return $this->mother_id ? link_to_route('users.show', $this->mother->display_name, [$this->mother_id]) : null;
+        $mother = $this->relationLoaded('mother') ? $this->getRelation('mother') : $this->mother;
+
+        return $mother ? link_to_route('users.show', $mother->display_name, [$mother->id]) : null;
     }
 
     public function wifes()

@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\RegistrationRequest;
+use App\Services\FamilyScopeResolver;
 use App\UserEditRequest;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Auth;
@@ -66,6 +67,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        $this->app->scoped(FamilyScopeResolver::class, function ($app) {
+            return new FamilyScopeResolver($app['request']);
+        });
     }
 }

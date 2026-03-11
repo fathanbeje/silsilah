@@ -6,6 +6,7 @@ use App\Couple;
 use App\Http\Requests\Users\UpdateRequest;
 use App\Jobs\Users\DeleteAndReplaceUser;
 use App\Services\CemeteryLocationOptions;
+use App\Services\FamilyScopeResolver;
 use App\Support\FamilyViewBuilder;
 use App\User;
 use App\UserMetadata;
@@ -20,7 +21,8 @@ class UsersController extends Controller
 {
     public function __construct(
         private FamilyViewBuilder $familyViewBuilder,
-        private CemeteryLocationOptions $cemeteryLocationOptions
+        private CemeteryLocationOptions $cemeteryLocationOptions,
+        private FamilyScopeResolver $familyScopeResolver
     )
     {
     }
@@ -36,10 +38,19 @@ class UsersController extends Controller
         $users = [];
 
         if ($q) {
-            $users = $this->searchUsersQuery($q)
+            $query = $this->searchUsersQuery($q);
+            $users = $this->familyScopeResolver->applyToUserQuery($query)
                 ->with('father', 'mother')
                 ->orderBy('name', 'asc')
                 ->paginate(24);
+
+            $users->setCollection(
+                $users->getCollection()->map(function (User $user) {
+                    $this->applyScopedRelationsToUser($user);
+
+                    return $user;
+                })
+            );
         }
 
         return view('users.search', compact('users'));
@@ -53,6 +64,20 @@ class UsersController extends Controller
      */
     public function show(User $user)
     {
+        $this->abortIfUserOutsideScope($user);
+        $user->load([
+            'father',
+            'mother',
+            'parent.husband',
+            'parent.wife',
+            'childs',
+            'wifes',
+            'husbands',
+            'couples',
+        ]);
+        $this->applyScopedRelationsToUser($user);
+        $siblings = $this->familyScopeResolver->filterUsers($user->siblings());
+
         $usersMariageList = $this->getUserMariageList($user);
         $allMariageList = $this->getAllMariageList();
         $malePersonList = $this->getPersonList(1);
@@ -64,6 +89,7 @@ class UsersController extends Controller
             'malePersonList' => $malePersonList,
             'femalePersonList' => $femalePersonList,
             'allMariageList' => $allMariageList,
+            'siblings' => $siblings,
         ]);
     }
 
@@ -75,9 +101,12 @@ class UsersController extends Controller
      */
     public function chart(User $user)
     {
+        $this->abortIfUserOutsideScope($user);
+
         $user = $this->familyViewBuilder->loadChartRelations($user);
-        $father = $user->father_id ? $user->father : null;
-        $mother = $user->mother_id ? $user->mother : null;
+        $this->applyScopedRelationsToUser($user);
+        $father = $user->father_id ? $this->scopedRelatedUser($user->father) : null;
+        $mother = $user->mother_id ? $this->scopedRelatedUser($user->mother) : null;
 
         $fatherGrandpa = $father && $father->father_id ? $father->father : null;
         $fatherGrandma = $father && $father->mother_id ? $father->mother : null;
@@ -89,7 +118,7 @@ class UsersController extends Controller
         $colspan = $childs->count();
         $colspan = $colspan < 4 ? 4 : $colspan;
 
-        $siblings = $user->siblings();
+        $siblings = $this->familyScopeResolver->filterUsers($user->siblings());
         $chartData = $this->familyViewBuilder->buildChartData($user);
 
         $publicView = true;
@@ -111,11 +140,17 @@ class UsersController extends Controller
             return response()->json([]);
         }
 
-        $users = $this->searchUsersQuery($q)
+        $query = $this->searchUsersQuery($q);
+        $users = $this->familyScopeResolver->applyToUserQuery($query)
             ->with('father', 'mother')
             ->orderBy('name', 'asc')
             ->limit(10)
             ->get()
+            ->map(function (User $user) {
+                $this->applyScopedRelationsToUser($user);
+
+                return $user;
+            })
             ->map(function (User $user) {
                 return [
                     'id' => $user->id,
@@ -142,6 +177,8 @@ class UsersController extends Controller
      */
     public function tree(User $user)
     {
+        $this->abortIfUserOutsideScope($user);
+
         $user = $this->familyViewBuilder->loadTreeRelations($user);
         $treeData = $this->familyViewBuilder->buildTreeData($user);
 
@@ -156,6 +193,8 @@ class UsersController extends Controller
      */
     public function death(User $user)
     {
+        $this->abortIfUserOutsideScope($user);
+
         $mapZoomLevel = config('leaflet.detail_zoom_level');
         $mapCenterLatitude = $user->getMetadata('cemetery_location_latitude');
         $mapCenterLongitude = $user->getMetadata('cemetery_location_longitude');
@@ -356,6 +395,85 @@ class UsersController extends Controller
             $query->where('name', 'like', '%'.$q.'%')
                 ->orWhere('nickname', 'like', '%'.$q.'%');
         });
+    }
+
+    private function abortIfUserOutsideScope(User $user): void
+    {
+        if (!$this->familyScopeResolver->hasActiveScope()) {
+            return;
+        }
+
+        if (auth()->check() && is_system_admin(auth()->user())) {
+            return;
+        }
+
+        if (!$this->familyScopeResolver->isVisibleUser($user)) {
+            abort(404);
+        }
+    }
+
+    private function applyScopedRelationsToUser(User $user): void
+    {
+        if (!$this->familyScopeResolver->hasActiveScope()) {
+            return;
+        }
+
+        if (auth()->check() && is_system_admin(auth()->user())) {
+            return;
+        }
+
+        if ($user->relationLoaded('father')) {
+            $user->setRelation('father', $this->scopedRelatedUser($user->father));
+        }
+
+        if ($user->relationLoaded('mother')) {
+            $user->setRelation('mother', $this->scopedRelatedUser($user->mother));
+        }
+
+        if ($user->relationLoaded('childs')) {
+            $user->setRelation('childs', $this->familyScopeResolver->filterUsers($user->childs));
+        }
+
+        if ($user->relationLoaded('parent')) {
+            $parent = $user->parent;
+            if ($parent) {
+                $husbandVisible = $parent->husband && $this->familyScopeResolver->isVisibleUser($parent->husband);
+                $wifeVisible = $parent->wife && $this->familyScopeResolver->isVisibleUser($parent->wife);
+
+                if (!$husbandVisible && !$wifeVisible) {
+                    $user->setRelation('parent', null);
+                } else {
+                    if (!$husbandVisible) {
+                        $parent->setRelation('husband', null);
+                    }
+
+                    if (!$wifeVisible) {
+                        $parent->setRelation('wife', null);
+                    }
+                }
+            }
+        }
+
+        if ($user->relationLoaded('wifes')) {
+            $user->setRelation('wifes', $this->familyScopeResolver->filterUsers($user->wifes));
+        }
+
+        if ($user->relationLoaded('husbands')) {
+            $user->setRelation('husbands', $this->familyScopeResolver->filterUsers($user->husbands));
+        }
+
+        if ($user->relationLoaded('couples')) {
+            $user->setRelation('couples', $this->familyScopeResolver->filterUsers($user->couples));
+        }
+    }
+
+    private function scopedRelatedUser(?User $user): ?User
+    {
+        if (!$user) {
+            return null;
+        }
+
+        return $this->familyScopeResolver->isVisibleUser($user) ? $user : null;
     }
 
     private function storeOptimizedSquarePhoto($uploadedPhoto)

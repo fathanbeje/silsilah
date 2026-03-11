@@ -2,12 +2,17 @@
 
 namespace App\Support;
 
+use App\Services\FamilyScopeResolver;
 use App\User;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 
 class FamilyViewBuilder
 {
+    public function __construct(private FamilyScopeResolver $familyScopeResolver)
+    {
+    }
+
     public function loadChartRelations(User $user): User
     {
         $user->loadMissing([
@@ -21,7 +26,7 @@ class FamilyViewBuilder
 
         $this->hydrateUserGraph(new EloquentCollection([$user]), 2);
 
-        $siblings = $user->siblings();
+        $siblings = $this->filterUsers($user->siblings());
         if ($siblings instanceof Collection && $siblings->isNotEmpty()) {
             $this->hydrateUserGraph(new EloquentCollection($siblings->all()), 2);
         }
@@ -32,7 +37,9 @@ class FamilyViewBuilder
     public function buildChartData(User $user): array
     {
         $rootFamily = $this->buildFamilyCard($user, true);
-        $siblings = $user->siblings() instanceof Collection ? $user->siblings() : collect($user->siblings());
+        $siblings = $user->siblings() instanceof Collection
+            ? $this->filterUsers($user->siblings())
+            : collect($user->siblings());
 
         return [
             'familyGroups' => $rootFamily['family_groups'],
@@ -64,7 +71,7 @@ class FamilyViewBuilder
     {
         return [
             'user' => $user,
-            'spouse_labels' => $this->partnerCandidates($user)->values(),
+            'spouse_labels' => $this->filterUsers($this->partnerCandidates($user))->values(),
             'family_groups' => $this->familyGroups($user, $includeFallbackGroup),
         ];
     }
@@ -88,7 +95,7 @@ class FamilyViewBuilder
             'node_depth' => $depth,
             'has_children' => $children->isNotEmpty(),
             'default_expanded' => $depth === 1,
-            'spouse_labels' => $this->partnerCandidates($user)->values(),
+            'spouse_labels' => $this->filterUsers($this->partnerCandidates($user))->values(),
             'children' => $children,
         ];
     }
@@ -99,7 +106,7 @@ class FamilyViewBuilder
             ? $user->getRelation('childs')
             : $user->childs;
 
-        return $children->sortBy(function (User $child) {
+        return $this->filterUsers($children)->sortBy(function (User $child) {
             return [$child->birth_order ?? 999, $child->name];
         })->values();
     }
@@ -133,7 +140,7 @@ class FamilyViewBuilder
             return;
         }
 
-        $children = User::query()
+        $childrenQuery = User::query()
             ->where(function ($query) use ($maleIds, $femaleIds) {
                 if ($maleIds->isNotEmpty()) {
                     $query->whereIn('father_id', $maleIds);
@@ -144,8 +151,9 @@ class FamilyViewBuilder
                     $query->{$method}('mother_id', $femaleIds);
                 }
             })
-            ->orderByRaw('COALESCE(birth_order, 999), name')
-            ->get();
+            ->orderByRaw('COALESCE(birth_order, 999), name');
+
+        $children = $this->familyScopeResolver->applyToUserQuery($childrenQuery)->get();
 
         $children->loadMissing(['father', 'mother', 'couples']);
 
@@ -165,7 +173,7 @@ class FamilyViewBuilder
 
     private function familyGroups(User $user, bool $includeFallbackGroup): Collection
     {
-        $groups = $this->partnerCandidates($user)->mapWithKeys(function (User $spouse) {
+        $groups = $this->filterUsers($this->partnerCandidates($user))->mapWithKeys(function (User $spouse) {
             return [$spouse->id => $this->emptyFamilyGroup($spouse, false)];
         });
 
@@ -217,7 +225,7 @@ class FamilyViewBuilder
     {
         return [
             'user' => $child,
-            'spouse_labels' => $this->partnerCandidates($child)->values(),
+            'spouse_labels' => $this->filterUsers($this->partnerCandidates($child))->values(),
             'grandchild_groups' => $this->familyGroups($child, false),
         ];
     }
@@ -226,21 +234,36 @@ class FamilyViewBuilder
     {
         $partners = collect();
 
-        foreach ($user->couples as $spouse) {
+        foreach ($this->filterUsers($user->couples) as $spouse) {
             if ($spouse && !$partners->has($spouse->id)) {
                 $partners->put($spouse->id, $spouse);
             }
         }
 
-        foreach ($user->childs as $child) {
+        foreach ($this->filterUsers($user->childs) as $child) {
             $partner = $user->gender_id == 1 ? $child->mother : $child->father;
 
-            if ($partner && !$partners->has($partner->id)) {
+            if ($partner && $this->familyScopeResolver->isVisibleUser($partner) && !$partners->has($partner->id)) {
                 $partners->put($partner->id, $partner);
             }
         }
 
         return $partners->sortBy('name');
+    }
+
+    private function filterUsers(Collection|EloquentCollection $users): Collection|EloquentCollection
+    {
+        if (!$this->familyScopeResolver->hasActiveScope()) {
+            return $users;
+        }
+
+        $filtered = $this->familyScopeResolver->filterUsers(collect($users));
+
+        if ($users instanceof EloquentCollection) {
+            return new EloquentCollection($filtered->all());
+        }
+
+        return $filtered;
     }
 
     private function emptyFamilyGroup(?User $spouse, bool $isUnmapped): array
