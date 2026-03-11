@@ -1,7 +1,7 @@
-# Plan: Dev & Deploy Silsilah di VPS dengan FrankenPHP
+# Plan: Dev & Deploy Silsilah di VPS dengan FrankenPHP Worker
 
 Dokumen ini menjelaskan cara deploy dan pengembangan langsung (`dev on VPS`) untuk
-aplikasi Laravel `silsilah`, menggunakan FrankenPHP sebagai server — **tanpa proses build**.
+aplikasi Laravel `silsilah`, menggunakan FrankenPHP worker sebagai server — **tanpa proses build**.
 
 ---
 
@@ -91,32 +91,41 @@ sudo chmod -R 775 /var/www/silsilah/bootstrap/cache
 
 ---
 
-## 2. Konfigurasi FrankenPHP (Caddyfile)
+## 2. Konfigurasi FrankenPHP Worker (Caddyfile)
 
-Tambahkan blok berikut ke Caddyfile yang sudah ada di VPS
-(biasanya di `/etc/frankenphp/Caddyfile`):
+Gunakan template repo berikut sebagai basis:
+
+- `deploy/frankenphp/Caddyfile.example`
+- `deploy/frankenphp/frankenphp-silsilah.service.example`
+
+Contoh blok aktif di VPS:
 
 ```caddyfile
-silsilah.mia02sgs.sch.id {
-    root * /var/www/silsilah/public
+:8092 {
+    root * /www/wwwroot/bani-syamsuri.eu.org/public
 
-    # FrankenPHP otomatis handle PHP + URL rewrite Laravel
-    php_server
-
-    # Log (opsional)
-    log {
-        output file /var/log/frankenphp/silsilah-access.log
+    php_server {
+        worker {
+            file /www/wwwroot/bani-syamsuri.eu.org/worker/entry.php
+            num {$APP_WORKER_NUM}
+            env APP_ENABLE_WORKER {$APP_ENABLE_WORKER}
+            env APP_WORKER_MAX_REQUESTS {$APP_WORKER_MAX_REQUESTS}
+            env APP_WORKER_GC_EVERY {$APP_WORKER_GC_EVERY}
+            env APP_WORKER_HEALTH_PATH {$APP_WORKER_HEALTH_PATH}
+        }
     }
 }
 ```
 
-> `php_server` sudah otomatis melakukan `try_files $uri $uri/ /index.php?$query_string`
-> — setara konfigurasi Nginx untuk Laravel, tidak perlu konfigurasi tambahan.
+`php_server` tetap menangani rewrite Laravel, tetapi request dinamis sekarang masuk ke
+worker `worker/entry.php` yang berjalan persisten di proses FrankenPHP.
 
-### Reload FrankenPHP setelah edit Caddyfile
+### Restart service setelah edit Caddyfile / systemd
 
 ```bash
-sudo systemctl reload frankenphp
+sudo systemctl daemon-reload
+sudo frankenphp validate --config /etc/frankenphp/Caddyfile-bani-silsilah
+sudo systemctl restart frankenphp-bani-silsilah
 ```
 
 ---
@@ -137,7 +146,9 @@ nano app/Http/Controllers/FamilyController.php
 # atau pakai editor lain (vim, dll)
 ```
 
-Buka browser → perubahan **langsung aktif**, tidak perlu restart apapun.
+Buka browser → perubahan PHP/Blade/route **langsung aktif** di request berikutnya.
+
+Untuk file worker (`worker/*.php`) atau config service/Caddyfile, restart service setelah perubahan.
 
 ### Update via Git (rekomendasi)
 
@@ -154,6 +165,7 @@ Setelah `git pull`, jalankan sesuai kebutuhan:
 | Ada package composer baru        | `composer install --no-dev`        |
 | Ada perubahan config/route       | `php artisan optimize`             |
 | Cache perlu dibersihkan          | `php artisan cache:clear`          |
+| Ada perubahan `worker/*.php`     | `systemctl restart frankenphp-bani-silsilah` |
 | Ada perubahan SCSS (jarang)      | `npm run prod` *(Node.js v14/16)*  |
 
 ---
@@ -161,7 +173,7 @@ Setelah `git pull`, jalankan sesuai kebutuhan:
 ## 4. Yang **Tidak** Perlu Dilakukan
 
 - ❌ `npm run build` — tidak wajib (kecuali edit SCSS)
-- ❌ Restart FrankenPHP — tidak perlu untuk perubahan PHP/Blade
+- ❌ Restart FrankenPHP untuk tiap edit PHP/Blade biasa
 - ❌ Upload artifact/dist — langsung edit source di VPS
 - ❌ Pipeline CI/CD — opsional, bukan keharusan
 
@@ -188,6 +200,7 @@ Cek endpoint berikut di browser:
 3. `https://silsilah.mia02sgs.sch.id/register` → form registrasi
 4. Login dengan akun admin → dashboard tampil normal
 5. Peta keluarga bisa dibuka dan diakses
+6. `https://syamsuri.bani.my.id/_franken/health` → JSON health worker
 
 ---
 
@@ -210,13 +223,14 @@ php artisan migrate:rollback
 
 ```
 VPS
-└── FrankenPHP (systemd service)
-    └── Caddyfile
-        └── silsilah.mia02sgs.sch.id → /var/www/silsilah/public
-            └── php_server (handle semua request Laravel)
+└── Nginx public :443
+    └── reverse proxy -> 127.0.0.1:8092
+        └── FrankenPHP worker service
+            └── /www/wwwroot/bani-syamsuri.eu.org/public
+                └── worker/entry.php
 
 Workflow dev:
-  Edit file di VPS → langsung live (no build, no restart)
+  Edit file di VPS → langsung live (no build)
   atau
   Edit lokal → git push → git pull di VPS → langsung live
 ```

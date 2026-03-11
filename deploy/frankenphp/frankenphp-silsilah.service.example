@@ -1,0 +1,38 @@
+[Unit]
+Description=FrankenPHP Silsilah Worker (bani-syamsuri.eu.org)
+After=network-online.target mariadb.service mysql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=frankenphp
+Group=frankenphp
+WorkingDirectory=/www/wwwroot/bani-syamsuri.eu.org
+
+Environment=APP_ENV=production
+Environment=APP_DEBUG=false
+Environment=APP_URL=https://syamsuri.bani.my.id
+Environment=APP_FORCE_HTTPS=true
+Environment=APP_ENABLE_WORKER=1
+Environment=APP_WORKER_NUM=4
+Environment=APP_WORKER_MAX_REQUESTS=500
+Environment=APP_WORKER_GC_EVERY=1
+Environment=APP_WORKER_HEALTH_PATH=/_franken/health
+Environment=HOME=/var/lib/frankenphp
+Environment=XDG_CONFIG_HOME=/var/lib/frankenphp/.config
+Environment=XDG_DATA_HOME=/var/lib/frankenphp/.local/share
+
+ExecStart=/usr/bin/env frankenphp run --config /etc/frankenphp/Caddyfile-bani-silsilah
+Restart=always
+RestartSec=3
+TimeoutStopSec=20
+KillSignal=SIGINT
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/var/lib/frankenphp /var/log/frankenphp /www/wwwroot/bani-syamsuri.eu.org/storage /www/wwwroot/bani-syamsuri.eu.org/bootstrap/cache
+
+[Install]
+WantedBy=multi-user.target

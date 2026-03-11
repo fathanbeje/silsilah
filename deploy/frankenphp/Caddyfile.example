@@ -1,0 +1,49 @@
+{
+    admin off
+    auto_https off
+    persist_config off
+
+    servers {
+        trusted_proxies static private_ranges
+    }
+}
+
+:8092 {
+    root * /www/wwwroot/bani-syamsuri.eu.org/public
+    encode zstd gzip
+
+    @blocked_methods method TRACE TRACK
+    respond @blocked_methods 405
+
+    @sensitive path_regexp sensitive (?i)(^|/)(?:\.env|\.git|\.htaccess|\.htpasswd|\.svn|\.DS_Store|composer\.json|composer\.lock|package\.json|package-lock\.json|yarn\.lock)|\.(sql|bak|old|backup|log)(?:\.|$)
+    respond @sensitive 404
+
+    @immutable_assets path *.css *.js *.mjs *.map *.woff *.woff2 *.ttf *.eot *.svg *.png *.jpg *.jpeg *.gif *.webp *.avif *.ico
+    header @immutable_assets Cache-Control "public, max-age=604800"
+
+    @storage_assets path /storage/*
+    header @storage_assets Cache-Control "public, max-age=86400"
+
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options SAMEORIGIN
+        Referrer-Policy strict-origin-when-cross-origin
+    }
+
+    php_server {
+        worker {
+            file /www/wwwroot/bani-syamsuri.eu.org/worker/entry.php
+            num {$APP_WORKER_NUM}
+            env APP_ENABLE_WORKER {$APP_ENABLE_WORKER}
+            env APP_WORKER_MAX_REQUESTS {$APP_WORKER_MAX_REQUESTS}
+            env APP_WORKER_GC_EVERY {$APP_WORKER_GC_EVERY}
+            env APP_WORKER_HEALTH_PATH {$APP_WORKER_HEALTH_PATH}
+            env APP_ENV {$APP_ENV}
+            env APP_DEBUG {$APP_DEBUG}
+            env APP_URL {$APP_URL}
+            env APP_FORCE_HTTPS {$APP_FORCE_HTTPS}
+        }
+    }
+
+    file_server
+}
