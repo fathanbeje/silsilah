@@ -45,6 +45,7 @@ return [
     'yob'      => 'Year of Birth',
     'dod'      => 'Date of Death',
     'yod'      => 'Year of Death',
+    'is_deceased' => 'Marked deceased',
     'email'    => 'Email',
     'password' => 'Password',
     'address'  => 'Address',
@@ -53,6 +54,7 @@ return [
     'manager'  => 'Manager',
 
     'cemetery_location' => 'Cemetary Location',
+    'select_existing_cemetery_location' => 'Select an existing cemetery location',
 
     // Photo
     'reupload_photo' => 'Re-upload Photo',

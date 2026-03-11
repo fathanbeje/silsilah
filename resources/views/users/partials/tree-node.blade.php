@@ -23,7 +23,7 @@
             @if ($hasChildren && !$isRootNode) data-tree-toggle="true" role="button" tabindex="0" aria-expanded="{{ $isExpanded ? 'true' : 'false' }}" @endif
         >
             <div class="tree-node-box__primary">
-                {{ link_to_route('users.tree', $node['user']->name, [$node['user']->id], ['title' => $node['user']->name.' ('.$node['user']->gender.')']) }}
+                {{ link_to_route('users.tree', $node['user']->display_name, [$node['user']->id], ['title' => $node['user']->display_name.' ('.$node['user']->gender.')']) }}
             </div>
             @if ($hasChildren && !$isRootNode)
             <span class="tree-node-box__toggle-indicator" aria-hidden="true"></span>
@@ -33,7 +33,7 @@
                 @foreach ($displaySpouseLabels as $spouseLabel)
                 <div class="tree-node-box__spouse">
                     <span class="tree-node-box__spouse-prefix">+</span>
-                    {{ link_to_route('users.tree', $spouseLabel->name, [$spouseLabel->id], ['title' => $spouseLabel->name.' ('.$spouseLabel->gender.')']) }}
+                    {{ link_to_route('users.tree', $spouseLabel->display_name, [$spouseLabel->id], ['title' => $spouseLabel->display_name.' ('.$spouseLabel->gender.')']) }}
                 </div>
                 @endforeach
             </div>

@@ -40,8 +40,10 @@ Route::controller(UsersController::class)->group(function () {
 
 Route::post('users/{user}/claim-registration', [ClaimRegistrationController::class, 'store'])->name('claim-registration.store');
 Route::post('users/{user}/registration-requests', [RegistrationRequestsController::class, 'store'])->name('registration-requests.store');
-Route::get('users/{user}/edit-requests/create', [PublicUserEditRequestsController::class, 'create'])->name('user-edit-requests.create');
-Route::post('users/{user}/edit-requests', [PublicUserEditRequestsController::class, 'store'])->name('user-edit-requests.store');
+Route::middleware('guest')->group(function () {
+    Route::get('users/{user}/edit-requests/create', [PublicUserEditRequestsController::class, 'create'])->name('user-edit-requests.create');
+    Route::post('users/{user}/edit-requests', [PublicUserEditRequestsController::class, 'store'])->name('user-edit-requests.store');
+});
 
 Route::middleware('auth')->group(function () {
     Route::controller(HomeController::class)->group(function () {

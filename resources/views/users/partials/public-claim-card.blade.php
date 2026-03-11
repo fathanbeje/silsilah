@@ -1,7 +1,7 @@
 <div class="panel panel-default">
     <div class="panel-heading">{{ trans('auth.claim_registration_title') }}</div>
     <div class="panel-body">
-        <p>{{ trans('auth.claim_registration_help', ['name' => $user->name]) }}</p>
+<p>{{ trans('auth.claim_registration_help', ['name' => $user->display_name]) }}</p>
 
         @if ($user->email)
         <div class="alert alert-info">

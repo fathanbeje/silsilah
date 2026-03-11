@@ -1,12 +1,12 @@
 <div class="panel panel-default">
-    <div class="panel-heading"><h3 class="panel-title">{{ __('user.delete') }} : {{ $user->name }}</h3></div>
+<div class="panel-heading"><h3 class="panel-title">{{ __('user.delete') }} : {{ $user->display_name }}</h3></div>
     <div class="panel-body">
         <table class="table table-condensed">
-            <tr><td>{{ __('user.name') }}</td><td>{{ $user->name }}</td></tr>
+<tr><td>{{ __('user.name') }}</td><td>{{ $user->display_name }}</td></tr>
             <tr><td>{{ __('user.nickname') }}</td><td>{{ $user->nickname }}</td></tr>
             <tr><td>{{ __('user.gender') }}</td><td>{{ $user->gender }}</td></tr>
-            <tr><td>{{ __('user.father') }}</td><td>{{ $user->father_id ? $user->father->name : '' }}</td></tr>
-            <tr><td>{{ __('user.mother') }}</td><td>{{ $user->mother_id ? $user->mother->name : '' }}</td></tr>
+<tr><td>{{ __('user.father') }}</td><td>{{ $user->father_id ? $user->father->display_name : '' }}</td></tr>
+<tr><td>{{ __('user.mother') }}</td><td>{{ $user->mother_id ? $user->mother->display_name : '' }}</td></tr>
             <tr><td>{{ __('user.childs_count') }}</td><td>{{ $childsCount = $user->childs()->count() }}</td></tr>
             <tr><td>{{ __('user.spouses_count') }}</td><td>{{ $spousesCount = $user->marriages()->count() }}</td></tr>
             <tr><td>{{ __('user.managed_user') }}</td><td>{{ $managedUserCount = $user->managedUsers()->count() }}</td></tr>

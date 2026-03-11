@@ -68,7 +68,7 @@
                 @forelse ($requests as $item)
                 <tr class="user-edit-review-row" data-detail-url="{{ route('user-edit-requests.show', $item) }}">
                     <td>
-                        <strong>{{ optional($item->targetUser)->name ?: '-' }}</strong>
+                        <strong>{{ optional($item->targetUser)->display_name ?: '-' }}</strong>
                         <div class="small text-muted">{{ optional($item->targetUser)->nickname ?: '-' }}</div>
                     </td>
                     <td>{{ implode(', ', $item->summaryParts()) ?: 'Perubahan umum' }}</td>
@@ -76,7 +76,7 @@
                     <td>{{ $item->requester_whatsapp }}</td>
                     <td><span class="label label-{{ $item->status === 'pending' ? 'warning' : ($item->status === 'approved' ? 'success' : 'default') }}">{{ strtoupper($item->status) }}</span></td>
                     <td>{{ optional($item->submitted_at ?: $item->created_at)->format('Y-m-d H:i') }}</td>
-                    <td>{{ optional($item->reviewer)->name ?: '-' }}</td>
+                    <td>{{ optional($item->reviewer)->display_name ?: '-' }}</td>
                 </tr>
                 @empty
                 <tr>

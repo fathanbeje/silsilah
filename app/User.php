@@ -43,6 +43,7 @@ class User extends Authenticatable
         'email', 'password',
         'address', 'phone',
         'dob', 'yob', 'dod', 'yod', 'city',
+        'is_deceased',
         'father_id', 'mother_id', 'parent_id',
     ];
 
@@ -57,15 +58,24 @@ class User extends Authenticatable
 
     protected $appends = [
         'gender',
+        'display_name',
     ];
 
     protected $casts = [
         'dob' => 'date',
         'dod' => 'date',
+        'is_deceased' => 'boolean',
         'couples.pivot.id'  => 'string',
         'wifes.pivot.id'    => 'string',
         'husbands.pivot.id' => 'string',
     ];
+
+    protected static function booted()
+    {
+        static::saving(function (self $user) {
+            $user->is_deceased = $user->normalizeDeceasedState();
+        });
+    }
 
     public static function normalizeUppercase($value)
     {
@@ -81,6 +91,47 @@ class User extends Authenticatable
     public function getGenderAttribute()
     {
         return $this->gender_id == 1 ? trans('app.male_code') : trans('app.female_code');
+    }
+
+    public function getDisplayNameAttribute()
+    {
+        return trim($this->deceasedPrefix().' '.$this->name);
+    }
+
+    public function deceasedPrefix(): string
+    {
+        if (! $this->isDeceased()) {
+            return '';
+        }
+
+        if ((int) $this->gender_id === 1) {
+            return 'Alm.';
+        }
+
+        if ((int) $this->gender_id === 2) {
+            return 'Almh.';
+        }
+
+        return '';
+    }
+
+    public function isDeceased(): bool
+    {
+        return (bool) $this->is_deceased || ! empty($this->dod) || ! empty($this->yod);
+    }
+
+    public function hasDeathInfo(): bool
+    {
+        return $this->isDeceased() || ! empty($this->dod) || ! empty($this->yod);
+    }
+
+    public function normalizeDeceasedState(): bool
+    {
+        if (! empty($this->dod) || ! empty($this->yod)) {
+            return true;
+        }
+
+        return (bool) $this->is_deceased;
     }
 
     public function setNameAttribute($value)
@@ -149,17 +200,17 @@ class User extends Authenticatable
     public function profileLink($type = 'profile')
     {
         $type = ($type == 'chart') ? 'chart' : 'show';
-        return link_to_route('users.'.$type, $this->name, [$this->id]);
+        return link_to_route('users.'.$type, $this->display_name, [$this->id]);
     }
 
     public function fatherLink()
     {
-        return $this->father_id ? link_to_route('users.show', $this->father->name, [$this->father_id]) : null;
+        return $this->father_id ? link_to_route('users.show', $this->father->display_name, [$this->father_id]) : null;
     }
 
     public function motherLink()
     {
-        return $this->mother_id ? link_to_route('users.show', $this->mother->name, [$this->mother_id]) : null;
+        return $this->mother_id ? link_to_route('users.show', $this->mother->display_name, [$this->mother_id]) : null;
     }
 
     public function wifes()
@@ -272,6 +323,10 @@ class User extends Authenticatable
         $ageDetail = null;
         $yearOnlySuffix = Carbon::now()->format('-m-d');
 
+        if ($this->isDeceased() && !$this->dod && !$this->yod) {
+            return null;
+        }
+
         if ($this->dob && !$this->dod) {
             $ageDetail = Carbon::parse($this->dob)->diffInYears();
         }
@@ -295,6 +350,10 @@ class User extends Authenticatable
     {
         $ageDetail = null;
         $yearOnlySuffix = Carbon::now()->format('-m-d');
+
+        if ($this->isDeceased() && !$this->dod && !$this->yod) {
+            return null;
+        }
 
         if ($this->dob && !$this->dod) {
             $ageDetail = Carbon::parse($this->dob)->timespan();
@@ -322,7 +381,7 @@ class User extends Authenticatable
 
     public function getBirthdayAttribute()
     {
-        if (!$this->dob) {
+        if (!$this->dob || $this->isDeceased()) {
             return;
         }
 
@@ -338,7 +397,7 @@ class User extends Authenticatable
 
     public function getBirthdayRemainingAttribute()
     {
-        if ($this->dob) {
+        if ($this->dob && !$this->isDeceased()) {
             return Carbon::now()->diffInDays($this->birthday, false);
         }
     }

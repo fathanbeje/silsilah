@@ -1,7 +1,7 @@
 <div class="user-edit-request-detail">
     <div class="user-edit-request-detail__meta">
         <div>
-            <strong>{{ optional($item->targetUser)->name ?: '-' }}</strong>
+            <strong>{{ optional($item->targetUser)->display_name ?: '-' }}</strong>
             <div class="text-muted">{{ optional($item->targetUser)->nickname ?: '-' }}</div>
         </div>
         <div class="text-right">

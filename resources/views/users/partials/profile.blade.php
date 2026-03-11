@@ -25,10 +25,10 @@
                 <th>{{ trans('user.birth_order') }}</th>
                 <td>{{ $user->birth_order }}</td>
             </tr>
-            @if ($user->dod)
+            @if ($user->hasDeathInfo())
             <tr>
                 <th>{{ trans('user.dod') }}</th>
-                <td>{{ $user->dod }}</td>
+                <td>{{ $user->dod ?: $user->yod ?: __('user.is_deceased') }}</td>
             </tr>
             @endif
             <tr>

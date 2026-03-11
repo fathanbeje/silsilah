@@ -9,7 +9,7 @@
     <div class="public-edit-request-form">
         <div class="public-edit-request-form__header">
             <div>
-                <h4 class="public-edit-request-form__title">{{ $user->name ?: $user->nickname }}</h4>
+                <h4 class="public-edit-request-form__title">{{ $user->display_name ?: $user->nickname }}</h4>
                 <div class="text-muted">Usulan perubahan akan ditinjau admin sebelum tampil di data live.</div>
             </div>
             <div class="public-edit-request-form__photo">
@@ -29,6 +29,7 @@
                             <div class="col-sm-6"><div class="form-group form-group-sm"><label>Urutan lahir</label><input type="number" min="1" name="birth_order" class="form-control" value="{{ old('birth_order', $user->birth_order) }}"></div></div>
                             <div class="col-sm-6"><div class="form-group form-group-sm"><label>Tanggal lahir</label><input type="date" name="dob" class="form-control" value="{{ old('dob', optional($user->dob)->format('Y-m-d')) }}"></div></div>
                             <div class="col-sm-6"><div class="form-group form-group-sm"><label>Tahun lahir</label><input type="text" name="yob" class="form-control" value="{{ old('yob', $user->yob) }}" placeholder="YYYY"></div></div>
+                            <div class="col-sm-12"><div class="checkbox" style="margin-top:0;"><label><input type="checkbox" name="is_deceased" value="1" @checked(old('is_deceased', $user->isDeceased()))> Sudah meninggal</label></div></div>
                             <div class="col-sm-6"><div class="form-group form-group-sm"><label>Tanggal wafat</label><input type="date" name="dod" class="form-control" value="{{ old('dod', optional($user->dod)->format('Y-m-d')) }}"></div></div>
                             <div class="col-sm-6"><div class="form-group form-group-sm"><label>Tahun wafat</label><input type="text" name="yod" class="form-control" value="{{ old('yod', $user->yod) }}" placeholder="YYYY"></div></div>
                             <div class="col-sm-12"><div class="form-group form-group-sm"><label>Email</label><input type="email" name="email" class="form-control" value="{{ old('email', $user->email) }}"></div></div>
@@ -53,6 +54,15 @@
                 <div class="panel panel-default">
                     <div class="panel-heading"><strong>Lokasi Makam</strong></div>
                     <div class="panel-body">
+                        <div class="form-group form-group-sm">
+                            <label>Pilih lokasi makam yang sudah ada</label>
+                            <select class="form-control js-cemetery-location-select">
+                                <option value="">Pilih lokasi makam yang sudah ada</option>
+                                @foreach ($cemeteryLocationOptions as $location)
+                                <option value="{{ $location['id'] }}" data-location="{{ e(json_encode($location)) }}">{{ $location['label'] }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                         <div class="form-group form-group-sm"><label>Nama lokasi makam</label><input type="text" name="cemetery_location_name" class="form-control" value="{{ old('cemetery_location_name', $user->getMetadata('cemetery_location_name')) }}"></div>
                         <div class="form-group form-group-sm"><label>Alamat makam</label><textarea name="cemetery_location_address" class="form-control" rows="2">{{ old('cemetery_location_address', $user->getMetadata('cemetery_location_address')) }}</textarea></div>
                         <div class="row">

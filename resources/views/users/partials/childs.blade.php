@@ -30,7 +30,7 @@
             </div>
             <div class="row">
                 <div class="col-md-8">
-                    {!! FormField::select('add_child_parent_id', $usersMariageList, ['label' => __('user.add_child_from_existing_couples', ['name' => $user->name]), 'placeholder' => __('app.unknown')]) !!}
+                    {!! FormField::select('add_child_parent_id', $usersMariageList, ['label' => __('user.add_child_from_existing_couples', ['name' => $user->display_name]), 'placeholder' => __('app.unknown')]) !!}
                 </div>
                 <div class="col-md-4">
                     {!! FormField::text('add_child_birth_order', ['label' => __('user.birth_order'), 'type' => 'number', 'min' => 1]) !!}

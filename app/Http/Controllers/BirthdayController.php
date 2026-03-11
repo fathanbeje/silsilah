@@ -19,6 +19,10 @@ class BirthdayController extends Controller
         $birthdayDateRaw = "concat(YEAR(CURDATE()), '-', RIGHT(dob, 5)) as birthday_date";
 
         $userBirthdayQuery = User::whereNotNull('dob')
+            ->where(function ($query) {
+                $query->whereNull('users.is_deceased')
+                    ->orWhere('users.is_deceased', false);
+            })
             ->select('users.name', 'users.dob', 'users.id as user_id', DB::raw($birthdayDateRaw))
             ->orderBy('birthday_date', 'asc')
             ->havingBetween('birthday_date', [today()->format('Y-m-d'), today()->addDays(60)->format('Y-m-d')]);

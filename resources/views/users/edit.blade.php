@@ -11,7 +11,7 @@
     @endcan
 @else
     <div class="pull-right">
-        {{ link_to_route('users.show', __('app.show_profile').' '.$user->name, [$user->id], ['class' => 'btn btn-default']) }}
+        {{ link_to_route('users.show', __('app.show_profile').' '.$user->display_name, [$user->id], ['class' => 'btn btn-default']) }}
     </div>
     <h2 class="page-header">
         {{ __('user.edit') }} {{ $user->profileLink() }}
@@ -90,6 +90,28 @@
 
         $('select').select2({
             matcher: matcher
+        });
+
+        var applyCemeteryLocation = function(payload) {
+            if (!payload) {
+                return;
+            }
+
+            $('#cemetery_location_name').val(payload.name || '');
+            $('#cemetery_location_address').val(payload.address || '');
+            $('#cemetery_location_latitude').val(payload.latitude || '');
+            $('#cemetery_location_longitude').val(payload.longitude || '');
+        };
+
+        $('.js-cemetery-location-select').on('change', function() {
+            var selected = this.options[this.selectedIndex];
+            var payload = selected && selected.dataset.location ? JSON.parse(selected.dataset.location) : null;
+            applyCemeteryLocation(payload);
+            @if (request('tab') == 'death')
+            if (payload) {
+                updateMarker($('#cemetery_location_latitude').val(), $('#cemetery_location_longitude').val());
+            }
+            @endif
         });
 
         $('#dob,#dod').datetimepicker({

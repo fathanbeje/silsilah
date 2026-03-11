@@ -2,7 +2,7 @@
 
 @section('content')
 <h2 class="page-header">
-     {{ $couple->husband->name }} &amp; {{ $couple->wife->name }} <small>{{ trans('couple.edit') }}</small>
+        {{ $couple->husband->display_name }} &amp; {{ $couple->wife->display_name }} <small>{{ trans('couple.edit') }}</small>
 </h2>
 
 @include('couples.partials.stat')

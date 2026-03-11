@@ -36,7 +36,7 @@
                 @else
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-                            {{ Auth::user()->name }}
+                                {{ Auth::user()->display_name }}
                             @if (!empty($pendingReviewCount))
                                 <span class="badge">{{ $pendingReviewCount }}</span>
                             @endif

@@ -67,7 +67,7 @@
                     @endcan
 
                     @if ($user->parent)
-                    {{ $user->parent->husband->name }} & {{ $user->parent->wife->name }}
+                    {{ $user->parent->husband->display_name }} & {{ $user->parent->wife->display_name }}
                     @endif
 
                     @can('edit', $user)

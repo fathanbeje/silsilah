@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\CemeteryLocationOptions;
 use App\User;
 use App\UserEditRequest;
 use Illuminate\Http\Request;
@@ -14,6 +15,11 @@ use Ramsey\Uuid\Uuid;
 
 class PublicUserEditRequestsController extends Controller
 {
+    public function __construct(private CemeteryLocationOptions $cemeteryLocationOptions)
+    {
+        $this->middleware('guest');
+    }
+
     public function create(User $user)
     {
         $user->loadMissing(['couples', 'metadata']);
@@ -23,9 +29,10 @@ class PublicUserEditRequestsController extends Controller
             'existingSpouseOptions' => $user->couples->map(function (User $spouse) {
                 return [
                     'value' => 'existing:'.$spouse->pivot->id,
-                    'label' => $spouse->name,
+                    'label' => $spouse->display_name,
                 ];
             })->values(),
+            'cemeteryLocationOptions' => $this->cemeteryLocationOptions->all(),
         ]);
     }
 
@@ -37,6 +44,7 @@ class PublicUserEditRequestsController extends Controller
             'name' => 'nullable|string|max:255',
             'nickname' => 'required|string|max:255',
             'gender_id' => 'required|in:1,2',
+            'is_deceased' => 'nullable|boolean',
             'birth_order' => 'nullable|numeric|min:1',
             'dob' => 'nullable|date|date_format:Y-m-d',
             'yob' => 'nullable|date_format:Y',
@@ -73,6 +81,7 @@ class PublicUserEditRequestsController extends Controller
         }
 
         $validated = $validator->validated();
+        $validated['is_deceased'] = !empty($validated['dod']) || !empty($validated['yod']) || !empty($validated['is_deceased']);
 
         $user->loadMissing(['metadata', 'couples']);
 
@@ -136,6 +145,7 @@ class PublicUserEditRequestsController extends Controller
             'yob',
             'dod',
             'yod',
+            'is_deceased',
             'phone',
             'address',
             'city',
@@ -254,6 +264,10 @@ class PublicUserEditRequestsController extends Controller
 
         if (in_array($field, ['gender_id', 'birth_order'], true)) {
             return $value === null ? null : (int) $value;
+        }
+
+        if ($field === 'is_deceased') {
+            return !empty($value);
         }
 
         if (in_array($field, ['yob', 'yod'], true)) {

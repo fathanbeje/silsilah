@@ -38,11 +38,11 @@
                 @endif
             </div>
             <div class="panel-body">
-                <h3 class="panel-title">{{ link_to_route('users.chart', $user->name, [$user->id]) }} ({{ $user->gender }})</h3>
+                <h3 class="panel-title">{{ link_to_route('users.chart', $user->display_name, [$user->id]) }} ({{ $user->gender }})</h3>
                 <div>{{ trans('user.nickname') }} : {{ $user->nickname }}</div>
                 <hr style="margin: 5px 0;">
-                <div>{{ trans('user.father') }} : {{ $user->father_id ? $user->father->name : '' }}</div>
-                <div>{{ trans('user.mother') }} : {{ $user->mother_id ? $user->mother->name : '' }}</div>
+                <div>{{ trans('user.father') }} : {{ $user->father_id ? $user->father->display_name : '' }}</div>
+                <div>{{ trans('user.mother') }} : {{ $user->mother_id ? $user->mother->display_name : '' }}</div>
             </div>
             <div class="panel-footer">
                 {{ link_to_route('users.chart', trans('app.show_family_chart'), [$user->id], ['class' => 'btn btn-default btn-xs']) }}

@@ -29,6 +29,7 @@ class UpdateRequest extends FormRequest
             'nickname'    => 'sometimes|required|string|max:255',
             'name'        => 'sometimes|required|string|max:255',
             'gender_id'   => 'sometimes|required|numeric',
+            'is_deceased' => 'nullable|boolean',
             'dob'         => 'nullable|date|date_format:Y-m-d',
             'yob'         => 'nullable|date_format:Y',
             'dod'         => 'nullable|date|date_format:Y-m-d',
@@ -61,6 +62,7 @@ class UpdateRequest extends FormRequest
 
         $formData['yod'] = $this->getYod($formData);
         $formData['yob'] = $this->getYob($formData);
+        $formData['is_deceased'] = $this->getIsDeceased($formData);
 
         if (isset($formData['password']) && $formData['password']) {
             $formData['password'] = bcrypt($formData['password']);
@@ -95,5 +97,14 @@ class UpdateRequest extends FormRequest
         }
 
         return;
+    }
+
+    private function getIsDeceased($formData)
+    {
+        if (!empty($formData['dod']) || !empty($formData['yod'])) {
+            return true;
+        }
+
+        return !empty($formData['is_deceased']);
     }
 }

@@ -60,7 +60,7 @@
                                 @foreach ($family['children'] as $index => $child)
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
-                                        <td>{{ $child->name }}</td>
+                            <td>{{ $child->display_name }}</td>
                                         <td>
                                             <input
                                                 type="number"

@@ -195,8 +195,8 @@ class FamilyViewBuilder
 
         $groups = $groups->values()->map(function (array $group) use ($user) {
             $group['label'] = $group['spouse']
-                ? $user->name.' & '.$group['spouse']->name
-                : $user->name;
+                ? $user->display_name.' & '.$group['spouse']->display_name
+                : $user->display_name;
 
             return $group;
         });
@@ -204,7 +204,7 @@ class FamilyViewBuilder
         if ($fallbackGroup['children']->isNotEmpty() || (!$hasMappedChildren && $groups->isEmpty())) {
             $fallbackGroup['label'] = $fallbackGroup['children']->isNotEmpty()
                 ? trans('app.family_branch_unmapped')
-                : $user->name;
+                : $user->display_name;
             $groups->push($fallbackGroup);
         }
 

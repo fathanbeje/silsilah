@@ -44,6 +44,7 @@ return [
     'yob'      => 'سال پیدائش',
     'dod'      => 'تاریخ وفات',
     'yod'      => 'سال وفات',
+    'is_deceased' => 'مرحوم/مرحومہ نشان زد',
     'email'    => 'ای میل',
     'password' => 'پاسورڈ',
     'address'  => 'پتہ',
@@ -52,6 +53,7 @@ return [
     'manager'  => 'مینیجر',
 
     'cemetery_location' => 'مقبرہ کا مقام',
+    'select_existing_cemetery_location' => 'پہلے سے موجود مقامِ قبر منتخب کریں',
 
     // Photo
     'reupload_photo' => 'تصویر دوبارہ اپ لوڈ کریں',

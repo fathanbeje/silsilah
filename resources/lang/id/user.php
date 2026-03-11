@@ -45,6 +45,7 @@ return [
     'yob'      => 'Tahun Lahir',
     'dod'      => 'Tanggal Meninggal',
     'yod'      => 'Tahun Meninggal',
+    'is_deceased' => 'Sudah meninggal',
     'email'    => 'Email',
     'password' => 'Password',
     'address'  => 'Alamat',
@@ -53,6 +54,7 @@ return [
     'manager'  => 'Pengelola',
 
     'cemetery_location' => 'Lokasi Makam',
+    'select_existing_cemetery_location' => 'Pilih lokasi makam yang sudah ada',
 
     // Photo
     'reupload_photo' => 'Upload ulang Foto',

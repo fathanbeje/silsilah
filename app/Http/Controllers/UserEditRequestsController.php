@@ -95,6 +95,7 @@ class UserEditRequestsController extends Controller
             'name' => 'Nama',
             'nickname' => 'Nama panggilan',
             'gender_id' => 'Jenis kelamin',
+            'is_deceased' => 'Sudah meninggal',
             'birth_order' => 'Urutan lahir',
             'dob' => 'Tanggal lahir',
             'yob' => 'Tahun lahir',
@@ -151,6 +152,10 @@ class UserEditRequestsController extends Controller
             return (int) $value === 1 ? 'Laki-laki' : 'Perempuan';
         }
 
+        if ($field === 'is_deceased') {
+            return $value ? 'Ya' : 'Tidak';
+        }
+
         return (string) $value;
     }
 
@@ -166,7 +171,7 @@ class UserEditRequestsController extends Controller
                 return $user->pivot->id === $coupleId;
             });
 
-            return $spouse ? 'Pasangan existing: '.$spouse->name : 'Pasangan existing';
+            return $spouse ? 'Pasangan existing: '.$spouse->display_name : 'Pasangan existing';
         }
 
         if (str_starts_with($context, 'new:')) {

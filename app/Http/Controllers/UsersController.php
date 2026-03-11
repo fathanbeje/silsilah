@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Couple;
 use App\Http\Requests\Users\UpdateRequest;
 use App\Jobs\Users\DeleteAndReplaceUser;
+use App\Services\CemeteryLocationOptions;
 use App\Support\FamilyViewBuilder;
 use App\User;
 use App\UserMetadata;
@@ -17,7 +18,10 @@ use Storage;
 
 class UsersController extends Controller
 {
-    public function __construct(private FamilyViewBuilder $familyViewBuilder)
+    public function __construct(
+        private FamilyViewBuilder $familyViewBuilder,
+        private CemeteryLocationOptions $cemeteryLocationOptions
+    )
     {
     }
 
@@ -89,12 +93,13 @@ class UsersController extends Controller
         $chartData = $this->familyViewBuilder->buildChartData($user);
 
         $publicView = true;
+        $allowPublicEditSuggestions = auth()->guest();
         $canClaim = !$user->email;
 
         return view('users.public-chart', compact(
             'user', 'childs', 'father', 'mother', 'fatherGrandpa',
             'fatherGrandma', 'motherGrandpa', 'motherGrandma',
-            'siblings', 'colspan', 'publicView', 'canClaim'
+            'siblings', 'colspan', 'publicView', 'allowPublicEditSuggestions', 'canClaim'
         ) + $chartData);
     }
 
@@ -114,13 +119,13 @@ class UsersController extends Controller
             ->map(function (User $user) {
                 return [
                     'id' => $user->id,
-                    'name' => $user->name,
+                    'name' => $user->display_name,
                     'nickname' => $user->nickname,
                     'gender' => $user->gender,
                     'chart_url' => route('users.chart', $user, false),
                     'parents' => trim(collect([
-                        $user->father ? trans('user.father').': '.$user->father->name : null,
-                        $user->mother ? trans('user.mother').': '.$user->mother->name : null,
+                        $user->father ? trans('user.father').': '.$user->father->display_name : null,
+                        $user->mother ? trans('user.mother').': '.$user->mother->display_name : null,
                     ])->filter()->implode(' | ')),
                 ];
             })
@@ -184,8 +189,16 @@ class UsersController extends Controller
         $mapCenterLatitude = $mapCenterLatitude ?: config('leaflet.map_center_latitude');
         $mapCenterLongitude = $mapCenterLongitude ?: config('leaflet.map_center_longitude');
 
-        return view('users.edit', compact(
-            'user', 'replacementUsers', 'validTabs', 'mapZoomLevel', 'mapCenterLatitude', 'mapCenterLongitude'
+        return view('users.edit', array_merge(
+            compact(
+                'user',
+                'replacementUsers',
+                'validTabs',
+                'mapZoomLevel',
+                'mapCenterLatitude',
+                'mapCenterLongitude'
+            ),
+            ['cemeteryLocationOptions' => $this->cemeteryLocationOptions->all()]
         ));
     }
 
@@ -280,8 +293,8 @@ class UsersController extends Controller
             ->mapWithKeys(function (User $user) {
                 $label = $user->nickname;
 
-                if ($user->name && $user->name !== $user->nickname) {
-                    $label .= ' - '.$user->name;
+                if ($user->display_name && $user->display_name !== $user->nickname) {
+                    $label .= ' - '.$user->display_name;
                 }
 
                 return [$user->id => $label];
@@ -300,7 +313,7 @@ class UsersController extends Controller
         $usersMariageList = [];
 
         foreach ($user->couples as $spouse) {
-            $usersMariageList[$spouse->pivot->id] = $user->name.' & '.$spouse->name;
+            $usersMariageList[$spouse->pivot->id] = $user->display_name.' & '.$spouse->display_name;
         }
 
         return $usersMariageList;
@@ -316,7 +329,7 @@ class UsersController extends Controller
         $allMariageList = [];
 
         foreach (Couple::with('husband', 'wife')->get() as $couple) {
-            $allMariageList[$couple->id] = $couple->husband->name.' & '.$couple->wife->name;
+            $allMariageList[$couple->id] = $couple->husband->display_name.' & '.$couple->wife->display_name;
         }
 
         return $allMariageList;

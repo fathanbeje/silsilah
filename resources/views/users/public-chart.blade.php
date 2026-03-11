@@ -3,11 +3,14 @@
 @section('ext_css')
 <link rel="stylesheet" href="{{ secure_asset('css/family-display.css') }}">
 <link rel="stylesheet" href="{{ secure_asset('css/user-edit-requests.css') }}">
+@if ($allowPublicEditSuggestions)
+<link rel="stylesheet" href="{{ secure_asset('css/plugins/select2.min.css') }}">
+@endif
 @endsection
 
 @section('content')
 <h2 class="page-header">
-    {{ $user->name }} <small>{{ trans('app.family_chart') }}</small>
+    {{ $user->display_name }} <small>{{ trans('app.family_chart') }}</small>
 </h2>
 
 @if (session('status'))
@@ -16,6 +19,7 @@
 
 @include('users.partials.chart-content')
 
+@if ($allowPublicEditSuggestions)
 <div class="modal fade" id="public-edit-request-modal" tabindex="-1" role="dialog" aria-labelledby="public-edit-request-modal-label">
     <div class="modal-dialog modal-lg public-edit-request-modal" role="document">
         <div class="modal-content">
@@ -29,6 +33,7 @@
         </div>
     </div>
 </div>
+@endif
 
 @guest
     @include('users.partials.public-claim-card')
@@ -36,6 +41,8 @@
 @endsection
 
 @section('script')
+@if ($allowPublicEditSuggestions)
+<script src="{{ secure_asset('js/plugins/select2.min.js') }}"></script>
 <script>
     (function () {
         var modal = document.getElementById('public-edit-request-modal');
@@ -63,6 +70,32 @@
             var childList = form.querySelector('[data-child-list]');
             var spouseIndex = spouseList ? spouseList.children.length : 0;
             var childIndex = childList ? childList.children.length : 0;
+
+            function initializeSelectEnhancements() {
+                if (!window.jQuery || !window.jQuery.fn.select2) {
+                    return;
+                }
+
+                window.jQuery(form).find('.js-cemetery-location-select').select2({
+                    width: '100%',
+                    placeholder: 'Pilih lokasi makam yang sudah ada',
+                    allowClear: true
+                });
+            }
+
+            function applyCemeteryLocation(payload) {
+                var fields = {
+                    name: form.querySelector('[name="cemetery_location_name"]'),
+                    address: form.querySelector('[name="cemetery_location_address"]'),
+                    latitude: form.querySelector('[name="cemetery_location_latitude"]'),
+                    longitude: form.querySelector('[name="cemetery_location_longitude"]')
+                };
+
+                fields.name && (fields.name.value = payload && payload.name ? payload.name : '');
+                fields.address && (fields.address.value = payload && payload.address ? payload.address : '');
+                fields.latitude && (fields.latitude.value = payload && payload.latitude ? payload.latitude : '');
+                fields.longitude && (fields.longitude.value = payload && payload.longitude ? payload.longitude : '');
+            }
 
             function currentNewSpouses() {
                 return Array.prototype.slice.call(form.querySelectorAll('[data-spouse-item]')).map(function (item) {
@@ -181,6 +214,16 @@
                 }
             });
 
+            form.addEventListener('change', function (event) {
+                if (!event.target.matches('.js-cemetery-location-select')) {
+                    return;
+                }
+
+                var selected = event.target.options[event.target.selectedIndex];
+                var payload = selected && selected.dataset.location ? JSON.parse(selected.dataset.location) : null;
+                applyCemeteryLocation(payload);
+            });
+
             form.addEventListener('submit', function (event) {
                 event.preventDefault();
                 showErrors({});
@@ -223,6 +266,7 @@
             });
 
             syncChildSpouseOptions();
+            initializeSelectEnhancements();
         }
 
         document.addEventListener('click', function (event) {
@@ -251,4 +295,5 @@
         });
     })();
 </script>
+@endif
 @endsection

@@ -7,7 +7,7 @@
     </div>
 @endcan
 <h2 class="page-header">
-    {{ $couple->husband->name }} & {{ $couple->wife->name }} <small>{{ trans('couple.detail') }}</small>
+        {{ $couple->husband->display_name }} & {{ $couple->wife->display_name }} <small>{{ trans('couple.detail') }}</small>
 </h2>
 
 @include('couples.partials.stat')
