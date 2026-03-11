@@ -5,6 +5,16 @@
  * Project Author: Peiwen Lu (https://codepen.io/P233);
  */
 
+:root {
+    --tree-node-width: 208px;
+    --tree-branch-offset: 246px;
+    --tree-connector-width: 36px;
+    --tree-stem-offset: 30px;
+    --tree-line-width: 2px;
+    --tree-line-color: #b7cde0;
+    --tree-line-color-soft: #d9e5ef;
+}
+
 *, *:before, *:after {
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
@@ -32,24 +42,18 @@ body {
 
 .branch {
     position: relative;
-    margin-left: 246px;
+    margin-left: var(--tree-branch-offset);
+    padding: 6px 0;
 }
-/*.branch .lv3 {
-    margin-left: 150px;
-}
-.branch .lv4 {
-    margin-left: 150px;
-}
-#wrapper .branch .lv2 span.label {
-    width: 30px;
-}*/
+
 .branch:before {
     content: "";
-    width: 36px;
-    border-top: 2px solid #bfd0e0;
+    width: var(--tree-connector-width);
+    border-top: var(--tree-line-width) solid var(--tree-line-color);
     position: absolute;
-    left: -66px;
-    top: 24px;
+    left: calc(-1 * (var(--tree-connector-width) + var(--tree-stem-offset)));
+    top: 50%;
+    margin-top: calc(-1 * var(--tree-line-width) / 2);
 }
 
 .entry {
@@ -59,47 +63,49 @@ body {
 .entry:before {
     content: "";
     height: 100%;
-    border-left: 2px solid #bfd0e0;
+    border-left: var(--tree-line-width) solid var(--tree-line-color);
     position: absolute;
-    left: -30px;
+    left: calc(-1 * var(--tree-stem-offset));
 }
 .entry:after {
     content: "";
-    width: 36px;
-    border-top: 2px solid #bfd0e0;
+    width: var(--tree-connector-width);
+    border-top: var(--tree-line-width) solid var(--tree-line-color);
     position: absolute;
-    left: -30px;
-    top: 24px;
+    left: calc(-1 * var(--tree-stem-offset));
+    top: 50%;
+    margin-top: calc(-1 * var(--tree-line-width) / 2);
 }
 .entry:first-child:before {
     width: 10px;
-    height: calc(100% - 24px);
-    top: 24px;
-    border-radius: 10px 0 0 0;
+    height: 50%;
+    top: 50%;
+    margin-top: 0;
+    border-radius: 14px 0 0 0;
 }
 .entry:first-child:after {
-    height: 10px;
-    border-radius: 10px 0 0 0;
+    height: 14px;
+    border-radius: 14px 0 0 0;
 }
 .entry:last-child:before {
     width: 10px;
-    height: 24px;
-    border-radius: 0 0 0 10px;
+    height: 50%;
+    border-radius: 0 0 0 14px;
 }
 .entry:last-child:after {
-    height: 10px;
+    height: 14px;
     border-top: none;
-    border-bottom: 2px solid #bfd0e0;
-    border-radius: 0 0 0 10px;
-    margin-top: 0;
+    border-bottom: var(--tree-line-width) solid var(--tree-line-color);
+    border-radius: 0 0 0 14px;
+    margin-top: -12px;
 }
 .entry.sole:before {
     display: none;
 }
 .entry.sole:after {
-    width: 30px;
+    width: var(--tree-stem-offset);
     height: 0;
-    margin-top: 1px;
+    margin-top: calc(-1 * var(--tree-line-width) / 2);
     border-radius: 0;
 }
 
@@ -108,45 +114,33 @@ body {
     display: none;
 }
 
-#wrapper span.label {
-    display: block;
-    width: 100%;
-    overflow-x: hidden;
-    padding: 9px 12px;
-    line-height: 1.45;
-    text-align: center;
-    color: #21415d;
-    background: linear-gradient(180deg, #ffffff, #f4f8fb);
-    border: 1px solid #cbd8e5;
-    border-radius: 16px;
-    box-shadow: 0 14px 30px rgba(27, 54, 78, 0.1);
-    position: static;
-}
-
 .tree-node-card {
     position: absolute;
     left: 0;
-    top: 0;
-    width: 208px;
-    transform: none;
+    top: 50%;
+    width: var(--tree-node-width);
+    transform: translateY(-50%);
     text-align: center;
 }
 
 .tree-node-box {
     width: 100%;
-    padding: 10px 12px 12px;
-    border-radius: 18px;
-    border: 1px solid #cbd8e5;
-    background: linear-gradient(180deg, #ffffff, #f4f8fb);
+    padding: 11px 14px 12px;
+    border-radius: 20px;
+    border: 1px solid #c1d4e6;
+    background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.95), transparent 35%),
+        linear-gradient(180deg, #ffffff, #f2f7fb);
     box-shadow:
-        0 14px 30px rgba(27, 54, 78, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.92);
+        0 16px 34px rgba(27, 54, 78, 0.09),
+        inset 0 1px 0 rgba(255, 255, 255, 0.94);
 }
 
 .tree-node-box__primary {
     color: #21415d;
     font-weight: 700;
     line-height: 1.4;
+    letter-spacing: 0.01em;
 }
 
 .tree-node-box__primary a {
@@ -159,7 +153,7 @@ body {
     gap: 4px;
     margin-top: 8px;
     padding-top: 8px;
-    border-top: 1px solid rgba(191, 208, 224, 0.85);
+    border-top: 1px solid var(--tree-line-color-soft);
 }
 
 .tree-node-box__spouse {
@@ -187,12 +181,13 @@ body {
 }
 
 @media (max-width: 991px) {
-    .branch {
-        margin-left: 226px;
+    :root {
+        --tree-node-width: 188px;
+        --tree-branch-offset: 226px;
     }
 
-    .tree-node-card {
-        width: 188px;
+    .branch {
+        margin-left: var(--tree-branch-offset);
     }
 
     .entry {
