@@ -1,7 +1,7 @@
 @php
     $displaySpouseLabels = !empty($isRoot) ? $node['spouse_labels'] : collect();
     $supportRowCount = $displaySpouseLabels->count();
-    $entryMinHeight = max(126, 96 + ($supportRowCount * 42));
+    $entryMinHeight = max(74, 54 + ($supportRowCount * 46));
 @endphp
 
 <div class="entry {{ $node['children']->count() === 1 ? 'sole' : '' }} {{ !empty($isRoot) ? 'entry-root' : '' }}" style="min-height: {{ $entryMinHeight }}px;">

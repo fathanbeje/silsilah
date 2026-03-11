@@ -49,13 +49,12 @@ body {
     border-top: 2px solid #bfd0e0;
     position: absolute;
     left: -66px;
-    top: 50%;
-    margin-top: 1px;
+    top: 24px;
 }
 
 .entry {
     position: relative;
-    min-height: 118px;
+    min-height: 74px;
 }
 .entry:before {
     content: "";
@@ -70,14 +69,12 @@ body {
     border-top: 2px solid #bfd0e0;
     position: absolute;
     left: -30px;
-    top: 50%;
-    margin-top: 1px;
+    top: 24px;
 }
 .entry:first-child:before {
     width: 10px;
-    height: 50%;
-    top: 50%;
-    margin-top: 2px;
+    height: calc(100% - 24px);
+    top: 24px;
     border-radius: 10px 0 0 0;
 }
 .entry:first-child:after {
@@ -86,7 +83,7 @@ body {
 }
 .entry:last-child:before {
     width: 10px;
-    height: 50%;
+    height: 24px;
     border-radius: 0 0 0 10px;
 }
 .entry:last-child:after {
@@ -94,7 +91,7 @@ body {
     border-top: none;
     border-bottom: 2px solid #bfd0e0;
     border-radius: 0 0 0 10px;
-    margin-top: -9px;
+    margin-top: 0;
 }
 .entry.sole:before {
     display: none;
@@ -129,9 +126,9 @@ body {
 .tree-node-card {
     position: absolute;
     left: 0;
-    top: 50%;
+    top: 0;
     width: 208px;
-    transform: translateY(-50%);
+    transform: none;
     text-align: center;
 }
 
@@ -202,7 +199,7 @@ body {
     }
 
     .entry {
-        min-height: 126px;
+        min-height: 74px;
     }
 }
 
