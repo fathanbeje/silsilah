@@ -18,6 +18,7 @@ return [
     'grand_father' => 'Kakek',
     'nieces'       => 'Keponakan',
     'marriages'    => 'Pernikahan',
+    'spouse'       => 'Pasangan',
     'birth_order'  => 'Anak ke',
     'age'          => 'Usia',
     'age_years'    => 'tahun',

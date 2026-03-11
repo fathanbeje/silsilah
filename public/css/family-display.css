@@ -1,0 +1,89 @@
+.family-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.family-group {
+    margin-bottom: 20px;
+    padding: 14px 0;
+    border-bottom: 1px solid #e6e8ec;
+}
+
+.family-group:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.family-group__header {
+    margin-bottom: 12px;
+    font-size: 16px;
+    color: #2f4b68;
+}
+
+.family-member-card {
+    height: 100%;
+    margin-bottom: 16px;
+    padding: 12px;
+    background: #f8fafc;
+    border: 1px solid #dbe2ea;
+    border-radius: 10px;
+}
+
+.family-member-card__title {
+    margin-bottom: 8px;
+    color: #2f4b68;
+}
+
+.family-member-card__meta {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.family-chip {
+    display: inline-block;
+    margin: 2px 4px 2px 0;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #edf3f8;
+    color: #44607c;
+    font-size: 12px;
+}
+
+.family-chip a {
+    color: inherit;
+}
+
+.family-badge {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #d8ecff;
+    color: #2c5f8a;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.family-badge--warning {
+    background: #fff1c7;
+    color: #8a671d;
+}
+
+.grandchild-group {
+    margin-top: 10px;
+}
+
+.grandchild-group__title {
+    margin-bottom: 4px;
+    font-size: 12px;
+    color: #687789;
+}
+
+.grandchild-group__list {
+    margin: 0;
+    padding-left: 18px;
+}

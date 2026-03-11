@@ -18,6 +18,7 @@ return [
     'grand_father' => 'Grand Father',
     'nieces'       => 'Nieces',
     'marriages'    => 'Marriages',
+    'spouse'       => 'Spouse',
     'birth_order'  => 'Birth Order',
     'age'          => 'Age',
     'age_years'    => 'year|years',

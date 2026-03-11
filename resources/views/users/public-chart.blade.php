@@ -1,5 +1,9 @@
 @extends('layouts.app')
 
+@section('ext_css')
+<link rel="stylesheet" href="{{ secure_asset('css/family-display.css') }}">
+@endsection
+
 @section('content')
 <h2 class="page-header">
     {{ $user->name }} <small>{{ trans('app.family_chart') }}</small>

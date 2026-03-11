@@ -1,4 +1,12 @@
 <div class="panel panel-default table-responsive">
+    @if (!empty($rootSpouseLabels) && $rootSpouseLabels->isNotEmpty())
+    <div class="panel-body family-summary">
+        <strong>{{ trans('user.spouse') }}:</strong>
+        @foreach ($rootSpouseLabels as $spouseLabel)
+        <span class="family-chip">{{ $spouseLabel->profileLink('chart') }} ({{ $spouseLabel->gender }})</span>
+        @endforeach
+    </div>
+    @endif
     <table class="table table-bordered table-striped">
         <tbody>
             <tr>
@@ -34,21 +42,59 @@
             <tr>
                 <th>{{ trans('user.childs') }} & {{ trans('user.grand_childs') }}</th>
                 <td colspan="4">
-                    <?php $no = 0; ?>
-                    @foreach($childs->chunk(4) as $chunkedChild)
-                    <div class="">
-                        @foreach($chunkedChild as $child)
-                        <div class="col-md-3">
-                            <h4><strong>{{ ++$no }}. {{ $child->profileLink('chart') }} ({{ $child->gender }})</strong></h4>
-                            <ul style="padding-left: 30px">
-                                @foreach($child->childs as $grand)
-                                <li>{{ $grand->profileLink('chart') }} ({{ $grand->gender }})</li>
-                                @endforeach
-                            </ul>
+                    @foreach ($familyGroups as $familyGroup)
+                    <div class="family-group">
+                        <div class="family-group__header">
+                            <strong>{{ $familyGroup['label'] }}</strong>
+                            @if ($familyGroup['is_unmapped'])
+                            <span class="family-badge family-badge--warning">{{ trans('app.family_branch_unmapped') }}</span>
+                            @endif
                         </div>
-                        @endforeach
-                        @if (! $loop->last)
-                        <div class="clearfix"></div><hr>
+
+                        @if ($familyGroup['children']->isEmpty())
+                        <div class="text-muted">{{ trans('app.childs_were_not_recorded') }}</div>
+                        @else
+                        <div class="row">
+                            @foreach ($familyGroup['children'] as $childCard)
+                            <div class="col-md-4 col-sm-6">
+                                <div class="family-member-card">
+                                    <div class="family-member-card__title">
+                                        <strong>{{ $childCard['user']->profileLink('chart') }} ({{ $childCard['user']->gender }})</strong>
+                                    </div>
+                                    @if ($childCard['spouse_labels']->isNotEmpty())
+                                    <div class="family-member-card__meta">
+                                        <span class="text-muted">{{ trans('user.spouse') }}:</span>
+                                        @foreach ($childCard['spouse_labels'] as $spouseLabel)
+                                        <span class="family-chip">{{ $spouseLabel->profileLink('chart') }} ({{ $spouseLabel->gender }})</span>
+                                        @endforeach
+                                    </div>
+                                    @endif
+
+                                    @if ($childCard['grandchild_groups']->isEmpty())
+                                    <div class="text-muted">{{ trans('app.childs_were_not_recorded') }}</div>
+                                    @else
+                                        @foreach ($childCard['grandchild_groups'] as $grandchildGroup)
+                                        <div class="grandchild-group">
+                                            @if ($grandchildGroup['spouse'])
+                                            <div class="grandchild-group__title">
+                                                {{ trans('user.spouse') }}:
+                                                <span class="family-chip">{{ $grandchildGroup['spouse']->profileLink('chart') }} ({{ $grandchildGroup['spouse']->gender }})</span>
+                                            </div>
+                                            @elseif ($grandchildGroup['is_unmapped'])
+                                            <div class="grandchild-group__title text-muted">{{ trans('app.family_branch_unmapped') }}</div>
+                                            @endif
+                                            <ul class="grandchild-group__list">
+                                                @foreach ($grandchildGroup['children'] as $grandchildCard)
+                                                <li>{{ $grandchildCard['user']->profileLink('chart') }} ({{ $grandchildCard['user']->gender }})</li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                        @endforeach
+                                    @endif
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
                         @endif
                     </div>
                     @endforeach
@@ -61,11 +107,11 @@
 <h4 class="page-header">
     {{ trans('user.siblings') }}, {{ trans('user.nieces') }}, & {{ trans('user.grand_childs') }}
 </h4>
-@foreach ($siblings->chunk(3) as $chunkedSiblings)
+@foreach ($siblingFamilyCards->chunk(3) as $chunkedSiblingCards)
 <div class="row">
-    @foreach ($chunkedSiblings as $sibling)
+    @foreach ($chunkedSiblingCards as $siblingCard)
     <div class="col-sm-4">
-        @include('users.partials.chart-sibling')
+        @include('users.partials.chart-sibling', ['siblingCard' => $siblingCard])
     </div>
     @endforeach
 </div>

@@ -52,4 +52,7 @@ return [
 
     'open_in_google_map' => 'Open in Google Map',
     'data_not_available' => 'Data not available.',
+    'family_branch_unmapped' => 'Family branch with unmapped spouse',
+    'family_branch_unmapped_short' => 'unmapped spouse',
+    'family_branch_origin' => 'From spouse:',
 ];

@@ -52,4 +52,7 @@ return [
 
     'open_in_google_map' => 'Buka di Google Map',
     'data_not_available' => 'Data tidak tersedia.',
+    'family_branch_unmapped' => 'Cabang keluarga dengan pasangan belum terpetakan',
+    'family_branch_unmapped_short' => 'pasangan belum terpetakan',
+    'family_branch_origin' => 'Dari pasangan:',
 ];

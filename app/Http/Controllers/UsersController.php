@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Couple;
 use App\Http\Requests\Users\UpdateRequest;
 use App\Jobs\Users\DeleteAndReplaceUser;
+use App\Support\FamilyViewBuilder;
 use App\User;
 use App\UserMetadata;
 use Illuminate\Http\Request;
@@ -16,6 +17,10 @@ use Storage;
 
 class UsersController extends Controller
 {
+    public function __construct(private FamilyViewBuilder $familyViewBuilder)
+    {
+    }
+
     /**
      * Search user by keyword.
      *
@@ -66,6 +71,7 @@ class UsersController extends Controller
      */
     public function chart(User $user)
     {
+        $user = $this->familyViewBuilder->loadChartRelations($user);
         $father = $user->father_id ? $user->father : null;
         $mother = $user->mother_id ? $user->mother : null;
 
@@ -80,6 +86,7 @@ class UsersController extends Controller
         $colspan = $colspan < 4 ? 4 : $colspan;
 
         $siblings = $user->siblings();
+        $chartData = $this->familyViewBuilder->buildChartData($user);
 
         $publicView = true;
         $canClaim = !$user->email;
@@ -88,7 +95,7 @@ class UsersController extends Controller
             'user', 'childs', 'father', 'mother', 'fatherGrandpa',
             'fatherGrandma', 'motherGrandpa', 'motherGrandma',
             'siblings', 'colspan', 'publicView', 'canClaim'
-        ));
+        ) + $chartData);
     }
 
     public function autocomplete(Request $request)
@@ -130,7 +137,10 @@ class UsersController extends Controller
      */
     public function tree(User $user)
     {
-        return view('users.tree', compact('user'));
+        $user = $this->familyViewBuilder->loadTreeRelations($user);
+        $treeData = $this->familyViewBuilder->buildTreeData($user);
+
+        return view('users.tree', compact('user') + $treeData);
     }
 
     /**

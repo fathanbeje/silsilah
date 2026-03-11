@@ -44,7 +44,7 @@ body {
 
 .entry {
     position: relative;
-    min-height: 30px;
+    min-height: 88px;
 }
 .entry:before {
     content: "";
@@ -95,6 +95,11 @@ body {
     border-radius: 0;
 }
 
+.entry.entry-root:before,
+.entry.entry-root:after {
+    display: none;
+}
+
 #wrapper span.label {
     display: block;
     font-size: 12px;
@@ -111,4 +116,36 @@ body {
     left: 0;
     top: 50%;
     margin-top: -10px;
+}
+
+.tree-node-card {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 190px;
+    transform: translateY(-50%);
+    text-align: center;
+}
+
+#wrapper .tree-node-card span.label {
+    position: static;
+    width: 100%;
+    margin-top: 0;
+}
+
+.tree-node-card__spouses,
+.tree-node-card__origin {
+    margin-top: 6px;
+}
+
+.tree-node-card__spouse,
+.tree-node-card__origin {
+    display: block;
+    font-size: 11px;
+    line-height: 1.35;
+    color: #75808f;
+}
+
+.tree-node-card__spouse a {
+    color: #75808f;
 }
