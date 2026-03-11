@@ -109,7 +109,7 @@ class UsersController extends Controller
                     'name' => $user->name,
                     'nickname' => $user->nickname,
                     'gender' => $user->gender,
-                    'chart_url' => route('users.chart', $user),
+                    'chart_url' => route('users.chart', $user, false),
                     'parents' => trim(collect([
                         $user->father ? trans('user.father').': '.$user->father->name : null,
                         $user->mother ? trans('user.mother').': '.$user->mother->name : null,
