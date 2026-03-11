@@ -24,7 +24,7 @@
     </div>
 
     @if ($node['children']->isNotEmpty())
-    <div class="branch lv{{ $level }}">
+    <div class="branch lv{{ $level }} {{ $node['children']->count() === 1 ? 'branch--single' : '' }}">
         @foreach ($node['children'] as $childNode)
             @include('users.partials.tree-node', ['node' => $childNode, 'level' => $level + 1, 'isRoot' => false])
         @endforeach

@@ -13,6 +13,7 @@
     --tree-line-width: 2px;
     --tree-line-color: #b7cde0;
     --tree-line-color-soft: #d9e5ef;
+    --tree-bg: #eef4f9;
 }
 
 *, *:before, *:after {
@@ -31,6 +32,8 @@ body {
     display: inline-block;
     min-width: 100%;
     padding: 8px 24px 18px 12px;
+    background: var(--tree-bg);
+    border-radius: 28px;
 }
 
 .tree-viewport {
@@ -38,6 +41,8 @@ body {
     overflow-y: hidden;
     margin: 6px -5px 16px;
     padding: 12px 5px 18px;
+    background: var(--tree-bg);
+    border-radius: 28px;
 }
 
 .branch {
@@ -56,18 +61,25 @@ body {
     margin-top: calc(-1 * var(--tree-line-width) / 2);
 }
 
+.branch:after {
+    content: "";
+    position: absolute;
+    left: calc(-1 * var(--tree-stem-offset));
+    top: 0;
+    bottom: 0;
+    border-left: var(--tree-line-width) solid var(--tree-line-color);
+}
+
+.branch--single:after {
+    display: none;
+}
+
 .entry {
     position: relative;
     min-height: 74px;
 }
+
 .entry:before {
-    content: "";
-    height: 100%;
-    border-left: var(--tree-line-width) solid var(--tree-line-color);
-    position: absolute;
-    left: calc(-1 * var(--tree-stem-offset));
-}
-.entry:after {
     content: "";
     width: var(--tree-connector-width);
     border-top: var(--tree-line-width) solid var(--tree-line-color);
@@ -76,37 +88,33 @@ body {
     top: 50%;
     margin-top: calc(-1 * var(--tree-line-width) / 2);
 }
-.entry:first-child:before {
-    width: 10px;
-    height: 50%;
-    top: 50%;
-    margin-top: 0;
-    border-radius: 14px 0 0 0;
-}
-.entry:first-child:after {
-    height: 14px;
-    border-radius: 14px 0 0 0;
-}
-.entry:last-child:before {
-    width: 10px;
-    height: 50%;
-    border-radius: 0 0 0 14px;
-}
+
+.entry:first-child:after,
 .entry:last-child:after {
-    height: 14px;
-    border-top: none;
-    border-bottom: var(--tree-line-width) solid var(--tree-line-color);
-    border-radius: 0 0 0 14px;
-    margin-top: -12px;
+    content: "";
+    position: absolute;
+    left: calc(-1 * var(--tree-stem-offset) - 8px);
+    width: calc(var(--tree-stem-offset) + 16px);
+    background: var(--tree-bg);
+    z-index: 1;
 }
+
+.entry:first-child:after {
+    top: 0;
+    height: 50%;
+}
+
+.entry:last-child:after {
+    bottom: 0;
+    height: 50%;
+}
+
 .entry.sole:before {
-    display: none;
-}
-.entry.sole:after {
     width: var(--tree-stem-offset);
-    height: 0;
-    margin-top: calc(-1 * var(--tree-line-width) / 2);
-    border-radius: 0;
+}
+
+.branch--single > .entry:after {
+    display: none;
 }
 
 .entry.entry-root:before,
