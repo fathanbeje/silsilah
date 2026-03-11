@@ -33,6 +33,7 @@
     php_server {
         worker {
             file /www/wwwroot/bani-syamsuri.eu.org/worker/entry.php
+            match /index.php
             num 4
             env APP_ENABLE_WORKER 1
             env APP_WORKER_MAX_REQUESTS 500
