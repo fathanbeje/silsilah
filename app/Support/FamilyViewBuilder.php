@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\User;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 
 class FamilyViewBuilder
@@ -16,28 +17,13 @@ class FamilyViewBuilder
             'father.mother',
             'mother.father',
             'mother.mother',
-            'couples',
-            'childs',
-            'childs.father',
-            'childs.mother',
-            'childs.couples',
-            'childs.childs',
-            'childs.childs.father',
-            'childs.childs.mother',
         ]);
+
+        $this->hydrateUserGraph(new EloquentCollection([$user]), 2);
 
         $siblings = $user->siblings();
         if ($siblings instanceof Collection && $siblings->isNotEmpty()) {
-            $siblings->loadMissing([
-                'couples',
-                'childs',
-                'childs.father',
-                'childs.mother',
-                'childs.couples',
-                'childs.childs',
-                'childs.childs.father',
-                'childs.childs.mother',
-            ]);
+            $this->hydrateUserGraph(new EloquentCollection($siblings->all()), 2);
         }
 
         return $user;
@@ -59,19 +45,7 @@ class FamilyViewBuilder
 
     public function loadTreeRelations(User $user, int $maxDepth = 6): User
     {
-        $relations = ['couples'];
-        $prefix = '';
-
-        for ($level = 0; $level < $maxDepth; $level++) {
-            $segment = $prefix.'childs';
-            $relations[] = $segment;
-            $relations[] = $segment.'.father';
-            $relations[] = $segment.'.mother';
-            $relations[] = $segment.'.couples';
-            $prefix = $segment.'.';
-        }
-
-        $user->loadMissing(array_values(array_unique($relations)));
+        $this->hydrateUserGraph(new EloquentCollection([$user]), $maxDepth - 1);
 
         return $user;
     }
@@ -117,9 +91,72 @@ class FamilyViewBuilder
 
     private function sortedChildren(User $user): Collection
     {
-        return $user->childs->sortBy(function (User $child) {
+        $children = $user->relationLoaded('childs')
+            ? $user->getRelation('childs')
+            : $user->childs;
+
+        return $children->sortBy(function (User $child) {
             return [$child->birth_order ?? 999, $child->name];
         })->values();
+    }
+
+    private function hydrateUserGraph(EloquentCollection $users, int $depth): void
+    {
+        $users = new EloquentCollection(
+            $users->filter()->unique('id')->values()->all()
+        );
+
+        if ($users->isEmpty()) {
+            return;
+        }
+
+        $users->loadMissing(['father', 'mother', 'couples']);
+
+        foreach ($users as $user) {
+            if (! $user->relationLoaded('childs')) {
+                $user->setRelation('childs', new EloquentCollection());
+            }
+        }
+
+        if ($depth <= 0) {
+            return;
+        }
+
+        $maleIds = $users->where('gender_id', 1)->pluck('id')->filter()->values();
+        $femaleIds = $users->where('gender_id', 2)->pluck('id')->filter()->values();
+
+        if ($maleIds->isEmpty() && $femaleIds->isEmpty()) {
+            return;
+        }
+
+        $children = User::query()
+            ->where(function ($query) use ($maleIds, $femaleIds) {
+                if ($maleIds->isNotEmpty()) {
+                    $query->whereIn('father_id', $maleIds);
+                }
+
+                if ($femaleIds->isNotEmpty()) {
+                    $method = $maleIds->isNotEmpty() ? 'orWhereIn' : 'whereIn';
+                    $query->{$method}('mother_id', $femaleIds);
+                }
+            })
+            ->orderByRaw('COALESCE(birth_order, 999), name')
+            ->get();
+
+        $children->loadMissing(['father', 'mother', 'couples']);
+
+        $childrenByFather = $children->groupBy('father_id');
+        $childrenByMother = $children->groupBy('mother_id');
+
+        foreach ($users as $user) {
+            $assignedChildren = $user->gender_id == 2
+                ? $childrenByMother->get($user->id, collect())
+                : $childrenByFather->get($user->id, collect());
+
+            $user->setRelation('childs', new EloquentCollection($assignedChildren->values()->all()));
+        }
+
+        $this->hydrateUserGraph(new EloquentCollection($children->all()), $depth - 1);
     }
 
     private function familyGroups(User $user, bool $includeFallbackGroup): Collection
