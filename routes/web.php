@@ -10,6 +10,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\UserMarriagesController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\GedcomController;
+use App\Http\Controllers\DeploySyncController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -94,5 +95,10 @@ Route::group(['middleware' => ['auth', 'admin']], function () {
     Route::controller(BirthOrderController::class)->group(function () {
         Route::get('birth-orders', 'index')->name('birth-orders.index');
         Route::post('birth-orders', 'update')->name('birth-orders.update');
+    });
+
+    Route::controller(DeploySyncController::class)->group(function () {
+        Route::get('deploy-sync', 'index')->name('deploy-sync.index');
+        Route::post('deploy-sync/run', 'run')->name('deploy-sync.run');
     });
 });

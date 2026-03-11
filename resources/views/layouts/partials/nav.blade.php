@@ -44,6 +44,7 @@
                             @if (is_system_admin(auth()->user()))
                                 <li><a href="{{ route('backups.index') }}">{{ __('backup.list') }}</a></li>
                                 <li><a href="{{ route('birth-orders.index') }}">{{ __('app.birth_order_management') }}</a></li>
+                                <li><a href="{{ route('deploy-sync.index') }}">Deploy Sync</a></li>
                             @endif
                             <li><a href="{{ route('profile') }}">{{ __('app.my_profile') }}</a></li>
                             <li><a href="{{ route('gedcom.index') }}">Import GEDCOM</a></li>
