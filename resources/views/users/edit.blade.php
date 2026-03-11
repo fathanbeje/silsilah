@@ -105,7 +105,17 @@
 
         $('.js-cemetery-location-select').on('change', function() {
             var selected = this.options[this.selectedIndex];
-            var payload = selected && selected.dataset.location ? JSON.parse(selected.dataset.location) : null;
+            var payload = selected ? {
+                name: selected.getAttribute('data-name') || '',
+                address: selected.getAttribute('data-address') || '',
+                latitude: selected.getAttribute('data-latitude') || '',
+                longitude: selected.getAttribute('data-longitude') || ''
+            } : null;
+
+            if (payload && !payload.name && !payload.address && !payload.latitude && !payload.longitude) {
+                payload = null;
+            }
+
             applyCemeteryLocation(payload);
             @if (request('tab') == 'death')
             if (payload) {

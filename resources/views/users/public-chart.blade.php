@@ -220,7 +220,17 @@
                 }
 
                 var selected = event.target.options[event.target.selectedIndex];
-                var payload = selected && selected.dataset.location ? JSON.parse(selected.dataset.location) : null;
+                var payload = selected ? {
+                    name: selected.getAttribute('data-name') || '',
+                    address: selected.getAttribute('data-address') || '',
+                    latitude: selected.getAttribute('data-latitude') || '',
+                    longitude: selected.getAttribute('data-longitude') || ''
+                } : null;
+
+                if (payload && !payload.name && !payload.address && !payload.latitude && !payload.longitude) {
+                    payload = null;
+                }
+
                 applyCemeteryLocation(payload);
             });
 

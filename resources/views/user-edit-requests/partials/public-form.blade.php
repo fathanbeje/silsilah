@@ -59,7 +59,13 @@
                             <select class="form-control js-cemetery-location-select">
                                 <option value="">Pilih lokasi makam yang sudah ada</option>
                                 @foreach ($cemeteryLocationOptions as $location)
-                                <option value="{{ $location['id'] }}" data-location="{{ e(json_encode($location)) }}">{{ $location['label'] }}</option>
+                                <option
+                                    value="{{ $location['id'] }}"
+                                    data-name="{{ e($location['name']) }}"
+                                    data-address="{{ e($location['address']) }}"
+                                    data-latitude="{{ e($location['latitude']) }}"
+                                    data-longitude="{{ e($location['longitude']) }}"
+                                >{{ $location['label'] }}</option>
                                 @endforeach
                             </select>
                         </div>
