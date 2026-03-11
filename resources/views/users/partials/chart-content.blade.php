@@ -1,7 +1,7 @@
-<div class="panel panel-default table-responsive">
+<div class="panel panel-default table-responsive family-chart-surface">
     @if (!empty($rootSpouseLabels) && $rootSpouseLabels->isNotEmpty())
     <div class="panel-body family-summary">
-        <strong>{{ trans('user.spouse') }}:</strong>
+        <span class="family-summary__label">{{ trans('user.spouse') }}</span>
         @foreach ($rootSpouseLabels as $spouseLabel)
         <span class="family-chip">{{ $spouseLabel->profileLink('chart') }} ({{ $spouseLabel->gender }})</span>
         @endforeach
@@ -104,11 +104,11 @@
     </table>
 </div>
 
-<h4 class="page-header">
+<h4 class="page-header family-section-title">
     {{ trans('user.siblings') }}, {{ trans('user.nieces') }}, & {{ trans('user.grand_childs') }}
 </h4>
 @foreach ($siblingFamilyCards->chunk(3) as $chunkedSiblingCards)
-<div class="row">
+<div class="row family-sibling-grid">
     @foreach ($chunkedSiblingCards as $siblingCard)
     <div class="col-sm-4">
         @include('users.partials.chart-sibling', ['siblingCard' => $siblingCard])

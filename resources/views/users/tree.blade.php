@@ -3,10 +3,12 @@
 @section('subtitle', trans('app.family_tree'))
 
 @section('user-content')
-<div id="wrapper">
-    @include('users.partials.tree-node', ['node' => $node, 'level' => 1, 'isRoot' => true])
+<div class="tree-viewport">
+    <div id="wrapper">
+        @include('users.partials.tree-node', ['node' => $node, 'level' => 1, 'isRoot' => true])
+    </div>
 </div>
-<div class="container">
+<div class="container tree-summary-strip">
 <hr>
 <div class="row">
     @if (!empty($generationCounts[1]))
