@@ -200,7 +200,7 @@ Cek endpoint berikut di browser:
 3. `https://silsilah.mia02sgs.sch.id/register` → form registrasi
 4. Login dengan akun admin → dashboard tampil normal
 5. Peta keluarga bisa dibuka dan diakses
-6. `https://syamsuri.bani.my.id/_franken/health` → JSON health worker
+6. `https://syamsuri.bani.my.id/?__worker_health=1` → JSON health worker
 
 ---
 

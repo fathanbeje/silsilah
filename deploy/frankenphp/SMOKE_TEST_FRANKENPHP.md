@@ -19,7 +19,7 @@ Expected:
 
 ```bash
 frankenphp validate --config /etc/frankenphp/Caddyfile-bani-silsilah
-curl -sS http://127.0.0.1:8092/_franken/health
+curl -sS "http://127.0.0.1:8092/?__worker_health=1"
 ```
 
 Expected:
@@ -42,6 +42,7 @@ Expected:
 - endpoint publik bukan `500`
 - login page `200`
 - autocomplete tetap memberi response valid
+- header `X-Silsilah-Worker: active` muncul di response dinamis
 
 ## 4. Smoke test domain publik
 
@@ -49,7 +50,7 @@ Expected:
 curl -I https://syamsuri.bani.my.id/
 curl -I https://syamsuri.bani.my.id/login
 curl -I https://syamsuri.bani.my.id/profile-search
-curl -sS https://syamsuri.bani.my.id/_franken/health
+curl -sS "https://syamsuri.bani.my.id/?__worker_health=1"
 ```
 
 Expected:
@@ -63,7 +64,7 @@ Expected:
 Jika `APP_WORKER_MAX_REQUESTS` aktif, panggil health endpoint beberapa kali dan cek apakah PID berubah setelah ambang tercapai.
 
 ```bash
-for i in $(seq 1 10); do curl -sS http://127.0.0.1:8092/_franken/health; echo; done
+for i in $(seq 1 10); do curl -sS "http://127.0.0.1:8092/?__worker_health=1"; echo; done
 ```
 
 Expected:

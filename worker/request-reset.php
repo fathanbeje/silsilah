@@ -9,6 +9,7 @@ final class SilsilahWorkerRuntime
     private static string $basePath = '';
     private static string $publicPath = '';
     private static string $healthPath = '/_franken/health';
+    private static string $healthQueryKey = '__worker_health';
 
     public static function bootstrap(string $basePath, string $publicPath): void
     {
@@ -86,7 +87,16 @@ final class SilsilahWorkerRuntime
     public static function isHealthRequest(): bool
     {
         $requestPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH);
-        return self::normalizePath((string) $requestPath) === self::$healthPath;
+        if (self::normalizePath((string) $requestPath) === self::$healthPath) {
+            return true;
+        }
+
+        if (isset($_GET[self::$healthQueryKey])) {
+            return true;
+        }
+
+        $queryString = (string) ($_SERVER['QUERY_STRING'] ?? '');
+        return strpos($queryString, self::$healthQueryKey . '=') !== false;
     }
 
     public static function healthPayload(): array
@@ -116,6 +126,7 @@ final class SilsilahWorkerRuntime
     public static function respondHealth(): void
     {
         http_response_code(200);
+        header('X-Silsilah-Worker: health');
         header('Content-Type: application/json; charset=UTF-8');
         echo json_encode(self::healthPayload(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }

@@ -14,6 +14,8 @@ $requestHandler = static function (): void {
     SilsilahWorkerRuntime::beforeRequest();
 
     try {
+        header('X-Silsilah-Worker: active');
+
         if (SilsilahWorkerRuntime::isHealthRequest()) {
             SilsilahWorkerRuntime::respondHealth();
             return;

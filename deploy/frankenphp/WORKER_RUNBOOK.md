@@ -41,8 +41,8 @@ systemctl status frankenphp-bani-silsilah --no-pager -l
 
 ## Cutover check
 
-1. Endpoint `http://127.0.0.1:8092/_franken/health` harus `200`.
-2. Domain publik `https://syamsuri.bani.my.id/_franken/health` harus `200`.
+1. Endpoint `http://127.0.0.1:8092/?__worker_health=1` harus `200`.
+2. Domain publik `https://syamsuri.bani.my.id/?__worker_health=1` harus `200`.
 3. Login, profile search, dan edit profile tidak boleh `500`.
 4. Upload foto dan akses file `storage/*` harus tetap normal.
 
