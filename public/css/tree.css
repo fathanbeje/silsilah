@@ -155,15 +155,13 @@ body {
     transform: translateX(-50%);
 }
 
-.tree-node-card__spouse,
-.tree-node-card__origin {
+.tree-node-card__spouse {
     display: block;
     font-size: 11px;
     line-height: 1.45;
     color: #5f7183;
 }
 
-.tree-node-card__origin,
 .tree-node-card__spouse a {
     display: block;
     width: 100%;
@@ -172,20 +170,6 @@ body {
     background: linear-gradient(180deg, #ffffff, #f4f8fb);
     border: 1px solid #cbd8e5;
     box-shadow: 0 8px 18px rgba(27, 54, 78, 0.08);
-}
-
-.tree-node-card__origin {
-    color: #8a671d;
-    font-weight: 700;
-    background: rgba(255, 248, 226, 0.98);
-    border-color: rgba(222, 199, 129, 0.9);
-    font-size: 10px;
-    letter-spacing: 0.01em;
-}
-
-.tree-node-card__origin-prefix {
-    color: rgba(122, 94, 26, 0.8);
-    font-weight: 600;
 }
 
 .tree-node-card__spouses {
