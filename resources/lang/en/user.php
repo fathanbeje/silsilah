@@ -56,7 +56,7 @@ return [
     // Photo
     'reupload_photo' => 'Re-upload Photo',
     'update_photo'   => 'Update Photo',
-    'upload_photo_notes' => 'Format jpg, max: 10MB.',
+    'upload_photo_notes' => 'Photo will be cropped square and compressed automatically to a maximum of 200 KB.',
 
     // Deletion confirm attributes
     'delete'                => 'Delete User',

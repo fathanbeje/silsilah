@@ -4,12 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Couple;
 use App\Http\Requests\Users\UpdateRequest;
-use App\Jobs\Images\OptimizeImages;
 use App\Jobs\Users\DeleteAndReplaceUser;
 use App\User;
 use App\UserMetadata;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
+use Intervention\Image\Laravel\Facades\Image;
 use Ramsey\Uuid\Uuid;
 use Storage;
 
@@ -247,10 +248,8 @@ class UsersController extends Controller
             Storage::delete($user->photo_path);
         }
 
-        $user->photo_path = $request->photo->store('images');
+        $user->photo_path = $this->storeOptimizedSquarePhoto($request->file('photo'));
         $user->save();
-
-        OptimizeImages::dispatch([$user->photo_path]);
 
         return back();
     }
@@ -334,5 +333,41 @@ class UsersController extends Controller
             $query->where('name', 'like', '%'.$q.'%')
                 ->orWhere('nickname', 'like', '%'.$q.'%');
         });
+    }
+
+    private function storeOptimizedSquarePhoto($uploadedPhoto)
+    {
+        $directory = storage_path('app/public/images');
+        if (!is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        $fileName = (string) Str::uuid().'.jpg';
+        $relativePath = 'images/'.$fileName;
+        $absolutePath = $directory.DIRECTORY_SEPARATOR.$fileName;
+
+        $canvasSize = 800;
+        $quality = 85;
+        $encoded = null;
+
+        do {
+            $processed = Image::read($uploadedPhoto->getRealPath())->cover($canvasSize, $canvasSize);
+            $encoded = $processed->toJpeg($quality);
+
+            if ($encoded->size() <= 200 * 1024) {
+                break;
+            }
+
+            if ($quality > 45) {
+                $quality -= 5;
+                continue;
+            }
+
+            $canvasSize -= 100;
+        } while ($canvasSize >= 300);
+
+        $encoded->save($absolutePath);
+
+        return $relativePath;
     }
 }

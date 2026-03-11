@@ -53,10 +53,10 @@ function userPhoto(User $user, $attributes = [])
 function userPhotoPath($photoPath, $genderId)
 {
     if (is_file(public_path('storage/'.$photoPath))) {
-        return asset('storage/'.$photoPath);
+        return secure_asset('storage/'.$photoPath);
     }
 
-    return asset('images/icon_user_'.$genderId.'.png');
+    return secure_asset('images/icon_user_'.$genderId.'.png');
 }
 
 function is_system_admin(User $user)

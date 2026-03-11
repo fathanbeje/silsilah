@@ -7,7 +7,7 @@
         {{ userPhoto($user, ['style' => 'width:100%;max-width:300px']) }}
     </div>
     <div class="panel-body">
-        {!! FormField::file('photo', ['required' => true, 'label' => __('user.reupload_photo'), 'info' => ['text' => __('user.upload_photo_notes'), 'class' => 'warning']]) !!}
+        {!! FormField::file('photo', ['required' => true, 'accept' => 'image/*', 'label' => __('user.reupload_photo'), 'info' => ['text' => __('user.upload_photo_notes'), 'class' => 'warning']]) !!}
     </div>
     <div class="panel-footer">
         {!! Form::submit(__('user.update_photo'), ['class' => 'btn btn-success']) !!}
@@ -35,49 +35,60 @@
                 reader.onload = function (readerEvent) {
                     var image = new Image();
                     image.onload = function () {
-                        var canvas = document.createElement('canvas'),
-                            max_size = 800,
-                            width = image.width,
-                            height = image.height;
+                        var canvas = document.createElement('canvas');
+                        var size = 800;
+                        var square = Math.min(image.width, image.height);
+                        var sx = (image.width - square) / 2;
+                        var sy = (image.height - square) / 2;
+                        var quality = 0.85;
+                        var dataUrl;
+                        var blob;
 
-                        if (width > height) {
-                            if (width > max_size) {
-                                height *= max_size / width;
-                                width = max_size;
+                        canvas.width = size;
+                        canvas.height = size;
+                        canvas.getContext('2d').drawImage(image, sx, sy, square, square, 0, 0, size, size);
+
+                        do {
+                            dataUrl = canvas.toDataURL('image/jpeg', quality);
+                            blob = dataURLToBlob(dataUrl);
+
+                            if (blob.size <= 200 * 1024 || quality <= 0.45) {
+                                break;
                             }
-                        } else {
-                            if (height > max_size) {
-                                width *= max_size / height;
-                                height = max_size;
-                            }
-                        }
 
-                        canvas.width = width;
-                        canvas.height = height;
-                        canvas.getContext('2d').drawImage(image, 0, 0, width, height);
+                            quality -= 0.05;
+                        } while (quality >= 0.45);
 
-                        var dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                        var compressedFile = new File([blob], file.name.replace(/\.[^.]+$/, '') + '.jpg', {
+                            type: 'image/jpeg',
+                            lastModified: Date.now()
+                        });
 
-                        fetch(dataUrl)
-                            .then(function (res) { return res.blob(); })
-                            .then(function (blob) {
-                                var compressedFile = new File([blob], file.name, {
-                                    type: 'image/jpeg',
-                                    lastModified: Date.now()
-                                });
+                        var dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(compressedFile);
+                        photoInput.files = dataTransfer.files;
 
-                                var dataTransfer = new DataTransfer();
-                                dataTransfer.items.add(compressedFile);
-                                photoInput.files = dataTransfer.files;
-
-                                submitBtn.disabled = false;
-                                submitBtn.value = originalText;
-                            });
+                        submitBtn.disabled = false;
+                        submitBtn.value = originalText;
                     }
                     image.src = readerEvent.target.result;
                 }
                 reader.readAsDataURL(file);
             });
+        }
+
+        function dataURLToBlob(dataUrl) {
+            var parts = dataUrl.split(',');
+            var mime = parts[0].match(/:(.*?);/)[1];
+            var binary = atob(parts[1]);
+            var length = binary.length;
+            var bytes = new Uint8Array(length);
+
+            for (var i = 0; i < length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+
+            return new Blob([bytes], { type: mime });
         }
     });
 </script>
