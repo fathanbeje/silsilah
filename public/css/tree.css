@@ -132,57 +132,54 @@ body {
     text-align: center;
 }
 
-.tree-node-card__supporting {
-    position: relative;
-    margin-top: 12px;
-    padding-top: 12px;
+.tree-node-box {
+    width: 100%;
+    padding: 10px 12px 12px;
+    border-radius: 18px;
+    border: 1px solid #cbd8e5;
+    background: linear-gradient(180deg, #ffffff, #f4f8fb);
+    box-shadow:
+        0 14px 30px rgba(27, 54, 78, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+.tree-node-box__primary {
+    color: #21415d;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.tree-node-box__primary a {
+    color: inherit;
+}
+
+.tree-node-box__spouses {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(191, 208, 224, 0.85);
 }
 
-.tree-node-card__supporting:before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 50%;
-    width: 1px;
-    height: 10px;
-    background: linear-gradient(180deg, rgba(191, 208, 224, 0.2), rgba(191, 208, 224, 0.95));
-    transform: translateX(-50%);
-}
-
-.tree-node-card__spouse {
-    display: block;
+.tree-node-box__spouse {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 6px;
+    color: #176087;
     font-size: 11px;
     line-height: 1.45;
-    color: #5f7183;
-}
-
-.tree-node-card__spouse a {
-    display: block;
-    width: 100%;
-    padding: 6px 10px;
-    border-radius: 12px;
-    background: linear-gradient(180deg, #ffffff, #f4f8fb);
-    border: 1px solid #cbd8e5;
-    box-shadow: 0 8px 18px rgba(27, 54, 78, 0.08);
-}
-
-.tree-node-card__spouses {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.tree-node-card__spouse a {
-    background: rgba(226, 241, 248, 0.92);
-    color: #176087;
     font-weight: 600;
-    border-color: rgba(141, 188, 210, 0.95);
-    box-shadow:
-        0 8px 18px rgba(27, 54, 78, 0.08),
-        inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.tree-node-box__spouse a {
+    color: inherit;
+}
+
+.tree-node-box__spouse-prefix {
+    color: #5fa0c0;
+    font-weight: 800;
 }
 
 .tree-summary-strip {

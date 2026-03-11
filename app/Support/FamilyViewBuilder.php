@@ -81,7 +81,7 @@ class FamilyViewBuilder
         $generationCounts = array_fill(1, $maxDepth, 0);
 
         return [
-            'node' => $this->buildTreeNode($user, 1, $maxDepth, null, $generationCounts),
+            'node' => $this->buildTreeNode($user, 1, $maxDepth, $generationCounts),
             'generationCounts' => $generationCounts,
         ];
     }
@@ -95,31 +95,31 @@ class FamilyViewBuilder
         ];
     }
 
-    private function buildTreeNode(User $user, int $depth, int $maxDepth, ?array $originFamily, array &$generationCounts): array
+    private function buildTreeNode(User $user, int $depth, int $maxDepth, array &$generationCounts): array
     {
         $children = collect();
-        $familyGroups = $this->familyGroups($user, false);
 
         if ($depth < $maxDepth) {
-            foreach ($familyGroups as $group) {
-                foreach ($group['children'] as $childCard) {
-                    $generationCounts[$depth] = ($generationCounts[$depth] ?? 0) + 1;
-                    $children->push(
-                        $this->buildTreeNode($childCard['user'], $depth + 1, $maxDepth, [
-                            'spouse' => $group['spouse'],
-                            'is_unmapped' => $group['is_unmapped'],
-                        ], $generationCounts)
-                    );
-                }
+            foreach ($this->sortedChildren($user) as $child) {
+                $generationCounts[$depth] = ($generationCounts[$depth] ?? 0) + 1;
+                $children->push(
+                    $this->buildTreeNode($child, $depth + 1, $maxDepth, $generationCounts)
+                );
             }
         }
 
         return [
             'user' => $user,
             'spouse_labels' => $this->partnerCandidates($user)->values(),
-            'origin_family' => $originFamily,
             'children' => $children,
         ];
+    }
+
+    private function sortedChildren(User $user): Collection
+    {
+        return $user->childs->sortBy(function (User $child) {
+            return [$child->birth_order ?? 999, $child->name];
+        })->values();
     }
 
     private function familyGroups(User $user, bool $includeFallbackGroup): Collection
@@ -131,9 +131,7 @@ class FamilyViewBuilder
         $fallbackGroup = $this->emptyFamilyGroup(null, true);
         $hasMappedChildren = false;
 
-        foreach ($user->childs->sortBy(function (User $child) {
-            return [$child->birth_order ?? 999, $child->name];
-        })->values() as $child) {
+        foreach ($this->sortedChildren($user) as $child) {
             $partner = $user->gender_id == 1 ? $child->mother : $child->father;
             $key = $partner ? $partner->id : null;
 
