@@ -26,10 +26,8 @@ class UsersController extends Controller
         $users = [];
 
         if ($q) {
-            $users = User::with('father', 'mother')->where(function ($query) use ($q) {
-                $query->where('name', 'like', '%'.$q.'%');
-                $query->orWhere('nickname', 'like', '%'.$q.'%');
-            })
+            $users = $this->searchUsersQuery($q)
+                ->with('father', 'mother')
                 ->orderBy('name', 'asc')
                 ->paginate(24);
         }
@@ -82,11 +80,45 @@ class UsersController extends Controller
 
         $siblings = $user->siblings();
 
-        return view('users.chart', compact(
+        $publicView = true;
+        $canClaim = !$user->email;
+
+        return view('users.public-chart', compact(
             'user', 'childs', 'father', 'mother', 'fatherGrandpa',
             'fatherGrandma', 'motherGrandpa', 'motherGrandma',
-            'siblings', 'colspan'
+            'siblings', 'colspan', 'publicView', 'canClaim'
         ));
+    }
+
+    public function autocomplete(Request $request)
+    {
+        $q = trim((string) $request->get('q'));
+
+        if ($q === '') {
+            return response()->json([]);
+        }
+
+        $users = $this->searchUsersQuery($q)
+            ->with('father', 'mother')
+            ->orderBy('name', 'asc')
+            ->limit(10)
+            ->get()
+            ->map(function (User $user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'nickname' => $user->nickname,
+                    'gender' => $user->gender,
+                    'chart_url' => route('users.chart', $user),
+                    'parents' => trim(collect([
+                        $user->father ? trans('user.father').': '.$user->father->name : null,
+                        $user->mother ? trans('user.mother').': '.$user->mother->name : null,
+                    ])->filter()->implode(' | ')),
+                ];
+            })
+            ->values();
+
+        return response()->json($users);
     }
 
     /**
@@ -294,5 +326,13 @@ class UsersController extends Controller
             $userMeta->value = $userAttributes->get($key);
             $userMeta->save();
         }
+    }
+
+    private function searchUsersQuery(string $q)
+    {
+        return User::query()->where(function ($query) use ($q) {
+            $query->where('name', 'like', '%'.$q.'%')
+                ->orWhere('nickname', 'like', '%'.$q.'%');
+        });
     }
 }

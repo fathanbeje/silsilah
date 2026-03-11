@@ -60,16 +60,37 @@ class User extends Authenticatable
     ];
 
     protected $casts = [
+        'dob' => 'date',
+        'dod' => 'date',
         'couples.pivot.id'  => 'string',
         'wifes.pivot.id'    => 'string',
         'husbands.pivot.id' => 'string',
     ];
+
+    public static function normalizeUppercase($value)
+    {
+        if (is_null($value) || trim($value) === '') {
+            return $value;
+        }
+
+        return mb_strtoupper(trim($value), 'UTF-8');
+    }
 
     // protected $keyType = 'string';
 
     public function getGenderAttribute()
     {
         return $this->gender_id == 1 ? trans('app.male_code') : trans('app.female_code');
+    }
+
+    public function setNameAttribute($value)
+    {
+        $this->attributes['name'] = static::normalizeUppercase($value);
+    }
+
+    public function setNicknameAttribute($value)
+    {
+        $this->attributes['nickname'] = static::normalizeUppercase($value);
     }
 
     public function setFather(User $father)

@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\BackupsController;
 use App\Http\Controllers\BirthOrderController;
 use App\Http\Controllers\BirthdayController;
+use App\Http\Controllers\ClaimRegistrationController;
 use App\Http\Controllers\CouplesController;
 use App\Http\Controllers\FamilyActionsController;
 use App\Http\Controllers\HomeController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\UserMarriagesController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\GedcomController;
 use App\Http\Controllers\DeploySyncController;
+use App\Http\Controllers\RegistrationRequestsController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -27,9 +29,17 @@ use Illuminate\Support\Facades\Route;
 
 Auth::routes();
 
-Route::middleware('auth')->group(function () {
-    Route::get('/', [UsersController::class, 'search']);
+Route::controller(UsersController::class)->group(function () {
+    Route::get('/', 'search')->name('users.search');
+    Route::get('profile-search', 'search')->name('users.search.page');
+    Route::get('profile-search/autocomplete', 'autocomplete')->name('users.autocomplete');
+    Route::get('users/{user}/chart', 'chart')->name('users.chart');
+});
 
+Route::post('users/{user}/claim-registration', [ClaimRegistrationController::class, 'store'])->name('claim-registration.store');
+Route::post('users/{user}/registration-requests', [RegistrationRequestsController::class, 'store'])->name('registration-requests.store');
+
+Route::middleware('auth')->group(function () {
     Route::controller(HomeController::class)->group(function () {
         Route::get('home', 'index')->name('home');
         Route::get('profile', 'index')->name('profile');
@@ -45,11 +55,9 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::controller(UsersController::class)->group(function () {
-        Route::get('profile-search', 'search')->name('users.search');
         Route::get('users/{user}', 'show')->name('users.show');
         Route::get('users/{user}/edit', 'edit')->name('users.edit');
         Route::patch('users/{user}', 'update')->name('users.update');
-        Route::get('users/{user}/chart', 'chart')->name('users.chart');
         Route::get('users/{user}/tree', 'tree')->name('users.tree');
         Route::get('users/{user}/death', 'death')->name('users.death');
         Route::patch('users/{user}/photo-upload', 'photoUpload')->name('users.photo-upload');
@@ -100,5 +108,10 @@ Route::group(['middleware' => ['auth', 'admin']], function () {
     Route::controller(DeploySyncController::class)->group(function () {
         Route::get('deploy-sync', 'index')->name('deploy-sync.index');
         Route::post('deploy-sync/run', 'run')->name('deploy-sync.run');
+    });
+
+    Route::controller(RegistrationRequestsController::class)->group(function () {
+        Route::get('registration-requests', 'index')->name('registration-requests.index');
+        Route::patch('registration-requests/{registrationRequest}', 'update')->name('registration-requests.update');
     });
 });
