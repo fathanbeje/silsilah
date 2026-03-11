@@ -2,7 +2,7 @@
     <div class="col-md-12">
         <div class="checkbox">
             <label>
-                <input type="checkbox" name="is_deceased" value="1" @checked(old('is_deceased', $user->isDeceased()))>
+                <input type="checkbox" name="is_deceased" value="1" {{ old('is_deceased', $user->isDeceased()) ? 'checked' : '' }}>
                 {{ __('user.is_deceased') }}
             </label>
         </div>
