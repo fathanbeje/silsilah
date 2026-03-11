@@ -54,14 +54,22 @@ class CemeteryLocationOptions
                     $item['longitude'],
                 ]);
             })
-            ->map(function (array $item, $index) {
+            ->values()
+            ->map(function (array $item) {
                 $labelParts = array_filter([
                     $item['name'],
                     $item['address'],
                 ]);
 
+                $signature = md5(json_encode([
+                    $item['name'],
+                    $item['address'],
+                    $item['latitude'],
+                    $item['longitude'],
+                ]));
+
                 return [
-                    'id' => 'cemetery_'.($index + 1),
+                    'id' => 'cemetery_'.$signature,
                     'label' => implode(' - ', $labelParts) ?: 'Lokasi makam tanpa nama',
                     'name' => $item['name'],
                     'address' => $item['address'],
