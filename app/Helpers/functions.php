@@ -59,6 +59,15 @@ function userPhotoPath($photoPath, $genderId)
     return secure_asset('images/icon_user_'.$genderId.'.png');
 }
 
+function storedPublicFileUrl($path)
+{
+    if ($path && is_file(public_path('storage/'.$path))) {
+        return secure_asset('storage/'.$path);
+    }
+
+    return null;
+}
+
 function is_system_admin(User $user)
 {
     if ($user->email) {

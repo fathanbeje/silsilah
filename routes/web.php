@@ -8,7 +8,9 @@ use App\Http\Controllers\ClaimRegistrationController;
 use App\Http\Controllers\CouplesController;
 use App\Http\Controllers\FamilyActionsController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PublicUserEditRequestsController;
 use App\Http\Controllers\UserMarriagesController;
+use App\Http\Controllers\UserEditRequestsController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\GedcomController;
 use App\Http\Controllers\DeploySyncController;
@@ -38,6 +40,8 @@ Route::controller(UsersController::class)->group(function () {
 
 Route::post('users/{user}/claim-registration', [ClaimRegistrationController::class, 'store'])->name('claim-registration.store');
 Route::post('users/{user}/registration-requests', [RegistrationRequestsController::class, 'store'])->name('registration-requests.store');
+Route::get('users/{user}/edit-requests/create', [PublicUserEditRequestsController::class, 'create'])->name('user-edit-requests.create');
+Route::post('users/{user}/edit-requests', [PublicUserEditRequestsController::class, 'store'])->name('user-edit-requests.store');
 
 Route::middleware('auth')->group(function () {
     Route::controller(HomeController::class)->group(function () {
@@ -113,5 +117,11 @@ Route::group(['middleware' => ['auth', 'admin']], function () {
     Route::controller(RegistrationRequestsController::class)->group(function () {
         Route::get('registration-requests', 'index')->name('registration-requests.index');
         Route::patch('registration-requests/{registrationRequest}', 'update')->name('registration-requests.update');
+    });
+
+    Route::controller(UserEditRequestsController::class)->group(function () {
+        Route::get('user-edit-requests', 'index')->name('user-edit-requests.index');
+        Route::get('user-edit-requests/{userEditRequest}', 'show')->name('user-edit-requests.show');
+        Route::patch('user-edit-requests/{userEditRequest}', 'update')->name('user-edit-requests.update');
     });
 });

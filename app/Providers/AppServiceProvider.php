@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\RegistrationRequest;
+use App\UserEditRequest;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\URL;
@@ -40,14 +41,21 @@ class AppServiceProvider extends ServiceProvider
 
         View::composer('layouts.partials.nav', function ($view) {
             $pendingRegistrationRequestCount = 0;
+            $pendingUserEditRequestCount = 0;
 
             if (Auth::check() && is_system_admin(Auth::user())) {
                 $pendingRegistrationRequestCount = RegistrationRequest::query()
                     ->where('status', RegistrationRequest::STATUS_PENDING)
                     ->count();
+
+                $pendingUserEditRequestCount = UserEditRequest::pending()->count();
             }
 
-            $view->with('pendingRegistrationRequestCount', $pendingRegistrationRequestCount);
+            $view->with([
+                'pendingRegistrationRequestCount' => $pendingRegistrationRequestCount,
+                'pendingUserEditRequestCount' => $pendingUserEditRequestCount,
+                'pendingReviewCount' => $pendingRegistrationRequestCount + $pendingUserEditRequestCount,
+            ]);
         });
     }
 

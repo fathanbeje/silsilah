@@ -4,12 +4,12 @@
             <tr>
                 <th style="width: 35%">{{ trans('user.siblings') }}</th>
                 <th class="text-center family-sibling-surface__name">
-                    {{ $siblingCard['user']->profileLink('chart') }} ({{ $siblingCard['user']->gender }})
+                    @include('users.partials.chart-person-link', ['linkedUser' => $siblingCard['user']]) ({{ $siblingCard['user']->gender }})
                     @if ($siblingCard['spouse_labels']->isNotEmpty())
                     <div class="family-member-card__meta">
                         <span class="text-muted">{{ trans('user.spouse') }}:</span>
                         @foreach ($siblingCard['spouse_labels'] as $spouseLabel)
-                        <span class="family-chip">{{ $spouseLabel->profileLink('chart') }} ({{ $spouseLabel->gender }})</span>
+                        <span class="family-chip">@include('users.partials.chart-person-link', ['linkedUser' => $spouseLabel]) ({{ $spouseLabel->gender }})</span>
                         @endforeach
                     </div>
                     @endif
@@ -29,12 +29,12 @@
                         <ol class="family-branch-list">
                             @foreach($familyGroup['children'] as $childCard)
                             <li class="family-branch-list__item">
-                                {{ $childCard['user']->profileLink('chart') }} ({{ $childCard['user']->gender }})
+                                @include('users.partials.chart-person-link', ['linkedUser' => $childCard['user']]) ({{ $childCard['user']->gender }})
                                 @if ($childCard['spouse_labels']->isNotEmpty())
                                 <div class="family-member-card__meta">
                                     <span class="text-muted">{{ trans('user.spouse') }}:</span>
                                     @foreach ($childCard['spouse_labels'] as $spouseLabel)
-                                    <span class="family-chip">{{ $spouseLabel->profileLink('chart') }} ({{ $spouseLabel->gender }})</span>
+                                    <span class="family-chip">@include('users.partials.chart-person-link', ['linkedUser' => $spouseLabel]) ({{ $spouseLabel->gender }})</span>
                                     @endforeach
                                 </div>
                                 @endif
@@ -42,7 +42,7 @@
                                 <ul class="family-grandchild-list">
                                     @foreach($childCard['grandchild_groups'] as $grandGroup)
                                         @foreach($grandGroup['children'] as $grandchildCard)
-                                        <li>{{ $grandchildCard['user']->profileLink('chart') }} ({{ $grandchildCard['user']->gender }})</li>
+                                        <li>@include('users.partials.chart-person-link', ['linkedUser' => $grandchildCard['user']]) ({{ $grandchildCard['user']->gender }})</li>
                                         @endforeach
                                     @endforeach
                                 </ul>

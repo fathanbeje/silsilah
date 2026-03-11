@@ -37,8 +37,8 @@
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
                             {{ Auth::user()->name }}
-                            @if (!empty($pendingRegistrationRequestCount))
-                                <span class="badge">{{ $pendingRegistrationRequestCount }}</span>
+                            @if (!empty($pendingReviewCount))
+                                <span class="badge">{{ $pendingReviewCount }}</span>
                             @endif
                             <span class="caret"></span>
                         </a>
@@ -48,6 +48,7 @@
                                 <li><a href="{{ route('backups.index') }}">{{ __('backup.list') }}</a></li>
                                 <li><a href="{{ route('birth-orders.index') }}">{{ __('app.birth_order_management') }}</a></li>
                                 <li><a href="{{ route('registration-requests.index') }}">Permintaan Registrasi @if (!empty($pendingRegistrationRequestCount))<span class="badge">{{ $pendingRegistrationRequestCount }}</span>@endif</a></li>
+                                <li><a href="{{ route('user-edit-requests.index') }}">Peninjauan Edit @if (!empty($pendingUserEditRequestCount))<span class="badge">{{ $pendingUserEditRequestCount }}</span>@endif</a></li>
                                 <li><a href="{{ route('deploy-sync.index') }}">Deploy Sync</a></li>
                             @endif
                             <li><a href="{{ route('profile') }}">{{ __('app.my_profile') }}</a></li>

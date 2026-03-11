@@ -1,0 +1,128 @@
+.public-edit-request-modal .modal-content {
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+.public-edit-request-form__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.public-edit-request-form__title {
+    margin: 0 0 4px;
+}
+
+.public-edit-request-form__photo img {
+    border: 1px solid #d9e4ef;
+}
+
+.public-edit-request-form__panel-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.request-repeat-card {
+    position: relative;
+    margin-bottom: 12px;
+    padding: 12px;
+    border: 1px solid #dce6ef;
+    border-radius: 14px;
+    background: #f8fbfe;
+}
+
+.request-repeat-card--static {
+    padding-right: 12px;
+}
+
+.request-repeat-card__remove {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    color: #9a5f5f;
+}
+
+.user-edit-review-panel {
+    overflow: hidden;
+}
+
+.user-edit-review-table tbody tr {
+    cursor: pointer;
+}
+
+.user-edit-drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(18, 34, 49, 0.28);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease;
+    z-index: 1040;
+}
+
+.user-edit-drawer-backdrop.is-open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.user-edit-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: min(520px, 100vw);
+    height: 100vh;
+    background: #fff;
+    box-shadow: -20px 0 40px rgba(20, 39, 58, 0.16);
+    transform: translateX(100%);
+    transition: transform 0.22s ease;
+    z-index: 1050;
+    display: flex;
+    flex-direction: column;
+}
+
+.user-edit-drawer.is-open {
+    transform: translateX(0);
+}
+
+.user-edit-drawer__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px;
+    border-bottom: 1px solid #e3ebf2;
+}
+
+.user-edit-drawer__title {
+    margin: 0;
+}
+
+.user-edit-drawer__body {
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.user-edit-request-detail__meta {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+@media (max-width: 767px) {
+    .public-edit-request-form__header,
+    .user-edit-request-detail__meta {
+        display: block;
+    }
+
+    .public-edit-request-form__photo {
+        margin-top: 12px;
+    }
+
+    .user-edit-drawer {
+        width: 100vw;
+    }
+}
