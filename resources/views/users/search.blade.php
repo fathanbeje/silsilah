@@ -223,6 +223,29 @@
         margin-top: 4px;
     }
 
+    .family-search-empty__benefits {
+        margin: 0 0 16px;
+        padding-left: 0;
+        list-style: none;
+    }
+
+    .family-search-empty__benefits li {
+        position: relative;
+        margin-bottom: 8px;
+        padding-left: 18px;
+        color: #526060;
+        line-height: 1.6;
+    }
+
+    .family-search-empty__benefits li:before {
+        content: "\2713";
+        position: absolute;
+        left: 0;
+        top: 0;
+        color: #a88414;
+        font-weight: 700;
+    }
+
     .family-search-results-header {
         margin-bottom: 16px;
     }
@@ -375,6 +398,11 @@
         <div class="family-search-empty__card">
             <h3>Belum punya akun? Daftarkan dari profil keluarga</h3>
             <p>Registrasi akun dilakukan dari profil anggota keluarga yang sesuai, supaya akun langsung terhubung ke orang yang benar di silsilah.</p>
+            <ul class="family-search-empty__benefits">
+                <li>Profil Anda bisa langsung login, mengajukan perbaikan data, dan melanjutkan riwayat usulan dengan identitas yang jelas.</li>
+                <li>Akses ke profil, bagan keluarga, dan navigasi cepat terasa lebih personal karena sistem tahu siapa Anda.</li>
+                <li>Tanpa registrasi Anda tetap bisa melihat data publik, tetapi perubahan penting tetap perlu diajukan sebagai tamu.</li>
+            </ul>
             <ol class="family-search-empty__register-steps">
                 <li>Cari nama Anda atau orang tua Anda di kotak pencarian.</li>
                 <li>Buka profil atau bagan keluarga yang paling cocok.</li>

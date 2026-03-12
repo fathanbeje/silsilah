@@ -62,6 +62,23 @@
                     </div>
                 </div>
                 <div class="col-md-4">
+                    <div class="form-group{{ $errors->has('password') ? ' has-error' : '' }}">
+                        <label for="request_password">{{ trans('auth.password') }}</label>
+                        <input id="request_password" type="password" class="form-control" name="password" required>
+                        @if ($errors->has('password'))
+                        <span class="help-block"><strong>{{ $errors->first('password') }}</strong></span>
+                        @endif
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="request_password_confirmation">{{ trans('auth.password_confirmation') }}</label>
+                        <input id="request_password_confirmation" type="password" class="form-control" name="password_confirmation" required>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
                     <div class="form-group{{ $errors->has('requested_birth_date') ? ' has-error' : '' }}">
                         <label for="requested_birth_date">{{ trans('user.dob') }}</label>
                         <input id="requested_birth_date" type="date" class="form-control" name="requested_birth_date" value="{{ old('requested_birth_date') }}">

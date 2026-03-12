@@ -14,6 +14,7 @@ class RegistrationRequest extends Model
         'user_id',
         'name',
         'email',
+        'password',
         'requested_birth_date',
         'notes',
         'status',

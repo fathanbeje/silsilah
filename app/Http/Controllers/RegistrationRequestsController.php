@@ -7,6 +7,7 @@ use App\Services\FamilyScopeResolver;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Hash;
 
 class RegistrationRequestsController extends Controller
 {
@@ -39,6 +40,7 @@ class RegistrationRequestsController extends Controller
         $validated = $request->validate([
             'request_email' => 'required|string|email|max:255',
             'requested_birth_date' => 'nullable|date',
+            'password' => 'required|string|min:6|confirmed',
             'notes' => 'nullable|string|max:1000',
         ]);
 
@@ -50,6 +52,7 @@ class RegistrationRequestsController extends Controller
 
         $registrationRequest->fill([
             'name' => $user->name,
+            'password' => Hash::make($validated['password']),
             'requested_birth_date' => $validated['requested_birth_date'] ?? null,
             'notes' => $validated['notes'] ?? null,
         ])->save();
@@ -65,12 +68,31 @@ class RegistrationRequestsController extends Controller
                 RegistrationRequest::STATUS_REVIEWED,
                 RegistrationRequest::STATUS_REJECTED,
             ]),
+            'approve_account' => 'nullable|boolean',
         ]);
+
+        if (
+            $validated['status'] === RegistrationRequest::STATUS_REVIEWED
+            && (bool) ($validated['approve_account'] ?? false)
+        ) {
+            $user = $registrationRequest->user;
+
+            if (!$user->email && $registrationRequest->password) {
+                $user->forceFill([
+                    'email' => strtolower($registrationRequest->email),
+                    'password' => $registrationRequest->password,
+                    'dob' => $user->dob ?: $registrationRequest->requested_birth_date,
+                ])->save();
+
+                $registrationRequest->password = null;
+            }
+        }
 
         $registrationRequest->update([
             'status' => $validated['status'],
             'reviewed_at' => $validated['status'] === RegistrationRequest::STATUS_PENDING ? null : Carbon::now(),
             'reviewed_by' => $validated['status'] === RegistrationRequest::STATUS_PENDING ? null : auth()->id(),
+            'password' => $registrationRequest->password,
         ]);
 
         return back()->with('status', trans('auth.registration_request_updated'));

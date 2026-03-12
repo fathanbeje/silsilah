@@ -365,6 +365,19 @@
     .family-desktop-dock__results .list-group-item {
         border-left: 0;
         border-right: 0;
+        color: #1f2a2a;
+    }
+
+    .family-desktop-dock__results .list-group-item strong {
+        color: #1f2a2a;
+    }
+
+    .family-desktop-dock__results .list-group-item .small {
+        color: #526060;
+    }
+
+    .family-desktop-dock__results .list-group-item .text-muted {
+        color: #6f7a7a;
     }
 
     .family-desktop-dock__links {

@@ -37,10 +37,10 @@ return [
     'claim_registration_title'  => 'Daftarkan Akun Anda',
     'claim_registration_help'   => 'Pilih data :name ini sebagai identitas akun Anda. Masukkan tanggal lahir sesuai data keluarga untuk verifikasi.',
     'claim_birthdate_mismatch'  => 'Tanggal lahir tidak cocok dengan data keluarga.',
-    'claim_birthdate_missing'   => 'Tanggal lahir belum tersedia di database. Silakan kirim permintaan registrasi ke admin.',
+    'claim_birthdate_missing'   => 'Tanggal lahir belum tersedia di database. Isi email dan password terlebih dulu, lalu kirim permintaan registrasi agar admin bisa memverifikasi dan mengaktifkan akun Anda.',
     'claim_unavailable'         => 'Data ini sudah terhubung ke akun. Silakan login dengan akun yang ada.',
     'claim_success'             => 'Akun berhasil dibuat dan langsung terhubung ke data keluarga Anda.',
     'request_registration'      => 'Request Registrasi',
-    'registration_request_sent' => 'Permintaan registrasi berhasil dikirim ke admin.',
+    'registration_request_sent' => 'Permintaan registrasi berhasil dikirim ke admin beserta email dan password pilihan Anda.',
     'registration_request_updated' => 'Status permintaan registrasi berhasil diperbarui.',
 ];

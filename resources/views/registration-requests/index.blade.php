@@ -15,6 +15,7 @@
                 <tr>
                     <th>Nama</th>
                     <th>Email</th>
+                    <th>Password</th>
                     <th>Tgl Lahir Dikirim</th>
                     <th>Catatan</th>
                     <th>Status</th>
@@ -30,6 +31,7 @@
                         <div>{{ link_to_route('users.chart', trans('app.show_family_chart'), [$item->user_id]) }}</div>
                     </td>
                     <td>{{ $item->email }}</td>
+                    <td>{{ $item->password ? 'Sudah diisi' : '-' }}</td>
                     <td>{{ optional($item->requested_birth_date)->format('Y-m-d') ?: '-' }}</td>
                     <td>{{ $item->notes ?: '-' }}</td>
                     <td>
@@ -39,6 +41,15 @@
                     </td>
                     <td>{{ $item->created_at->format('Y-m-d H:i') }}</td>
                     <td>
+                        @if ($item->status === \App\RegistrationRequest::STATUS_PENDING && !$item->user->email && $item->password)
+                        <form method="POST" action="{{ route('registration-requests.update', $item) }}" style="display:inline-block">
+                            {{ csrf_field() }}
+                            {{ method_field('PATCH') }}
+                            <input type="hidden" name="status" value="reviewed">
+                            <input type="hidden" name="approve_account" value="1">
+                            <button type="submit" class="btn btn-xs btn-primary">Setujui &amp; Buat Akun</button>
+                        </form>
+                        @endif
                         <form method="POST" action="{{ route('registration-requests.update', $item) }}" style="display:inline-block">
                             {{ csrf_field() }}
                             {{ method_field('PATCH') }}
@@ -55,7 +66,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="text-center">Belum ada permintaan registrasi.</td>
+                    <td colspan="8" class="text-center">Belum ada permintaan registrasi.</td>
                 </tr>
                 @endforelse
             </tbody>
