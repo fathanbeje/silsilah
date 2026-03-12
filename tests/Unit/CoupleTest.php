@@ -46,6 +46,22 @@ class CoupleTest extends TestCase
     }
 
     /** @test */
+    public function husband_and_wife_childs_relation_also_reads_children_linked_via_parent_id()
+    {
+        $couple = factory(Couple::class)->create();
+        $child = factory(User::class)->create([
+            'father_id' => null,
+            'mother_id' => null,
+            'parent_id' => $couple->id,
+        ]);
+
+        $this->assertCount(1, $couple->husband->fresh()->childs);
+        $this->assertCount(1, $couple->wife->fresh()->childs);
+        $this->assertEquals($child->id, $couple->husband->fresh()->childs->first()->id);
+        $this->assertEquals($child->id, $couple->wife->fresh()->childs->first()->id);
+    }
+
+    /** @test */
     public function a_couple_have_a_manager()
     {
         $couple = factory(Couple::class)->create();

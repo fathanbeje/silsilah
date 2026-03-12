@@ -190,11 +190,17 @@ class User extends Authenticatable
 
     public function childs()
     {
-        if ($this->gender_id == 2) {
-            return $this->hasMany(User::class, 'mother_id')->orderBy('birth_order');
+        $query = $this->hasMany(User::class, $this->gender_id == 2 ? 'mother_id' : 'father_id');
+
+        if ($this->exists) {
+            $marriageIds = $this->marriages()->pluck('id')->filter()->values();
+
+            if ($marriageIds->isNotEmpty()) {
+                $query->orWhereIn('parent_id', $marriageIds->all());
+            }
         }
 
-        return $this->hasMany(User::class, 'father_id')->orderBy('birth_order');
+        return $query->orderBy('birth_order');
     }
 
     public function profileLink($type = 'profile')
