@@ -16,6 +16,10 @@
         padding-bottom: 84px;
     }
 
+    .family-desktop-dock {
+        display: none !important;
+    }
+
     .family-mobile-launcher {
         position: fixed;
         left: 12px;
@@ -202,9 +206,260 @@
 }
 
 @media (min-width: 768px) {
+    body {
+        padding-bottom: 108px;
+    }
+
     .family-mobile-launcher,
     .family-mobile-sheet {
         display: none !important;
+    }
+
+    .family-desktop-dock {
+        position: fixed;
+        left: 50%;
+        bottom: 18px;
+        z-index: 1035;
+        transform: translateX(-50%);
+        width: min(1100px, calc(100vw - 40px));
+        padding: 14px 16px;
+        border-radius: 24px;
+        background:
+            radial-gradient(circle at top left, rgba(212, 175, 55, 0.18), transparent 34%),
+            linear-gradient(135deg, rgba(28, 28, 28, 0.96), rgba(46, 46, 46, 0.94));
+        color: #fff;
+        box-shadow: 0 22px 42px rgba(0, 0, 0, 0.28);
+        backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .family-desktop-dock__row {
+        display: grid;
+        grid-template-columns: 220px minmax(280px, 1.2fr) minmax(320px, 1fr) auto;
+        gap: 14px;
+        align-items: center;
+    }
+
+    .family-desktop-dock__brand {
+        min-width: 0;
+    }
+
+    .family-desktop-dock__eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 6px;
+        padding: 5px 9px;
+        border-radius: 999px;
+        background: rgba(212, 175, 55, 0.16);
+        color: #f4d36c;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .family-desktop-dock__title {
+        margin: 0 0 4px;
+        font-size: 18px;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+
+    .family-desktop-dock__hint {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.74);
+        font-size: 12px;
+        line-height: 1.4;
+    }
+
+    .family-desktop-dock__search {
+        position: relative;
+    }
+
+    .family-desktop-dock__search .form-control {
+        height: 48px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+        padding-left: 42px;
+        padding-right: 16px;
+        box-shadow: none;
+    }
+
+    .family-desktop-dock__search .form-control::placeholder {
+        color: rgba(255, 255, 255, 0.55);
+    }
+
+    .family-desktop-dock__search-icon {
+        position: absolute;
+        top: 50%;
+        left: 15px;
+        transform: translateY(-50%);
+        color: rgba(255, 255, 255, 0.62);
+    }
+
+    .family-desktop-dock__results {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: calc(100% + 12px);
+        display: none;
+        max-height: 360px;
+        overflow-y: auto;
+        border-radius: 18px;
+        background: #fff;
+        box-shadow: 0 22px 34px rgba(0, 0, 0, 0.2);
+        border: 1px solid #ececec;
+    }
+
+    .family-desktop-dock__results .list-group-item {
+        border-left: 0;
+        border-right: 0;
+    }
+
+    .family-desktop-dock__links {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+    }
+
+    .family-desktop-dock__links::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .family-desktop-dock__links::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.18);
+        border-radius: 999px;
+    }
+
+    .family-desktop-dock__link {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 44px;
+        padding: 10px 14px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        background: rgba(255, 255, 255, 0.06);
+        color: #fff;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: transform 0.2s ease, background 0.2s ease;
+    }
+
+    .family-desktop-dock__link:hover,
+    .family-desktop-dock__link:focus {
+        color: #fff;
+        text-decoration: none;
+        transform: translateY(-1px);
+        background: rgba(255, 255, 255, 0.12);
+    }
+
+    .family-desktop-dock__link strong {
+        font-size: 13px;
+    }
+
+    .family-desktop-dock__actions {
+        position: relative;
+    }
+
+    .family-desktop-dock__actions-toggle {
+        border: 0;
+        border-radius: 16px;
+        padding: 12px 16px;
+        min-width: 128px;
+        background: #d4af37;
+        color: #1f1f1f;
+        font-weight: 700;
+        box-shadow: 0 10px 20px rgba(212, 175, 55, 0.22);
+    }
+
+    .family-desktop-dock__actions-panel {
+        position: absolute;
+        right: 0;
+        bottom: calc(100% + 12px);
+        width: 320px;
+        padding: 14px;
+        border-radius: 20px;
+        background: #fff;
+        color: #222;
+        box-shadow: 0 22px 36px rgba(0, 0, 0, 0.22);
+        display: none;
+    }
+
+    .family-desktop-dock__actions-panel.is-open {
+        display: block;
+    }
+
+    .family-desktop-dock__actions-title {
+        margin: 0 0 10px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #888;
+    }
+
+    .family-desktop-dock__actions-list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .family-desktop-dock__action-link {
+        display: block;
+        padding: 12px;
+        border-radius: 16px;
+        border: 1px solid #ececec;
+        background: #fafafa;
+        color: #222;
+        text-decoration: none;
+        min-height: 86px;
+    }
+
+    .family-desktop-dock__action-link:hover,
+    .family-desktop-dock__action-link:focus {
+        color: #222;
+        text-decoration: none;
+        background: #f2f2f2;
+    }
+
+    .family-desktop-dock__action-link strong {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 14px;
+    }
+
+    .family-desktop-dock__action-link span {
+        display: block;
+        font-size: 12px;
+        color: #666;
+        line-height: 1.4;
+    }
+
+    .family-desktop-dock__helper {
+        margin: 10px 0 0;
+        padding: 12px;
+        border-radius: 16px;
+        background: #f8f5ea;
+        color: #6b5b19;
+        font-size: 12px;
+        line-height: 1.5;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1100px) {
+    .family-desktop-dock__row {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .family-desktop-dock__actions {
+        justify-self: start;
     }
 }
 </style>
@@ -297,8 +552,78 @@
         @endif
 
         <p class="family-mobile-sheet__helper">
-            Jika ayah dan ibu sudah terhubung, pasangan orang tua akan dicocokkan otomatis agar jumlah anak dan urutan keluarga tetap konsisten.
+            Gunakan pencarian cepat untuk loncat ke profil, bagan, atau pohon keluarga tanpa kehilangan konteks halaman saat ini.
         </p>
+    </div>
+</div>
+
+<div class="family-desktop-dock" data-family-desktop-dock>
+    <div class="family-desktop-dock__row">
+        <div class="family-desktop-dock__brand">
+            <div class="family-desktop-dock__eyebrow">Quick Family Dock</div>
+            <h3 class="family-desktop-dock__title">Navigasi Keluarga</h3>
+            <p class="family-desktop-dock__hint">Pencarian instan, loncat cabang keluarga, dan aksi cepat tanpa pindah fokus dari halaman ini.</p>
+        </div>
+
+        <div class="family-desktop-dock__search">
+            <span class="family-desktop-dock__search-icon glyphicon glyphicon-search" aria-hidden="true"></span>
+            <input
+                type="search"
+                class="form-control"
+                id="family-desktop-search-input"
+                placeholder="{{ trans('app.search_your_family_placeholder') }}"
+                autocomplete="off"
+            >
+            <div id="family-desktop-search-results" class="family-desktop-dock__results list-group"></div>
+        </div>
+
+        <div class="family-desktop-dock__links">
+            <a class="family-desktop-dock__link" href="{{ route('users.search') }}"><strong>{{ __('app.search') }}</strong></a>
+
+            @if (auth()->check())
+            <a class="family-desktop-dock__link" href="{{ route('profile') }}"><strong>{{ __('app.my_profile') }}</strong></a>
+            @endif
+
+            @if ($mobileContextUser)
+            <a class="family-desktop-dock__link" href="{{ route('users.chart', $mobileContextUser) }}"><strong>{{ __('app.family_chart') }}</strong></a>
+            @endif
+
+            @if (auth()->check() && $mobileContextUser)
+            <a class="family-desktop-dock__link" href="{{ route('users.tree', $mobileContextUser) }}"><strong>{{ __('app.family_tree') }}</strong></a>
+            @endif
+
+            @if ($profileUrl)
+            <a class="family-desktop-dock__link" href="{{ $profileUrl }}#family-panel"><strong>Keluarga Inti</strong></a>
+            @endif
+        </div>
+
+        @if ($canEditMobileContextUser)
+        <div class="family-desktop-dock__actions">
+            <button type="button" class="family-desktop-dock__actions-toggle" data-family-desktop-actions-toggle>Aksi Cepat</button>
+            <div class="family-desktop-dock__actions-panel" data-family-desktop-actions-panel>
+                <p class="family-desktop-dock__actions-title">Aksi Keluarga</p>
+                <div class="family-desktop-dock__actions-list">
+                    <a class="family-desktop-dock__action-link" href="{{ route('users.show', [$mobileContextUser->id, 'action' => 'add_child']) }}">
+                        <strong>{{ __('user.add_child') }}</strong>
+                        <span>Tambah anak dari konteks profil saat ini.</span>
+                    </a>
+                    <a class="family-desktop-dock__action-link" href="{{ route('users.show', [$mobileContextUser->id, 'action' => 'set_father']) }}">
+                        <strong>{{ __('user.set_father') }}</strong>
+                        <span>Hubungkan ayah tanpa meninggalkan alur kerja.</span>
+                    </a>
+                    <a class="family-desktop-dock__action-link" href="{{ route('users.show', [$mobileContextUser->id, 'action' => 'set_mother']) }}">
+                        <strong>{{ __('user.set_mother') }}</strong>
+                        <span>Hubungkan ibu dan rapikan relasi keluarga.</span>
+                    </a>
+                    <a class="family-desktop-dock__action-link" href="{{ route('users.show', [$mobileContextUser->id, 'action' => 'add_spouse']) }}">
+                        <strong>{{ __('user.add_spouse') }}</strong>
+                        <span>Tambahkan pasangan untuk cabang keluarga aktif.</span>
+                    </a>
+                </div>
+                <p class="family-desktop-dock__helper">Dock ini sengaja tetap tipis di bawah agar halaman desktop tetap lega, tetapi semua pintasan penting selalu satu klik dari posisi mouse.</p>
+            </div>
+        </div>
+        @endif
     </div>
 </div>
 
@@ -310,7 +635,10 @@
         var closeButtons = document.querySelectorAll('[data-family-mobile-close]');
         var input = document.getElementById('family-mobile-search-input');
         var results = document.getElementById('family-mobile-search-results');
-        var timer = null;
+        var desktopInput = document.getElementById('family-desktop-search-input');
+        var desktopResults = document.getElementById('family-desktop-search-results');
+        var desktopActionsToggle = document.querySelector('[data-family-desktop-actions-toggle]');
+        var desktopActionsPanel = document.querySelector('[data-family-desktop-actions-panel]');
 
         if (!launcher || !sheet || !openButton || !input || !results) {
             return;
@@ -341,18 +669,22 @@
             sheet.setAttribute('aria-hidden', 'true');
         }
 
-        function hideResults() {
-            results.style.display = 'none';
-            results.innerHTML = '';
-        }
-
-        function renderResults(items) {
-            if (!items.length) {
-                hideResults();
+        function hideResults(container) {
+            if (!container) {
                 return;
             }
 
-            results.innerHTML = items.map(function (item) {
+            container.style.display = 'none';
+            container.innerHTML = '';
+        }
+
+        function renderResults(container, items) {
+            if (!items.length) {
+                hideResults(container);
+                return;
+            }
+
+            container.innerHTML = items.map(function (item) {
                 var secondaryActions = [
                     item.profile_url ? '<a class="btn btn-default btn-xs" href="' + item.profile_url + '">Profil</a>' : '',
                     item.chart_url ? '<a class="btn btn-primary btn-xs" href="' + item.chart_url + '">Bagan</a>' : '',
@@ -370,7 +702,47 @@
                     '</div>';
             }).join('');
 
-            results.style.display = 'block';
+            container.style.display = 'block';
+        }
+
+        function bindAutocomplete(searchInput, output) {
+            var timer = null;
+
+            if (!searchInput || !output) {
+                return;
+            }
+
+            searchInput.addEventListener('input', function () {
+                var value = searchInput.value.trim();
+                window.clearTimeout(timer);
+
+                if (value.length < 2) {
+                    hideResults(output);
+                    return;
+                }
+
+                timer = window.setTimeout(function () {
+                    window.fetch('{{ route('users.autocomplete') }}?q=' + encodeURIComponent(value), {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                        .then(function (response) { return response.json(); })
+                        .then(function (items) {
+                            renderResults(output, items);
+                        })
+                        .catch(function () {
+                            hideResults(output);
+                        });
+                }, 180);
+            });
+
+            output.addEventListener('click', function (event) {
+                if (event.target.closest('a')) {
+                    closeSheet();
+                    hideResults(output);
+                }
+            });
         }
 
         openButton.addEventListener('click', openSheet);
@@ -381,34 +753,34 @@
         document.addEventListener('keydown', function (event) {
             if (event.key === 'Escape') {
                 closeSheet();
+                hideResults(desktopResults);
+
+                if (desktopActionsPanel) {
+                    desktopActionsPanel.classList.remove('is-open');
+                }
             }
         });
 
-        input.addEventListener('input', function () {
-            var value = input.value.trim();
-            window.clearTimeout(timer);
+        bindAutocomplete(input, results);
+        bindAutocomplete(desktopInput, desktopResults);
 
-            if (value.length < 2) {
-                hideResults();
-                return;
-            }
+        if (desktopActionsToggle && desktopActionsPanel) {
+            desktopActionsToggle.addEventListener('click', function () {
+                desktopActionsPanel.classList.toggle('is-open');
+            });
 
-            timer = window.setTimeout(function () {
-                window.fetch('{{ route('users.autocomplete') }}?q=' + encodeURIComponent(value), {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                    .then(function (response) { return response.json(); })
-                    .then(renderResults)
-                    .catch(hideResults);
-            }, 180);
-        });
+            document.addEventListener('click', function (event) {
+                if (
+                    !event.target.closest('[data-family-desktop-actions-toggle]') &&
+                    !event.target.closest('[data-family-desktop-actions-panel]')
+                ) {
+                    desktopActionsPanel.classList.remove('is-open');
+                }
 
-        results.addEventListener('click', function (event) {
-            if (event.target.closest('a')) {
-                closeSheet();
-            }
-        });
+                if (!event.target.closest('.family-desktop-dock__search')) {
+                    hideResults(desktopResults);
+                }
+            });
+        }
     })();
 </script>
