@@ -89,63 +89,6 @@
         border: 1px solid #ececec;
     }
 
-    .family-search-hero__meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        margin-bottom: 18px;
-    }
-
-    .family-search-hero__meta-item {
-        padding: 10px 14px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.7);
-        color: #526060;
-        font-size: 13px;
-        border: 1px solid rgba(65, 74, 74, 0.08);
-    }
-
-    .family-search-steps {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 14px;
-        margin-bottom: 16px;
-    }
-
-    .family-search-step {
-        padding: 16px;
-        border-radius: 20px;
-        background: rgba(255, 255, 255, 0.72);
-        border: 1px solid rgba(65, 74, 74, 0.08);
-    }
-
-    .family-search-step__number {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 28px;
-        height: 28px;
-        margin-bottom: 10px;
-        border-radius: 999px;
-        background: #d4af37;
-        color: #1f1f1f;
-        font-weight: 700;
-    }
-
-    .family-search-step strong {
-        display: block;
-        margin-bottom: 4px;
-        color: #1f2a2a;
-        font-size: 15px;
-    }
-
-    .family-search-step span {
-        display: block;
-        color: #607070;
-        line-height: 1.5;
-        font-size: 13px;
-    }
-
     .family-search-examples {
         display: flex;
         flex-wrap: wrap;
@@ -212,40 +155,6 @@
         padding: 9px 14px;
     }
 
-    .family-search-empty__register-steps {
-        margin: 0 0 16px;
-        padding-left: 18px;
-        color: #526060;
-        line-height: 1.7;
-    }
-
-    .family-search-empty__register-steps li + li {
-        margin-top: 4px;
-    }
-
-    .family-search-empty__benefits {
-        margin: 0 0 16px;
-        padding-left: 0;
-        list-style: none;
-    }
-
-    .family-search-empty__benefits li {
-        position: relative;
-        margin-bottom: 8px;
-        padding-left: 18px;
-        color: #526060;
-        line-height: 1.6;
-    }
-
-    .family-search-empty__benefits li:before {
-        content: "\2713";
-        position: absolute;
-        left: 0;
-        top: 0;
-        color: #a88414;
-        font-weight: 700;
-    }
-
     .family-search-results-header {
         margin-bottom: 16px;
     }
@@ -285,7 +194,6 @@
             top: calc(100% + 6px);
         }
 
-        .family-search-steps,
         .family-search-empty__grid {
             grid-template-columns: 1fr;
         }
@@ -299,15 +207,10 @@
 @endif
 
 <section class="family-search-hero">
-    <h1 class="family-search-hero__title">Temukan Posisi Anda di Silsilah Keluarga</h1>
+    <h1 class="family-search-hero__title">Cari Nama Keluarga</h1>
     <p class="family-search-hero__lead">
-        Mulai dengan mengetik nama Anda, orang tua, atau kakek-nenek. Setelah itu pilih hasil yang paling cocok untuk membuka profil atau bagan keluarganya.
+        Ketik nama Anda atau orang tua Anda. Lalu buka bagan atau pohon keluarga.
     </p>
-
-    <div class="family-search-hero__meta">
-        <div class="family-search-hero__meta-item">Langkah paling mudah untuk mulai: cari nama, lalu buka bagan keluarga.</div>
-        <div class="family-search-hero__meta-item">Autocomplete akan membantu jika Anda belum yakin ejaan namanya.</div>
-    </div>
 
     {{ Form::open(['method' => 'get','class' => 'family-search-hero__search']) }}
     <div class="input-group">
@@ -320,30 +223,21 @@
     <div id="family-search-autocomplete" class="family-search-hero__autocomplete list-group"></div>
     {{ Form::close() }}
 
-    <div class="family-search-steps">
-        <div class="family-search-step">
-            <div class="family-search-step__number">1</div>
-            <strong>Ketik nama keluarga</strong>
-            <span>Gunakan nama lengkap, nama panggilan, atau nama orang tua yang Anda tahu.</span>
-        </div>
-        <div class="family-search-step">
-            <div class="family-search-step__number">2</div>
-            <strong>Pilih hasil yang paling cocok</strong>
-            <span>Autocomplete akan menampilkan nama, orang tua, dan pintasan menuju profil atau bagan.</span>
-        </div>
-        <div class="family-search-step">
-            <div class="family-search-step__number">3</div>
-            <strong>Buka bagan keluarga</strong>
-            <span>Dari sana Anda bisa menelusuri orang tua, pasangan, saudara, anak, dan cabang keluarga lain.</span>
-        </div>
-    </div>
-
     <div class="family-search-examples">
-        <span class="family-search-examples__label">Coba pencarian cepat:</span>
+        <span class="family-search-examples__label">Cari cepat:</span>
         <a class="family-search-examples__chip" href="{{ route('users.search', ['q' => 'Syamsuri']) }}">Syamsuri</a>
         <a class="family-search-examples__chip" href="{{ route('users.search', ['q' => 'Nur Ahadah']) }}">Nur Ahadah</a>
         <a class="family-search-examples__chip" href="{{ route('users.search', ['q' => 'Yusrul']) }}">Yusrul</a>
     </div>
+
+    @if (!empty($featuredTreeUsers) && $featuredTreeUsers->isNotEmpty())
+    <div class="family-search-examples" style="margin-top:12px;">
+        <span class="family-search-examples__label">Lihat pohon:</span>
+        @foreach ($featuredTreeUsers as $featuredTreeUser)
+        <a class="family-search-examples__chip" href="{{ route('users.tree', $featuredTreeUser) }}">{{ $featuredTreeUser->display_name }}</a>
+        @endforeach
+    </div>
+    @endif
 </section>
 
 @if (request('q'))
@@ -386,30 +280,21 @@
 <section class="family-search-empty">
     <div class="family-search-empty__grid">
         <div class="family-search-empty__card">
-            <h3>Belum tahu harus mulai dari mana?</h3>
-            <p>Cari nama Anda sendiri terlebih dulu. Kalau belum ketemu, cari nama ayah, ibu, atau kakek-nenek yang Anda kenal untuk masuk ke cabang keluarga yang benar.</p>
+            <h3>Mulai dari sini</h3>
+            <p>Cari nama Anda dulu. Kalau belum ketemu, cari nama ayah atau ibu.</p>
             <div class="family-search-empty__links">
-                <a href="{{ route('users.search', ['q' => 'Syamsuri']) }}" class="btn btn-default">Cari “Syamsuri”</a>
-                <a href="{{ route('users.search', ['q' => 'Nur Ahadah']) }}" class="btn btn-default">Cari “Nur Ahadah”</a>
-                <a href="{{ route('users.search', ['q' => 'Yusrul']) }}" class="btn btn-default">Cari “Yusrul”</a>
+                <a href="#family-search-input" class="btn btn-primary">Cari Nama</a>
+                @if (!empty($featuredTreeUsers) && $featuredTreeUsers->first())
+                <a href="{{ route('users.tree', $featuredTreeUsers->first()) }}" class="btn btn-default">Lihat Pohon Keluarga</a>
+                @endif
             </div>
         </div>
 
         <div class="family-search-empty__card">
-            <h3>Belum punya akun? Daftarkan dari profil keluarga</h3>
-            <p>Registrasi akun dilakukan dari profil anggota keluarga yang sesuai, supaya akun langsung terhubung ke orang yang benar di silsilah.</p>
-            <ul class="family-search-empty__benefits">
-                <li>Profil Anda bisa langsung login, mengajukan perbaikan data, dan melanjutkan riwayat usulan dengan identitas yang jelas.</li>
-                <li>Akses ke profil, bagan keluarga, dan navigasi cepat terasa lebih personal karena sistem tahu siapa Anda.</li>
-                <li>Tanpa registrasi Anda tetap bisa melihat data publik, tetapi perubahan penting tetap perlu diajukan sebagai tamu.</li>
-            </ul>
-            <ol class="family-search-empty__register-steps">
-                <li>Cari nama Anda atau orang tua Anda di kotak pencarian.</li>
-                <li>Buka profil atau bagan keluarga yang paling cocok.</li>
-                <li>Klik <strong>Daftarkan Akun Anda</strong> pada halaman anggota tersebut.</li>
-            </ol>
+            <h3>Punya akun?</h3>
+            <p>Buka data keluarga yang cocok, lalu klik <strong>Daftarkan Akun Anda</strong>.</p>
             <div class="family-search-empty__links">
-                <a href="#family-search-input" class="btn btn-primary">Mulai Cari Nama</a>
+                <a href="#family-search-input" class="btn btn-default">Cari untuk Daftar</a>
                 @auth
                     @if (is_system_admin(auth()->user()))
                         <a href="{{ route('birthdays.index') }}" class="btn btn-default">{{ __('birthday.birthday') }}</a>

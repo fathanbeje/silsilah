@@ -45,6 +45,16 @@ class UsersController extends Controller
     {
         $q = $request->get('q');
         $users = [];
+        $featuredTreeUsers = User::query()
+            ->where(function ($query) {
+                $query->whereIn('name', ['SYAMSURI', 'NUR AHADAH', 'YUSRUL'])
+                    ->orWhereIn('nickname', ['SYAMSURI', 'NUR', 'YUSRUL']);
+            })
+            ->orderBy('name', 'asc')
+            ->limit(3)
+            ->get();
+
+        $featuredTreeUsers = $this->familyScopeResolver->filterUsers($featuredTreeUsers);
 
         if ($q) {
             $query = $this->searchUsersQuery($q);
@@ -62,7 +72,7 @@ class UsersController extends Controller
             );
         }
 
-        return view('users.search', compact('users'));
+        return view('users.search', compact('users', 'featuredTreeUsers'));
     }
 
     /**
