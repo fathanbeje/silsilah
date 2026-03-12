@@ -1,6 +1,7 @@
 <?php
 
 use App\User;
+use App\AppSetting;
 
 /**
  * Convert file size to have unit string.
@@ -78,4 +79,21 @@ function is_system_admin(User $user)
     }
 
     return false;
+}
+
+function app_setting($key, $default = null)
+{
+    try {
+        if (!\Schema::hasTable('app_settings')) {
+            return $default;
+        }
+
+        $value = AppSetting::query()
+            ->where('key', $key)
+            ->value('value');
+
+        return filled($value) ? $value : $default;
+    } catch (\Throwable $exception) {
+        return $default;
+    }
 }

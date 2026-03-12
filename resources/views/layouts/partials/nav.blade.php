@@ -12,8 +12,8 @@
             </button>
 
             <!-- Branding Image -->
-            <a class="navbar-brand" href="{{ url('/') }}">
-                {{ config('app.name', 'Laravel') }}
+            <a class="navbar-brand site-brand" href="{{ url('/') }}">
+                <span class="site-brand__text">{{ app_setting('site_header_name', config('app.name', 'Laravel')) }}</span>
             </a>
         </div>
 
@@ -53,6 +53,7 @@
                                 <li><a href="{{ route('birth-orders.index') }}">{{ __('app.birth_order_management') }}</a></li>
                                 <li><a href="{{ route('registration-requests.index') }}">Permintaan Registrasi @if (!empty($pendingRegistrationRequestCount))<span class="badge">{{ $pendingRegistrationRequestCount }}</span>@endif</a></li>
                                 <li><a href="{{ route('user-edit-requests.index') }}">Peninjauan Edit @if (!empty($pendingUserEditRequestCount))<span class="badge">{{ $pendingUserEditRequestCount }}</span>@endif</a></li>
+                                <li><a href="{{ route('app-settings.index') }}">Brand Header</a></li>
                                 <li><a href="{{ route('domain-family-scopes.index') }}">Scope Domain</a></li>
                                 <li><a href="{{ route('deploy-sync.index') }}">Deploy Sync</a></li>
                             @endif

@@ -17,6 +17,10 @@
 <div class="alert alert-success">{{ session('status') }}</div>
 @endif
 
+@guest
+    @include('users.partials.public-claim-card')
+@endguest
+
 @include('users.partials.chart-content')
 
 @if ($allowPublicEditSuggestions)
@@ -35,9 +39,6 @@
 </div>
 @endif
 
-@guest
-    @include('users.partials.public-claim-card')
-@endguest
 @endsection
 
 @section('script')

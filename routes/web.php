@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\ChangePasswordController;
+use App\Http\Controllers\AppSettingsController;
 use App\Http\Controllers\BackupsController;
 use App\Http\Controllers\BirthOrderController;
 use App\Http\Controllers\BirthdayController;
@@ -110,6 +111,11 @@ Route::group(['middleware' => ['auth', 'admin']], function () {
     Route::controller(DeploySyncController::class)->group(function () {
         Route::get('deploy-sync', 'index')->name('deploy-sync.index');
         Route::post('deploy-sync/run', 'run')->name('deploy-sync.run');
+    });
+
+    Route::controller(AppSettingsController::class)->group(function () {
+        Route::get('app-settings', 'index')->name('app-settings.index');
+        Route::patch('app-settings', 'update')->name('app-settings.update');
     });
 
     Route::get('gedcom/import', [GedcomController::class, 'index'])->name('gedcom.index');
