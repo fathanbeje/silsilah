@@ -1,3 +1,9 @@
+@php
+    $parentSummary = app(\App\Services\ParentCoupleResolver::class)->describeParents($user);
+    $displayFather = $parentSummary['father'];
+    $displayMother = $parentSummary['mother'];
+@endphp
+
 <div class="panel panel-default" id="family-panel">
     <div class="panel-heading"><h3 class="panel-title">{{ __('user.family') }}</h3></div>
 
@@ -58,13 +64,17 @@
             <tr>
                 <th class="col-sm-4">{{ __('user.parent') }}</th>
                 <td class="col-sm-8">
-                    @if ($user->parent)
-                    {{ optional($user->parent->husband)->display_name }}{{ $user->parent->husband && $user->parent->wife ? ' & ' : '' }}{{ optional($user->parent->wife)->display_name }}
+                    @if ($displayFather || $displayMother)
+                    {{ optional($displayFather)->display_name }}{{ $displayFather && $displayMother ? ' & ' : '' }}{{ optional($displayMother)->display_name }}
                     @else
                     <span class="text-muted">{{ __('app.unknown') }}</span>
                     @endif
                     <div class="help-block" style="margin-bottom:0;">
+                        @if ($displayFather && $displayMother && !$parentSummary['is_synced'])
+                        Data pasangan orang tua sedang memakai fallback dari ayah dan ibu, dan akan tersinkron otomatis.
+                        @else
                         Lengkapi ayah dan ibu, lalu pasangan orang tua akan tersambung otomatis.
+                        @endif
                     </div>
 
                     @can('edit', $user)
