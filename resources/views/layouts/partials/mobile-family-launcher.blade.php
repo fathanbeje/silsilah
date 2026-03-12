@@ -207,7 +207,7 @@
 
 @media (min-width: 768px) {
     body {
-        padding-bottom: 108px;
+        padding-bottom: 82px;
     }
 
     .family-mobile-launcher,
@@ -222,10 +222,10 @@
         z-index: 1035;
         transform: translateX(-50%);
         width: min(1100px, calc(100vw - 40px));
-        padding: 14px 16px;
-        border-radius: 24px;
+        padding: 12px 14px;
+        border-radius: 20px;
         background:
-            radial-gradient(circle at top left, rgba(212, 175, 55, 0.18), transparent 34%),
+            radial-gradient(circle at left center, rgba(212, 175, 55, 0.16), transparent 26%),
             linear-gradient(135deg, rgba(28, 28, 28, 0.96), rgba(46, 46, 46, 0.94));
         color: #fff;
         box-shadow: 0 22px 42px rgba(0, 0, 0, 0.28);
@@ -235,42 +235,26 @@
 
     .family-desktop-dock__row {
         display: grid;
-        grid-template-columns: 220px minmax(280px, 1.2fr) minmax(320px, 1fr) auto;
-        gap: 14px;
+        grid-template-columns: auto minmax(280px, 1.1fr) minmax(320px, 1fr) auto;
+        gap: 12px;
         align-items: center;
-    }
-
-    .family-desktop-dock__brand {
-        min-width: 0;
     }
 
     .family-desktop-dock__eyebrow {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        margin-bottom: 6px;
-        padding: 5px 9px;
+        gap: 8px;
+        margin: 0;
+        min-height: 48px;
+        padding: 0 14px;
         border-radius: 999px;
-        background: rgba(212, 175, 55, 0.16);
-        color: #f4d36c;
-        font-size: 11px;
+        background: rgba(212, 175, 55, 0.14);
+        color: #f3d46f;
+        font-size: 12px;
         font-weight: 700;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-    }
-
-    .family-desktop-dock__title {
-        margin: 0 0 4px;
-        font-size: 18px;
-        font-weight: 700;
-        line-height: 1.2;
-    }
-
-    .family-desktop-dock__hint {
-        margin: 0;
-        color: rgba(255, 255, 255, 0.74);
-        font-size: 12px;
-        line-height: 1.4;
+        white-space: nowrap;
     }
 
     .family-desktop-dock__search {
@@ -278,13 +262,13 @@
     }
 
     .family-desktop-dock__search .form-control {
-        height: 48px;
+        height: 46px;
         border-radius: 16px;
         border: 1px solid rgba(255, 255, 255, 0.12);
         background: rgba(255, 255, 255, 0.08);
         color: #fff;
         padding-left: 42px;
-        padding-right: 16px;
+        padding-right: 110px;
         box-shadow: none;
     }
 
@@ -298,6 +282,21 @@
         left: 15px;
         transform: translateY(-50%);
         color: rgba(255, 255, 255, 0.62);
+    }
+
+    .family-desktop-dock__search-submit {
+        position: absolute;
+        top: 50%;
+        right: 8px;
+        transform: translateY(-50%);
+        border: 0;
+        border-radius: 12px;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1;
     }
 
     .family-desktop-dock__results {
@@ -322,7 +321,7 @@
     .family-desktop-dock__links {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
         overflow-x: auto;
         padding-bottom: 2px;
     }
@@ -341,9 +340,9 @@
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        min-height: 44px;
-        padding: 10px 14px;
-        border-radius: 14px;
+        min-height: 42px;
+        padding: 9px 13px;
+        border-radius: 13px;
         border: 1px solid rgba(255, 255, 255, 0.09);
         background: rgba(255, 255, 255, 0.06);
         color: #fff;
@@ -361,7 +360,8 @@
     }
 
     .family-desktop-dock__link strong {
-        font-size: 13px;
+        font-size: 12px;
+        font-weight: 700;
     }
 
     .family-desktop-dock__actions {
@@ -370,9 +370,9 @@
 
     .family-desktop-dock__actions-toggle {
         border: 0;
-        border-radius: 16px;
-        padding: 12px 16px;
-        min-width: 128px;
+        border-radius: 14px;
+        padding: 11px 15px;
+        min-width: 118px;
         background: #d4af37;
         color: #1f1f1f;
         font-weight: 700;
@@ -455,11 +455,11 @@
 
 @media (min-width: 768px) and (max-width: 1100px) {
     .family-desktop-dock__row {
-        grid-template-columns: minmax(0, 1fr);
+        grid-template-columns: auto minmax(220px, 1fr) auto;
     }
 
-    .family-desktop-dock__actions {
-        justify-self: start;
+    .family-desktop-dock__links {
+        grid-column: 1 / -1;
     }
 }
 </style>
@@ -559,11 +559,7 @@
 
 <div class="family-desktop-dock" data-family-desktop-dock>
     <div class="family-desktop-dock__row">
-        <div class="family-desktop-dock__brand">
-            <div class="family-desktop-dock__eyebrow">Quick Family Dock</div>
-            <h3 class="family-desktop-dock__title">Navigasi Keluarga</h3>
-            <p class="family-desktop-dock__hint">Pencarian instan, loncat cabang keluarga, dan aksi cepat tanpa pindah fokus dari halaman ini.</p>
-        </div>
+        <div class="family-desktop-dock__eyebrow">Family Dock</div>
 
         <div class="family-desktop-dock__search">
             <span class="family-desktop-dock__search-icon glyphicon glyphicon-search" aria-hidden="true"></span>
@@ -571,9 +567,10 @@
                 type="search"
                 class="form-control"
                 id="family-desktop-search-input"
-                placeholder="{{ trans('app.search_your_family_placeholder') }}"
+                placeholder="Masukkan nama/panggilan lalu pilih hasilnya"
                 autocomplete="off"
             >
+            <button type="button" class="family-desktop-dock__search-submit" data-family-desktop-search-focus>Cari</button>
             <div id="family-desktop-search-results" class="family-desktop-dock__results list-group"></div>
         </div>
 
@@ -620,7 +617,7 @@
                         <span>Tambahkan pasangan untuk cabang keluarga aktif.</span>
                     </a>
                 </div>
-                <p class="family-desktop-dock__helper">Dock ini sengaja tetap tipis di bawah agar halaman desktop tetap lega, tetapi semua pintasan penting selalu satu klik dari posisi mouse.</p>
+                <p class="family-desktop-dock__helper">Aksi keluarga tetap dekat dengan pointer tanpa membuat area bawah halaman terasa berat.</p>
             </div>
         </div>
         @endif
@@ -637,6 +634,7 @@
         var results = document.getElementById('family-mobile-search-results');
         var desktopInput = document.getElementById('family-desktop-search-input');
         var desktopResults = document.getElementById('family-desktop-search-results');
+        var desktopSearchFocus = document.querySelector('[data-family-desktop-search-focus]');
         var desktopActionsToggle = document.querySelector('[data-family-desktop-actions-toggle]');
         var desktopActionsPanel = document.querySelector('[data-family-desktop-actions-panel]');
 
@@ -763,6 +761,12 @@
 
         bindAutocomplete(input, results);
         bindAutocomplete(desktopInput, desktopResults);
+
+        if (desktopSearchFocus && desktopInput) {
+            desktopSearchFocus.addEventListener('click', function () {
+                desktopInput.focus();
+            });
+        }
 
         if (desktopActionsToggle && desktopActionsPanel) {
             desktopActionsToggle.addEventListener('click', function () {
