@@ -69,13 +69,6 @@
                     @else
                     <span class="text-muted">{{ __('app.unknown') }}</span>
                     @endif
-                    <div class="help-block" style="margin-bottom:0;">
-                        @if ($displayFather && $displayMother && !$parentSummary['is_synced'])
-                        Data pasangan orang tua sedang memakai fallback dari ayah dan ibu, dan akan tersinkron otomatis.
-                        @else
-                        Lengkapi ayah dan ibu, lalu pasangan orang tua akan tersambung otomatis.
-                        @endif
-                    </div>
 
                     @can('edit', $user)
                         @if (request('action') == 'set_parent')
