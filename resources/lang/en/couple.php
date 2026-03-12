@@ -16,4 +16,5 @@ return [
     'wife'               => 'Wife',
     'marriage_date'      => 'Marriage Date',
     'divorce_date'       => 'Divorce Date',
+    'spouse_order'       => 'Spouse Order',
 ];

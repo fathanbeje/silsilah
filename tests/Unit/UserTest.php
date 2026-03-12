@@ -51,18 +51,18 @@ class UserTest extends TestCase
     }
 
     /** @test */
-    public function male_person_marriages_ordered_by_marriage_date()
+    public function male_person_marriages_are_ordered_by_spouse_order_before_marriage_date()
     {
         $husband = factory(User::class)->states('male')->create();
         $wife1 = factory(User::class)->states('female')->create();
         $wife2 = factory(User::class)->states('female')->create();
-        $husband->addWife($wife2, '1999-04-21');
-        $husband->addWife($wife1, '1990-02-13');
+        $husband->addWife($wife2, '1990-02-13', 2);
+        $husband->addWife($wife1, '1999-04-21', 1);
 
         $husband = $husband->fresh();
         $marriages = $husband->marriages;
-        $this->assertEquals('1990-02-13', $marriages->first()->marriage_date);
-        $this->assertEquals('1999-04-21', $marriages->last()->marriage_date);
+        $this->assertEquals(1, $marriages->first()->spouse_order);
+        $this->assertEquals(2, $marriages->last()->spouse_order);
 
         $this->assertEquals($wife1->name, $husband->couples->first()->name);
         $this->assertEquals($wife2->name, $husband->couples->last()->name);
@@ -72,18 +72,18 @@ class UserTest extends TestCase
     }
 
     /** @test */
-    public function female_person_marriages_ordered_by_marriage_date()
+    public function female_person_marriages_are_ordered_by_spouse_order_before_marriage_date()
     {
         $wife = factory(User::class)->states('female')->create();
         $husband1 = factory(User::class)->states('male')->create();
         $husband2 = factory(User::class)->states('male')->create();
-        $wife->addHusband($husband2, '1989-04-21');
-        $wife->addHusband($husband1, '1980-02-13');
+        $wife->addHusband($husband2, '1980-02-13', 2);
+        $wife->addHusband($husband1, '1989-04-21', 1);
 
         $wife = $wife->fresh();
         $marriages = $wife->marriages;
-        $this->assertEquals('1980-02-13', $marriages->first()->marriage_date);
-        $this->assertEquals('1989-04-21', $marriages->last()->marriage_date);
+        $this->assertEquals(1, $marriages->first()->spouse_order);
+        $this->assertEquals(2, $marriages->last()->spouse_order);
 
         $this->assertEquals($husband1->name, $wife->couples->first()->name);
         $this->assertEquals($husband2->name, $wife->couples->last()->name);
@@ -101,6 +101,19 @@ class UserTest extends TestCase
         $husband->addWife($wife);
 
         $this->assertFalse($wife->addHusband($husband), 'This couple is married!');
+    }
+
+    /** @test */
+    public function next_spouse_order_defaults_to_the_next_available_position()
+    {
+        $husband = factory(User::class)->states('male')->create();
+        $wife1 = factory(User::class)->states('female')->create();
+        $wife2 = factory(User::class)->states('female')->create();
+
+        $husband->addWife($wife1, null, 1);
+        $husband->addWife($wife2, null, 3);
+
+        $this->assertSame(4, $husband->fresh()->nextSpouseOrder());
     }
 
     /** @test */

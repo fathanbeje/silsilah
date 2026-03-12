@@ -266,15 +266,21 @@ class User extends Authenticatable
 
     public function wifes()
     {
-        return $this->belongsToMany(User::class, 'couples', 'husband_id', 'wife_id')->using('App\CouplePivot')->withPivot(['id'])->withTimestamps()->orderBy('marriage_date');
+        return $this->applyMarriageOrdering(
+            $this->belongsToMany(User::class, 'couples', 'husband_id', 'wife_id')
+                ->using('App\CouplePivot')
+                ->withPivot(['id', 'spouse_order'])
+                ->withTimestamps()
+        );
     }
 
-    public function addWife(User $wife, $marriageDate = null)
+    public function addWife(User $wife, $marriageDate = null, $spouseOrder = null)
     {
         if ($this->gender_id == 1 && !$this->hasBeenMarriedTo($wife)) {
             $this->wifes()->save($wife, [
                 'id'            => Uuid::uuid4()->toString(),
                 'marriage_date' => $marriageDate,
+                'spouse_order'  => $spouseOrder ?: $this->nextSpouseOrder(),
                 'manager_id'    => auth()->id(),
             ]);
             return $wife;
@@ -285,15 +291,21 @@ class User extends Authenticatable
 
     public function husbands()
     {
-        return $this->belongsToMany(User::class, 'couples', 'wife_id', 'husband_id')->using('App\CouplePivot')->withPivot(['id'])->withTimestamps()->orderBy('marriage_date');
+        return $this->applyMarriageOrdering(
+            $this->belongsToMany(User::class, 'couples', 'wife_id', 'husband_id')
+                ->using('App\CouplePivot')
+                ->withPivot(['id', 'spouse_order'])
+                ->withTimestamps()
+        );
     }
 
-    public function addHusband(User $husband, $marriageDate = null)
+    public function addHusband(User $husband, $marriageDate = null, $spouseOrder = null)
     {
         if ($this->gender_id == 2 && !$this->hasBeenMarriedTo($husband)) {
             $this->husbands()->save($husband, [
                 'id'            => Uuid::uuid4()->toString(),
                 'marriage_date' => $marriageDate,
+                'spouse_order'  => $spouseOrder ?: $this->nextSpouseOrder(),
                 'manager_id'    => auth()->id(),
             ]);
             return $husband;
@@ -310,19 +322,45 @@ class User extends Authenticatable
     public function couples()
     {
         if ($this->gender_id == 1) {
-            return $this->belongsToMany(User::class, 'couples', 'husband_id', 'wife_id')->using('App\CouplePivot')->withPivot(['id'])->withTimestamps()->orderBy('marriage_date');
+            return $this->applyMarriageOrdering(
+                $this->belongsToMany(User::class, 'couples', 'husband_id', 'wife_id')
+                    ->using('App\CouplePivot')
+                    ->withPivot(['id', 'spouse_order'])
+                    ->withTimestamps()
+            );
         }
 
-        return $this->belongsToMany(User::class, 'couples', 'wife_id', 'husband_id')->using('App\CouplePivot')->withPivot(['id'])->withTimestamps()->orderBy('marriage_date');
+        return $this->applyMarriageOrdering(
+            $this->belongsToMany(User::class, 'couples', 'wife_id', 'husband_id')
+                ->using('App\CouplePivot')
+                ->withPivot(['id', 'spouse_order'])
+                ->withTimestamps()
+        );
     }
 
     public function marriages()
     {
         if ($this->gender_id == 1) {
-            return $this->hasMany(Couple::class, 'husband_id')->orderBy('marriage_date');
+            return $this->applyMarriageOrdering($this->hasMany(Couple::class, 'husband_id'));
         }
 
-        return $this->hasMany(Couple::class, 'wife_id')->orderBy('marriage_date');
+        return $this->applyMarriageOrdering($this->hasMany(Couple::class, 'wife_id'));
+    }
+
+    public function nextSpouseOrder(): int
+    {
+        if (! $this->exists) {
+            return 1;
+        }
+
+        $relation = $this->marriages();
+        $maxOrder = (clone $relation)->max('spouse_order');
+
+        if (! is_null($maxOrder)) {
+            return (int) $maxOrder + 1;
+        }
+
+        return (int) (clone $relation)->count() + 1;
     }
 
     public function siblings()
@@ -480,5 +518,14 @@ class User extends Authenticatable
         }
 
         return $defaultValue;
+    }
+
+    private function applyMarriageOrdering($relation)
+    {
+        return $relation->orderByRaw(
+            'COALESCE(couples.spouse_order, 999999), '.
+            'CASE WHEN couples.marriage_date IS NULL THEN 1 ELSE 0 END, '.
+            'couples.marriage_date, couples.created_at, couples.id'
+        );
     }
 }

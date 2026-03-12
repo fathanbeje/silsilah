@@ -284,7 +284,7 @@ class FamilyViewBuilder
             }
         }
 
-        return $partners->sortBy('name');
+        return $partners->values();
     }
 
     private function filterUsers(Collection|EloquentCollection $users): Collection|EloquentCollection

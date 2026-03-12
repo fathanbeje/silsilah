@@ -162,6 +162,7 @@ class ManageUserFamiliesTest extends TestCase
             'husband_id'    => $user->id,
             'wife_id'       => $wife->id,
             'marriage_date' => '2010-01-01',
+            'spouse_order'  => 1,
             'manager_id'    => $user->id,
         ]);
     }
@@ -195,6 +196,7 @@ class ManageUserFamiliesTest extends TestCase
             'husband_id'    => $husband->id,
             'wife_id'       => $user->id,
             'marriage_date' => '2010-03-03',
+            'spouse_order'  => 1,
             'manager_id'    => $user->id,
         ]);
     }
@@ -265,6 +267,7 @@ class ManageUserFamiliesTest extends TestCase
             'husband_id'    => $user->id,
             'wife_id'       => $wife->id,
             'marriage_date' => '2010-01-01',
+            'spouse_order'  => 1,
             'manager_id'    => $user->id,
         ]);
     }
@@ -291,7 +294,30 @@ class ManageUserFamiliesTest extends TestCase
             'husband_id'    => $husband->id,
             'wife_id'       => $user->id,
             'marriage_date' => '2010-03-03',
+            'spouse_order'  => 1,
             'manager_id'    => $user->id,
+        ]);
+    }
+
+    /** @test */
+    public function user_can_set_manual_spouse_order_when_adding_a_wife()
+    {
+        $user = $this->loginAsUser(['gender_id' => 1]);
+
+        $this->post(route('family-actions.add-wife', $user), [
+            'set_wife' => 'Nama Istri',
+            'spouse_order' => 2,
+        ]);
+
+        $wife = User::where([
+            'nickname'  => 'NAMA ISTRI',
+            'gender_id' => 2,
+        ])->first();
+
+        $this->seeInDatabase('couples', [
+            'husband_id' => $user->id,
+            'wife_id' => $wife->id,
+            'spouse_order' => 2,
         ]);
     }
 

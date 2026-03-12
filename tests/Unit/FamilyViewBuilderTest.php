@@ -21,10 +21,12 @@ class FamilyViewBuilderTest extends TestCase
         $coupleA = factory(Couple::class)->create([
             'husband_id' => $husbandA->id,
             'wife_id' => $wife->id,
+            'spouse_order' => 1,
         ]);
         $coupleB = factory(Couple::class)->create([
             'husband_id' => $husbandB->id,
             'wife_id' => $wife->id,
+            'spouse_order' => 2,
         ]);
 
         $childA = factory(User::class)->create([
@@ -57,5 +59,9 @@ class FamilyViewBuilderTest extends TestCase
 
         $this->assertEquals([$childA->id], $groups[$husbandA->id]['children']->pluck('user.id')->all());
         $this->assertEquals([$childB->id], $groups[$husbandB->id]['children']->pluck('user.id')->all());
+        $this->assertEquals(
+            [$husbandA->id, $husbandB->id],
+            collect($card['family_groups'])->pluck('spouse.id')->filter()->values()->all()
+        );
     }
 }

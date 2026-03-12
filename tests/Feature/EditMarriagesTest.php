@@ -34,6 +34,7 @@ class EditMarriagesTest extends TestCase
         $this->seePageIs(route('couples.edit', $couple));
 
         $this->submitForm(trans('couple.update'), [
+            'spouse_order' => 2,
             'marriage_date' => '2010-04-04',
             'divorce_date' => '2035-04-04',
         ]);
@@ -42,6 +43,7 @@ class EditMarriagesTest extends TestCase
 
         $this->seeInDatabase('couples', [
             'id' => $couple->id,
+            'spouse_order' => 2,
             'marriage_date' => '2010-04-04',
             'divorce_date' => '2035-04-04',
         ]);

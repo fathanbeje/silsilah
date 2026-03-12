@@ -13,7 +13,12 @@ class Couple extends Model
         'wife_id',
         'marriage_date',
         'divorce_date',
+        'spouse_order',
         'manager_id',
+    ];
+
+    protected $casts = [
+        'spouse_order' => 'integer',
     ];
 
     /**

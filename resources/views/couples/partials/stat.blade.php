@@ -5,12 +5,14 @@
             <td class="col-xs-2 text-center">{{ trans('couple.wife') }}</td>
             <td class="col-xs-2 text-center">{{ trans('couple.childs_count') }}</td>
             <td class="col-xs-2 text-center">{{ trans('couple.marriage_date') }}</td>
+            <td class="col-xs-2 text-center">{{ trans('couple.spouse_order') }}</td>
         </tr>
         <tr>
             <td class="text-center lead" style="border-top: none;">{{ $couple->husband->profileLink() }}</td>
             <td class="text-center lead" style="border-top: none;">{{ $couple->wife->profileLink() }}</td>
             <td class="text-center lead" style="border-top: none;">{{ $couple->childs->count() }}</td>
             <td class="text-center lead" style="border-top: none;">{{ $couple->marriage_date }}</td>
+            <td class="text-center lead" style="border-top: none;">{{ $couple->spouse_order ?: '-' }}</td>
         </tr>
     </table>
 </div>
@@ -31,5 +33,9 @@
     <li class="list-group-item">
         {{ trans('couple.marriage_date') }}
         <span class="pull-right">{{ $couple->marriage_date }}</span>
+    </li>
+    <li class="list-group-item">
+        {{ trans('couple.spouse_order') }}
+        <span class="pull-right">{{ $couple->spouse_order ?: '-' }}</span>
     </li>
 </ul>

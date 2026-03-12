@@ -16,4 +16,5 @@ return [
     'wife'               => 'Istri',
     'marriage_date'      => 'Tanggal Pernikahan',
     'divorce_date'       => 'Tanggal Perceraian',
+    'spouse_order'       => 'Urutan Pasangan',
 ];

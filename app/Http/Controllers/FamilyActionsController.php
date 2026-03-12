@@ -139,6 +139,7 @@ class FamilyActionsController extends Controller
             'set_wife_id'   => 'nullable',
             'set_wife'      => 'required_without:set_wife_id|max:255',
             'marriage_date' => 'nullable|date|date_format:Y-m-d',
+            'spouse_order'  => 'nullable|integer|min:1',
         ]);
 
         if ($request->get('set_wife_id')) {
@@ -152,7 +153,8 @@ class FamilyActionsController extends Controller
             $wife->manager_id = auth()->id();
         }
 
-        $user->addWife($wife, $request->get('marriage_date'));
+        $spouseOrder = $request->filled('spouse_order') ? (int) $request->get('spouse_order') : null;
+        $user->addWife($wife, $request->get('marriage_date'), $spouseOrder);
 
         return back();
     }
@@ -170,6 +172,7 @@ class FamilyActionsController extends Controller
             'set_husband_id' => 'nullable',
             'set_husband'    => 'required_without:set_husband_id|max:255',
             'marriage_date'  => 'nullable|date|date_format:Y-m-d',
+            'spouse_order'   => 'nullable|integer|min:1',
         ]);
 
         if ($request->get('set_husband_id')) {
@@ -183,7 +186,8 @@ class FamilyActionsController extends Controller
             $husband->manager_id = auth()->id();
         }
 
-        $user->addHusband($husband, $request->get('marriage_date'));
+        $spouseOrder = $request->filled('spouse_order') ? (int) $request->get('spouse_order') : null;
+        $user->addHusband($husband, $request->get('marriage_date'), $spouseOrder);
 
         return back();
     }

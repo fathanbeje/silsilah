@@ -16,4 +16,5 @@ return [
     'wife'               => 'بیوی',
     'marriage_date'      => 'شادی کی تاریخ',
     'divorce_date'       => 'طلاق کی تاریخ',
+    'spouse_order'       => 'شریک حیات کی ترتیب',
 ];

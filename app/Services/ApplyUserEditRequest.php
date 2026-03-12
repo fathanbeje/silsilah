@@ -109,6 +109,7 @@ class ApplyUserEditRequest
         $couple->husband_id = $targetUser->gender_id == 1 ? $targetUser->id : $spouse->id;
         $couple->wife_id = $targetUser->gender_id == 2 ? $targetUser->id : $spouse->id;
         $couple->marriage_date = $marriageDate ?: null;
+        $couple->spouse_order = $targetUser->nextSpouseOrder();
         $couple->manager_id = $reviewer->id;
         $couple->save();
 

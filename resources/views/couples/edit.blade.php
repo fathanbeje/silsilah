@@ -14,10 +14,16 @@
             {!! Form::model($couple, ['route' => ['couples.update', $couple], 'method' => 'patch']) !!}
             <div class="panel-body">
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            {{ Form::label('spouse_order', trans('couple.spouse_order')) }}
+                            {{ Form::number('spouse_order', $couple->spouse_order, ['class' => 'form-control', 'min' => 1, 'placeholder' => trans('couple.spouse_order')]) }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
                         {!! FormField::text('marriage_date', ['label' => trans('couple.marriage_date')]) !!}
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         {!! FormField::text('divorce_date', ['label' => trans('couple.divorce_date')]) !!}
                     </div>
                 </div>

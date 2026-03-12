@@ -44,10 +44,12 @@ class CouplesController extends Controller
         $coupleData = request()->validate([
             'marriage_date' => 'nullable|date|date_format:Y-m-d',
             'divorce_date'  => 'nullable|date|date_format:Y-m-d',
+            'spouse_order'  => 'nullable|integer|min:1',
         ]);
 
         $couple->marriage_date = $coupleData['marriage_date'];
         $couple->divorce_date = $coupleData['divorce_date'];
+        $couple->spouse_order = $coupleData['spouse_order'] ?? null;
         $couple->save();
 
         return redirect()->route('couples.show', $couple);

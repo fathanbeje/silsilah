@@ -110,11 +110,14 @@
                             {!! FormField::select('set_wife_id', $femalePersonList, ['label' => false, 'placeholder' => __('app.select_from_existing_females')]) !!}
                             <div class="form-group">
                                 <div class="row">
-                                    <div class="col-md-7">
+                                    <div class="col-md-6">
                                         {{ Form::text('set_wife', null, ['class' => 'form-control input-sm', 'placeholder' => __('app.enter_new_name')]) }}
                                     </div>
-                                    <div class="col-md-5">
+                                    <div class="col-md-3">
                                         {{ Form::text('marriage_date', null, ['class' => 'form-control input-sm', 'placeholder' => __('couple.marriage_date')]) }}
+                                    </div>
+                                    <div class="col-md-3">
+                                        {{ Form::number('spouse_order', $user->nextSpouseOrder(), ['class' => 'form-control input-sm', 'min' => 1, 'placeholder' => __('couple.spouse_order')]) }}
                                     </div>
                                 </div>
                             </div>
@@ -151,11 +154,14 @@
                             {!! FormField::select('set_husband_id', $malePersonList, ['label' => false, 'placeholder' => __('app.select_from_existing_males')]) !!}
                             <div class="form-group">
                                 <div class="row">
-                                    <div class="col-md-7">
+                                    <div class="col-md-6">
                                         {{ Form::text('set_husband', null, ['class' => 'form-control input-sm', 'placeholder' => __('app.enter_new_name')]) }}
                                     </div>
-                                    <div class="col-md-5">
+                                    <div class="col-md-3">
                                         {{ Form::text('marriage_date', null, ['class' => 'form-control input-sm', 'placeholder' => __('couple.marriage_date')]) }}
+                                    </div>
+                                    <div class="col-md-3">
+                                        {{ Form::number('spouse_order', $user->nextSpouseOrder(), ['class' => 'form-control input-sm', 'min' => 1, 'placeholder' => __('couple.spouse_order')]) }}
                                     </div>
                                 </div>
                             </div>
