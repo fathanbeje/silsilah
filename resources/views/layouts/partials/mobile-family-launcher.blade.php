@@ -20,10 +20,36 @@
         display: none !important;
     }
 
+    .family-desktop-toggle {
+        display: none !important;
+    }
+
+    .family-mobile-toggle {
+        position: fixed;
+        right: 12px;
+        bottom: 12px;
+        z-index: 1041;
+        width: 42px;
+        height: 42px;
+        border: 0;
+        border-radius: 999px;
+        background: rgba(34, 34, 34, 0.96);
+        color: #fff;
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+
+    .family-mobile-toggle.is-visible {
+        display: inline-flex;
+    }
+
     .family-mobile-launcher {
         position: fixed;
         left: 12px;
-        right: 12px;
+        right: 64px;
         bottom: 12px;
         z-index: 1040;
         display: flex;
@@ -215,6 +241,10 @@
         display: none !important;
     }
 
+    .family-mobile-toggle {
+        display: none !important;
+    }
+
     .family-desktop-dock {
         position: fixed;
         left: 50%;
@@ -230,6 +260,25 @@
         color: #fff;
         box-shadow: 0 22px 42px rgba(0, 0, 0, 0.28);
         backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .family-desktop-toggle {
+        position: fixed;
+        right: 18px;
+        bottom: 18px;
+        z-index: 1036;
+        width: 46px;
+        height: 46px;
+        border: 0;
+        border-radius: 16px;
+        background: rgba(28, 28, 28, 0.96);
+        color: #fff;
+        box-shadow: 0 18px 32px rgba(0, 0, 0, 0.24);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
         border: 1px solid rgba(255, 255, 255, 0.08);
     }
 
@@ -464,6 +513,10 @@
 }
 </style>
 
+<button type="button" class="family-mobile-toggle" data-family-mobile-toggle aria-label="Tampilkan atau sembunyikan dock mobile">
+    <span data-family-mobile-toggle-icon>&lsaquo;</span>
+</button>
+
 <div class="family-mobile-launcher" data-family-mobile-launcher>
     <div class="family-mobile-launcher__copy">
         <div class="family-mobile-launcher__title">Navigasi Keluarga</div>
@@ -557,6 +610,10 @@
     </div>
 </div>
 
+<button type="button" class="family-desktop-toggle" data-family-desktop-toggle aria-label="Tampilkan atau sembunyikan family dock desktop">
+    <span data-family-desktop-toggle-icon>&lsaquo;</span>
+</button>
+
 <div class="family-desktop-dock" data-family-desktop-dock>
     <div class="family-desktop-dock__row">
         <div class="family-desktop-dock__eyebrow">Family Dock</div>
@@ -630,13 +687,20 @@
         var sheet = document.querySelector('[data-family-mobile-sheet]');
         var openButton = document.querySelector('[data-family-mobile-open]');
         var closeButtons = document.querySelectorAll('[data-family-mobile-close]');
+        var mobileToggle = document.querySelector('[data-family-mobile-toggle]');
+        var mobileToggleIcon = document.querySelector('[data-family-mobile-toggle-icon]');
         var input = document.getElementById('family-mobile-search-input');
         var results = document.getElementById('family-mobile-search-results');
+        var desktopDock = document.querySelector('[data-family-desktop-dock]');
+        var desktopToggle = document.querySelector('[data-family-desktop-toggle]');
+        var desktopToggleIcon = document.querySelector('[data-family-desktop-toggle-icon]');
         var desktopInput = document.getElementById('family-desktop-search-input');
         var desktopResults = document.getElementById('family-desktop-search-results');
         var desktopSearchFocus = document.querySelector('[data-family-desktop-search-focus]');
         var desktopActionsToggle = document.querySelector('[data-family-desktop-actions-toggle]');
         var desktopActionsPanel = document.querySelector('[data-family-desktop-actions-panel]');
+        var mobileDockStorageKey = 'family-mobile-dock-collapsed';
+        var desktopDockStorageKey = 'family-desktop-dock-collapsed';
 
         if (!launcher || !sheet || !openButton || !input || !results) {
             return;
@@ -665,6 +729,38 @@
         function closeSheet() {
             sheet.classList.remove('is-open');
             sheet.setAttribute('aria-hidden', 'true');
+        }
+
+        function setMobileDockCollapsed(collapsed) {
+            launcher.style.display = collapsed ? 'none' : 'flex';
+
+            if (mobileToggle) {
+                mobileToggle.classList.add('is-visible');
+            }
+
+            if (mobileToggleIcon) {
+                mobileToggleIcon.innerHTML = collapsed ? '&rsaquo;' : '&lsaquo;';
+            }
+
+            try {
+                window.sessionStorage.setItem(mobileDockStorageKey, collapsed ? '1' : '0');
+            } catch (error) {}
+        }
+
+        function setDesktopDockCollapsed(collapsed) {
+            if (!desktopDock) {
+                return;
+            }
+
+            desktopDock.style.display = collapsed ? 'none' : 'block';
+
+            if (desktopToggleIcon) {
+                desktopToggleIcon.innerHTML = collapsed ? '&lsaquo;' : '&rsaquo;';
+            }
+
+            try {
+                window.sessionStorage.setItem(desktopDockStorageKey, collapsed ? '1' : '0');
+            } catch (error) {}
         }
 
         function hideResults(container) {
@@ -748,6 +844,13 @@
             button.addEventListener('click', closeSheet);
         });
 
+        if (mobileToggle) {
+            mobileToggle.addEventListener('click', function () {
+                var collapsed = launcher.style.display !== 'none';
+                setMobileDockCollapsed(collapsed);
+            });
+        }
+
         document.addEventListener('keydown', function (event) {
             if (event.key === 'Escape') {
                 closeSheet();
@@ -768,6 +871,13 @@
             });
         }
 
+        if (desktopToggle && desktopDock) {
+            desktopToggle.addEventListener('click', function () {
+                var collapsed = desktopDock.style.display !== 'none';
+                setDesktopDockCollapsed(collapsed);
+            });
+        }
+
         if (desktopActionsToggle && desktopActionsPanel) {
             desktopActionsToggle.addEventListener('click', function () {
                 desktopActionsPanel.classList.toggle('is-open');
@@ -785,6 +895,14 @@
                     hideResults(desktopResults);
                 }
             });
+        }
+
+        try {
+            setMobileDockCollapsed(window.sessionStorage.getItem(mobileDockStorageKey) === '1');
+            setDesktopDockCollapsed(window.sessionStorage.getItem(desktopDockStorageKey) === '1');
+        } catch (error) {
+            setMobileDockCollapsed(false);
+            setDesktopDockCollapsed(false);
         }
     })();
 </script>
