@@ -121,7 +121,7 @@ class FamilyViewBuilder
             return;
         }
 
-        $users->loadMissing(['father', 'mother', 'couples']);
+        $users->loadMissing(['father', 'mother', 'couples', 'marriages']);
 
         foreach ($users as $user) {
             if (! $user->relationLoaded('childs')) {
@@ -135,13 +135,18 @@ class FamilyViewBuilder
 
         $maleIds = $users->where('gender_id', 1)->pluck('id')->filter()->values();
         $femaleIds = $users->where('gender_id', 2)->pluck('id')->filter()->values();
+        $marriageIds = $users
+            ->flatMap(fn (User $user) => $user->marriageIds())
+            ->filter()
+            ->unique()
+            ->values();
 
-        if ($maleIds->isEmpty() && $femaleIds->isEmpty()) {
+        if ($maleIds->isEmpty() && $femaleIds->isEmpty() && $marriageIds->isEmpty()) {
             return;
         }
 
         $childrenQuery = User::query()
-            ->where(function ($query) use ($maleIds, $femaleIds) {
+            ->where(function ($query) use ($maleIds, $femaleIds, $marriageIds) {
                 if ($maleIds->isNotEmpty()) {
                     $query->whereIn('father_id', $maleIds);
                 }
@@ -150,22 +155,53 @@ class FamilyViewBuilder
                     $method = $maleIds->isNotEmpty() ? 'orWhereIn' : 'whereIn';
                     $query->{$method}('mother_id', $femaleIds);
                 }
+
+                if ($marriageIds->isNotEmpty()) {
+                    $method = ($maleIds->isNotEmpty() || $femaleIds->isNotEmpty()) ? 'orWhereIn' : 'whereIn';
+                    $query->{$method}('parent_id', $marriageIds);
+                }
             })
             ->orderByRaw('COALESCE(birth_order, 999), name');
 
         $children = $this->familyScopeResolver->applyToUserQuery($childrenQuery)->get();
 
-        $children->loadMissing(['father', 'mother', 'couples']);
+        $children->loadMissing(['father', 'mother', 'parent.husband', 'parent.wife', 'couples']);
 
-        $childrenByFather = $children->groupBy('father_id');
-        $childrenByMother = $children->groupBy('mother_id');
+        $assignedChildren = $users->mapWithKeys(function (User $user) {
+            return [$user->id => collect()];
+        });
+
+        foreach ($children as $child) {
+            $parent = $child->relationLoaded('parent') ? $child->getRelation('parent') : null;
+
+            if ($parent) {
+                if ($parent->husband_id && $assignedChildren->has($parent->husband_id)) {
+                    $assignedChildren[$parent->husband_id]->put($child->id, $child);
+                }
+
+                if ($parent->wife_id && $assignedChildren->has($parent->wife_id)) {
+                    $assignedChildren[$parent->wife_id]->put($child->id, $child);
+                }
+
+                continue;
+            }
+
+            if ($child->father_id && $assignedChildren->has($child->father_id)) {
+                $assignedChildren[$child->father_id]->put($child->id, $child);
+            }
+
+            if ($child->mother_id && $assignedChildren->has($child->mother_id)) {
+                $assignedChildren[$child->mother_id]->put($child->id, $child);
+            }
+        }
 
         foreach ($users as $user) {
-            $assignedChildren = $user->gender_id == 2
-                ? $childrenByMother->get($user->id, collect())
-                : $childrenByFather->get($user->id, collect());
-
-            $user->setRelation('childs', new EloquentCollection($assignedChildren->values()->all()));
+            $user->setRelation(
+                'childs',
+                new EloquentCollection(
+                    $assignedChildren->get($user->id, collect())->values()->all()
+                )
+            );
         }
 
         $this->hydrateUserGraph(new EloquentCollection($children->all()), $depth - 1);
@@ -181,7 +217,7 @@ class FamilyViewBuilder
         $hasMappedChildren = false;
 
         foreach ($this->sortedChildren($user) as $child) {
-            $partner = $user->gender_id == 1 ? $child->mother : $child->father;
+            $partner = $user->spouseForChild($child);
             $key = $partner ? $partner->id : null;
 
             if ($key && !$groups->has($key)) {
@@ -241,7 +277,7 @@ class FamilyViewBuilder
         }
 
         foreach ($this->filterUsers($user->childs) as $child) {
-            $partner = $user->gender_id == 1 ? $child->mother : $child->father;
+            $partner = $user->spouseForChild($child);
 
             if ($partner && $this->familyScopeResolver->isVisibleUser($partner) && !$partners->has($partner->id)) {
                 $partners->put($partner->id, $partner);

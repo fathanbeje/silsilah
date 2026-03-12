@@ -5,6 +5,7 @@ namespace App;
 use Carbon\Carbon;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
 use Ramsey\Uuid\Uuid;
 
 class User extends Authenticatable
@@ -193,14 +194,49 @@ class User extends Authenticatable
         $query = $this->hasMany(User::class, $this->gender_id == 2 ? 'mother_id' : 'father_id');
 
         if ($this->exists) {
-            $marriageIds = $this->marriages()->pluck('id')->filter()->values();
+            $marriageIds = $this->marriageIds();
 
             if ($marriageIds->isNotEmpty()) {
                 $query->orWhereIn('parent_id', $marriageIds->all());
             }
         }
 
-        return $query->orderBy('birth_order');
+        return $query->orderByRaw('COALESCE(birth_order, 999), name');
+    }
+
+    public function marriageIds(): Collection
+    {
+        if (! $this->exists) {
+            return collect();
+        }
+
+        if ($this->relationLoaded('marriages')) {
+            return collect($this->getRelation('marriages'))
+                ->pluck('id')
+                ->filter()
+                ->values();
+        }
+
+        return $this->marriages()->pluck('id')->filter()->values();
+    }
+
+    public function spouseForChild(User $child): ?User
+    {
+        $parent = $child->relationLoaded('parent') ? $child->getRelation('parent') : $child->parent;
+
+        if ($parent) {
+            if ((int) $this->gender_id === 1 && $parent->husband_id === $this->id) {
+                return $parent->relationLoaded('wife') ? $parent->getRelation('wife') : $parent->wife;
+            }
+
+            if ((int) $this->gender_id === 2 && $parent->wife_id === $this->id) {
+                return $parent->relationLoaded('husband') ? $parent->getRelation('husband') : $parent->husband;
+            }
+        }
+
+        return (int) $this->gender_id === 1
+            ? ($child->relationLoaded('mother') ? $child->getRelation('mother') : $child->mother)
+            : ($child->relationLoaded('father') ? $child->getRelation('father') : $child->father);
     }
 
     public function profileLink($type = 'profile')

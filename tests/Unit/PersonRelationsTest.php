@@ -62,4 +62,38 @@ class PersonRelationsTest extends TestCase
 
         $this->assertCount(2, $mother->childs);
     }
+
+    /** @test */
+    public function mother_childs_include_children_from_multiple_marriages_via_parent_id()
+    {
+        $mother = factory(User::class)->states('female')->create();
+        $fatherA = factory(User::class)->states('male')->create();
+        $fatherB = factory(User::class)->states('male')->create();
+        $coupleA = factory(\App\Couple::class)->create([
+            'husband_id' => $fatherA->id,
+            'wife_id' => $mother->id,
+        ]);
+        $coupleB = factory(\App\Couple::class)->create([
+            'husband_id' => $fatherB->id,
+            'wife_id' => $mother->id,
+        ]);
+
+        $childA = factory(User::class)->create([
+            'parent_id' => $coupleA->id,
+            'father_id' => null,
+            'mother_id' => null,
+        ]);
+        $childB = factory(User::class)->create([
+            'parent_id' => $coupleB->id,
+            'father_id' => null,
+            'mother_id' => null,
+        ]);
+
+        $this->assertEqualsCanonicalizing(
+            [$childA->id, $childB->id],
+            $mother->fresh()->childs->pluck('id')->all()
+        );
+        $this->assertEquals([$childA->id], $fatherA->fresh()->childs->pluck('id')->all());
+        $this->assertEquals([$childB->id], $fatherB->fresh()->childs->pluck('id')->all());
+    }
 }
