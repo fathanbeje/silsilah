@@ -21,7 +21,11 @@
             <!-- Left Side Of Navbar -->
             <ul class="nav navbar-nav">
                 <li><a href="{{ route('users.search') }}">{{ __('app.search_your_family') }}</a></li>
-                <li><a href="{{ route('birthdays.index') }}">{{ __('birthday.birthday') }}</a></li>
+                @auth
+                    @if (is_system_admin(auth()->user()))
+                        <li><a href="{{ route('birthdays.index') }}">{{ __('birthday.birthday') }}</a></li>
+                    @endif
+                @endauth
             </ul>
 
             <!-- Right Side Of Navbar -->

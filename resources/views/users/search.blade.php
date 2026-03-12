@@ -277,7 +277,7 @@
 
     {{ Form::open(['method' => 'get','class' => 'family-search-hero__search']) }}
     <div class="input-group">
-        {{ Form::text('q', request('q'), ['class' => 'form-control', 'placeholder' => 'Contoh: Syamsuri, Nur Ahadah, Masdjidi', 'autocomplete' => 'off', 'id' => 'family-search-input']) }}
+        {{ Form::text('q', request('q'), ['class' => 'form-control', 'placeholder' => 'Contoh: Syamsuri, Nur Ahadah, Yusrul', 'autocomplete' => 'off', 'id' => 'family-search-input']) }}
         <span class="input-group-btn">
             {{ Form::submit('Cari Sekarang', ['class' => 'btn btn-primary']) }}
             {{ link_to_route('users.search', 'Reset', [], ['class' => 'btn btn-default']) }}
@@ -308,7 +308,7 @@
         <span class="family-search-examples__label">Coba pencarian cepat:</span>
         <a class="family-search-examples__chip" href="{{ route('users.search', ['q' => 'Syamsuri']) }}">Syamsuri</a>
         <a class="family-search-examples__chip" href="{{ route('users.search', ['q' => 'Nur Ahadah']) }}">Nur Ahadah</a>
-        <a class="family-search-examples__chip" href="{{ route('users.search', ['q' => 'Masdjidi']) }}">Masdjidi</a>
+        <a class="family-search-examples__chip" href="{{ route('users.search', ['q' => 'Yusrul']) }}">Yusrul</a>
     </div>
 </section>
 
@@ -357,7 +357,7 @@
             <div class="family-search-empty__links">
                 <a href="{{ route('users.search', ['q' => 'Syamsuri']) }}" class="btn btn-default">Cari “Syamsuri”</a>
                 <a href="{{ route('users.search', ['q' => 'Nur Ahadah']) }}" class="btn btn-default">Cari “Nur Ahadah”</a>
-                <a href="{{ route('users.search', ['q' => 'Masdjidi']) }}" class="btn btn-default">Cari “Masdjidi”</a>
+                <a href="{{ route('users.search', ['q' => 'Yusrul']) }}" class="btn btn-default">Cari “Yusrul”</a>
             </div>
         </div>
 
@@ -365,7 +365,11 @@
             <h3>Yang bisa Anda lakukan setelah menemukan nama</h3>
             <p>Buka bagan keluarga untuk melihat hubungan antar anggota keluarga. Jika ada data yang kurang tepat, Anda juga bisa mengusulkan perbaikan dari halaman anggota keluarga tersebut.</p>
             <div class="family-search-empty__links">
-                <a href="{{ route('birthdays.index') }}" class="btn btn-default">{{ __('birthday.birthday') }}</a>
+                @auth
+                    @if (is_system_admin(auth()->user()))
+                        <a href="{{ route('birthdays.index') }}" class="btn btn-default">{{ __('birthday.birthday') }}</a>
+                    @endif
+                @endauth
                 @guest
                 <a href="{{ route('login') }}" class="btn btn-primary">Login</a>
                 @endguest
