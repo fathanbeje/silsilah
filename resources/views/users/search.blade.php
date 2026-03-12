@@ -155,6 +155,29 @@
         padding: 9px 14px;
     }
 
+    .family-search-guide__trigger {
+        margin-left: 10px;
+    }
+
+    .family-search-guide__list {
+        margin: 0;
+        padding-left: 18px;
+        color: #526060;
+        line-height: 1.7;
+    }
+
+    .family-search-guide__list li + li {
+        margin-top: 6px;
+    }
+
+    .family-search-guide__tip {
+        margin-top: 14px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: #f8f5ea;
+        color: #6b5b19;
+    }
+
     .family-search-results-header {
         margin-bottom: 16px;
     }
@@ -217,7 +240,10 @@
         {{ Form::text('q', request('q'), ['class' => 'form-control', 'placeholder' => 'Contoh: Syamsuri, Nur Ahadah, Yusrul', 'autocomplete' => 'off', 'id' => 'family-search-input']) }}
         <span class="input-group-btn">
             {{ Form::submit('Cari Sekarang', ['class' => 'btn btn-primary']) }}
+            <button type="button" class="btn btn-default family-search-guide__trigger" data-toggle="modal" data-target="#family-search-guide-modal">Panduan</button>
+            @if (request('q'))
             {{ link_to_route('users.search', 'Reset', [], ['class' => 'btn btn-default']) }}
+            @endif
         </span>
     </div>
     <div id="family-search-autocomplete" class="family-search-hero__autocomplete list-group"></div>
@@ -287,6 +313,7 @@
                 @if (!empty($featuredTreeUsers) && $featuredTreeUsers->first())
                 <a href="{{ route('users.tree', $featuredTreeUsers->first()) }}" class="btn btn-default">Lihat Pohon Keluarga</a>
                 @endif
+                <button type="button" class="btn btn-default" data-toggle="modal" data-target="#family-search-guide-modal">Panduan Singkat</button>
             </div>
         </div>
 
@@ -308,6 +335,32 @@
     </div>
 </section>
 @endif
+
+<div class="modal fade" id="family-search-guide-modal" tabindex="-1" role="dialog" aria-labelledby="family-search-guide-modal-label">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Tutup"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="family-search-guide-modal-label">Panduan Singkat</h4>
+            </div>
+            <div class="modal-body">
+                <ol class="family-search-guide__list">
+                    <li>Ketik nama Anda, ayah, atau ibu.</li>
+                    <li>Pilih hasil yang paling cocok.</li>
+                    <li>Buka <strong>Bagan</strong> untuk melihat hubungan keluarga.</li>
+                    <li>Buka <strong>Pohon</strong> jika ingin melihat keturunan tanpa login.</li>
+                    <li>Kalau ingin punya akun, buka data yang cocok lalu klik <strong>Daftarkan Akun Anda</strong>.</li>
+                </ol>
+                <div class="family-search-guide__tip">
+                    Jika data belum tepat, gunakan menu <strong>Usulkan Perubahan Data</strong> pada halaman anggota keluarga tersebut.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Mengerti</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @section('script')
@@ -316,6 +369,7 @@
         var input = document.getElementById('family-search-input');
         var list = document.getElementById('family-search-autocomplete');
         var timer = null;
+        var guideStorageKey = 'family-search-guide-shown';
 
         if (!input || !list) {
             return;
@@ -381,6 +435,15 @@
                 hideList();
             }
         });
+
+        if (window.jQuery && window.jQuery.fn.modal) {
+            try {
+                if (!window.sessionStorage.getItem(guideStorageKey)) {
+                    window.jQuery('#family-search-guide-modal').modal('show');
+                    window.sessionStorage.setItem(guideStorageKey, '1');
+                }
+            } catch (error) {}
+        }
     })();
 </script>
 @endsection

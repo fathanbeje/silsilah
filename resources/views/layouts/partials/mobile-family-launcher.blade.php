@@ -2,6 +2,7 @@
     $mobileContextUser = isset($user) && $user instanceof \App\User ? $user : (auth()->check() ? auth()->user() : null);
     $canEditMobileContextUser = auth()->check() && $mobileContextUser && auth()->user()->can('edit', $mobileContextUser);
     $profileUrl = null;
+    $isSearchLanding = in_array(Route::currentRouteName(), ['users.search', 'users.search.page'], true);
 
     if (auth()->check() && $mobileContextUser) {
         $profileUrl = Route::currentRouteName() === 'profile' && auth()->id() === $mobileContextUser->id
@@ -645,7 +646,9 @@
         </div>
 
         <div class="family-desktop-dock__links">
+            @unless ($isSearchLanding)
             <a class="family-desktop-dock__link" href="{{ route('users.search') }}"><strong>{{ __('app.search') }}</strong></a>
+            @endunless
 
             @if (auth()->check())
             <a class="family-desktop-dock__link" href="{{ route('profile') }}"><strong>{{ __('app.my_profile') }}</strong></a>
