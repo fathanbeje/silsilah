@@ -382,4 +382,27 @@ class ManageUserFamiliesTest extends TestCase
         $this->assertSame($couple->id, $user->fresh()->parent_id);
         $this->assertEquals(1, Couple::where('husband_id', $father->id)->where('wife_id', $mother->id)->count());
     }
+
+    /** @test */
+    public function mother_profile_lists_children_loaded_via_parent_couple()
+    {
+        $mother = $this->loginAsUser(['gender_id' => 2, 'name' => 'NUR AHADAH', 'nickname' => 'NUR']);
+        $father = factory(User::class)->states('male')->create(['manager_id' => $mother->id]);
+        $mother->addHusband($father);
+
+        $coupleId = $mother->fresh()->husbands->first()->pivot->id;
+        $child = factory(User::class)->create([
+            'name' => 'ANAK NUR',
+            'nickname' => 'ANAK NUR',
+            'parent_id' => $coupleId,
+            'father_id' => null,
+            'mother_id' => null,
+        ]);
+
+        $this->visit(route('users.show', $mother))
+            ->see('ANAK NUR')
+            ->see(__('user.childs').' (1)');
+
+        $this->assertEquals($child->id, $mother->fresh()->childs->first()->id);
+    }
 }

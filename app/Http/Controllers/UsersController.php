@@ -72,11 +72,11 @@ class UsersController extends Controller
             'mother',
             'parent.husband',
             'parent.wife',
-            'childs',
             'wifes',
             'husbands',
             'couples',
         ]);
+        $user->setRelation('childs', $this->loadVisibleChilds($user));
         $this->applyScopedRelationsToUser($user);
         $siblings = $this->familyScopeResolver->filterUsers($user->siblings());
 
@@ -479,6 +479,15 @@ class UsersController extends Controller
         }
 
         return $this->familyScopeResolver->isVisibleUser($user) ? $user : null;
+    }
+
+    private function loadVisibleChilds(User $user)
+    {
+        $childs = $user->childs()
+            ->with(['father', 'mother', 'parent.husband', 'parent.wife'])
+            ->get();
+
+        return $this->familyScopeResolver->filterUsers($childs);
     }
 
     private function storeOptimizedSquarePhoto($uploadedPhoto)
