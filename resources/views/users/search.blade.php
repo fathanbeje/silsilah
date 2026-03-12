@@ -212,6 +212,17 @@
         padding: 9px 14px;
     }
 
+    .family-search-empty__register-steps {
+        margin: 0 0 16px;
+        padding-left: 18px;
+        color: #526060;
+        line-height: 1.7;
+    }
+
+    .family-search-empty__register-steps li + li {
+        margin-top: 4px;
+    }
+
     .family-search-results-header {
         margin-bottom: 16px;
     }
@@ -362,9 +373,15 @@
         </div>
 
         <div class="family-search-empty__card">
-            <h3>Yang bisa Anda lakukan setelah menemukan nama</h3>
-            <p>Buka bagan keluarga untuk melihat hubungan antar anggota keluarga. Jika ada data yang kurang tepat, Anda juga bisa mengusulkan perbaikan dari halaman anggota keluarga tersebut.</p>
+            <h3>Belum punya akun? Daftarkan dari profil keluarga</h3>
+            <p>Registrasi akun dilakukan dari profil anggota keluarga yang sesuai, supaya akun langsung terhubung ke orang yang benar di silsilah.</p>
+            <ol class="family-search-empty__register-steps">
+                <li>Cari nama Anda atau orang tua Anda di kotak pencarian.</li>
+                <li>Buka profil atau bagan keluarga yang paling cocok.</li>
+                <li>Klik <strong>Daftarkan Akun Anda</strong> pada halaman anggota tersebut.</li>
+            </ol>
             <div class="family-search-empty__links">
+                <a href="#family-search-input" class="btn btn-primary">Mulai Cari Nama</a>
                 @auth
                     @if (is_system_admin(auth()->user()))
                         <a href="{{ route('birthdays.index') }}" class="btn btn-default">{{ __('birthday.birthday') }}</a>

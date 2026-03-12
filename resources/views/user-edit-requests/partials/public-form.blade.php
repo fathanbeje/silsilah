@@ -16,6 +16,9 @@
                 {{ userPhoto($user, ['style' => 'width:88px;height:88px;object-fit:cover;border-radius:16px;']) }}
             </div>
         </div>
+        <div class="small text-muted" style="margin: 12px 0 18px;">
+            <span class="text-danger" style="font-weight:700;">*</span> Wajib diisi
+        </div>
 
         <div class="row">
             <div class="col-md-6">
@@ -24,8 +27,8 @@
                     <div class="panel-body">
                         <div class="row">
                             <div class="col-sm-6"><div class="form-group form-group-sm"><label>Nama</label><input type="text" name="name" class="form-control" value="{{ old('name', $user->name) }}"></div></div>
-                            <div class="col-sm-6"><div class="form-group form-group-sm"><label>Nama panggilan</label><input type="text" name="nickname" class="form-control" value="{{ old('nickname', $user->nickname) }}" required></div></div>
-                            <div class="col-sm-6"><div class="form-group form-group-sm"><label>Jenis kelamin</label><select name="gender_id" class="form-control" required><option value="1" @selected(old('gender_id', $user->gender_id) == 1)>Laki-laki</option><option value="2" @selected(old('gender_id', $user->gender_id) == 2)>Perempuan</option></select></div></div>
+                            <div class="col-sm-6"><div class="form-group form-group-sm"><label>Nama panggilan <span class="text-danger">*</span></label><input type="text" name="nickname" class="form-control" value="{{ old('nickname', $user->nickname) }}" required></div></div>
+                            <div class="col-sm-6"><div class="form-group form-group-sm"><label>Jenis kelamin <span class="text-danger">*</span></label><select name="gender_id" class="form-control" required><option value="1" @selected(old('gender_id', $user->gender_id) == 1)>Laki-laki</option><option value="2" @selected(old('gender_id', $user->gender_id) == 2)>Perempuan</option></select></div></div>
                             <div class="col-sm-6"><div class="form-group form-group-sm"><label>Urutan lahir</label><input type="number" min="1" name="birth_order" class="form-control" value="{{ old('birth_order', $user->birth_order) }}"></div></div>
                             <div class="col-sm-6"><div class="form-group form-group-sm"><label>Tanggal lahir</label><input type="date" name="dob" class="form-control" value="{{ old('dob', optional($user->dob)->format('Y-m-d')) }}"></div></div>
                             <div class="col-sm-6"><div class="form-group form-group-sm"><label>Tahun lahir</label><input type="text" name="yob" class="form-control" value="{{ old('yob', $user->yob) }}" placeholder="YYYY"></div></div>
@@ -103,8 +106,8 @@
                 <div class="panel panel-default">
                     <div class="panel-heading"><strong>Identitas Pengaju</strong></div>
                     <div class="panel-body">
-                        <div class="form-group form-group-sm"><label>Nama pengaju</label><input type="text" name="requester_name" class="form-control" value="{{ old('requester_name') }}" required></div>
-                        <div class="form-group form-group-sm"><label>Nomor WA aktif</label><input type="text" name="requester_whatsapp" class="form-control" value="{{ old('requester_whatsapp') }}" required></div>
+                        <div class="form-group form-group-sm"><label>Nama pengaju <span class="text-danger">*</span></label><input type="text" name="requester_name" class="form-control" value="{{ old('requester_name') }}" required></div>
+                        <div class="form-group form-group-sm"><label>Nomor WA aktif <span class="text-danger">*</span></label><input type="text" name="requester_whatsapp" class="form-control" value="{{ old('requester_whatsapp') }}" required></div>
                     </div>
                 </div>
             </div>
