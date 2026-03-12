@@ -268,6 +268,8 @@ class NotionPublicBirthDateSource
         $dob = $this->extractDateValue($properties->get($propertyMap['birth_date']));
         $parentNames = $this->resolveRelatedNames($properties->get($propertyMap['parents']), $blocks);
         $spouseNames = $this->resolveRelatedNames($properties->get($propertyMap['spouses']), $blocks);
+        $parentBlockIds = $this->extractPageIds($properties->get($propertyMap['parents']));
+        $spouseBlockIds = $this->extractPageIds($properties->get($propertyMap['spouses']));
 
         return [
             'block_id' => $block['id'] ?? null,
@@ -279,12 +281,14 @@ class NotionPublicBirthDateSource
             'dob' => $dob,
             'yob' => $dob ? substr($dob, 0, 4) : null,
             'parent_names' => $parentNames->all(),
+            'parent_block_ids' => $parentBlockIds,
             'parent_aliases' => $parentNames
                 ->flatMap(fn (string $name) => $this->comparableNameVariants($name))
                 ->unique()
                 ->values()
                 ->all(),
             'spouse_names' => $spouseNames->all(),
+            'spouse_block_ids' => $spouseBlockIds,
             'spouse_aliases' => $spouseNames
                 ->flatMap(fn (string $name) => $this->comparableNameVariants($name))
                 ->unique()

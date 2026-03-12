@@ -118,6 +118,7 @@ class SyncBirthDatesFromNotionTest extends TestCase
             {
                 return collect([
                     [
+                        'block_id' => 'row-mother',
                         'source_name' => '(Almh.) Hj. Munafi\'ah',
                         'normalized_name' => 'MUNAFI AH',
                         'gender_id' => 2,
@@ -125,6 +126,7 @@ class SyncBirthDatesFromNotionTest extends TestCase
                         'yob' => '1936',
                     ],
                     [
+                        'block_id' => 'row-son',
                         'source_name' => 'Yusrul Hana',
                         'normalized_name' => 'YUSRUL HANA',
                         'gender_id' => 1,
@@ -170,6 +172,7 @@ class SyncBirthDatesFromNotionTest extends TestCase
             {
                 return collect([
                     [
+                        'block_id' => 'row-wife',
                         'source_name' => 'Imrithi Noer Faiqoh',
                         'normalized_name' => 'IMRITHI NOER FAIQOH',
                         'name_aliases' => ['IMRITHI NOER FAIQOH', 'IMRITHINOERFAIQOH'],
@@ -191,6 +194,45 @@ class SyncBirthDatesFromNotionTest extends TestCase
         $this->assertSame(0, $exitCode);
         $this->assertSame('1970-01-02', optional($wife->fresh()->dob)->format('Y-m-d'));
         $this->assertSame('1970', (string) $wife->fresh()->yob);
+    }
+
+    /** @test */
+    public function notion_birth_date_sync_can_create_missing_user()
+    {
+        $this->app->instance(NotionPublicBirthDateSource::class, new class extends NotionPublicBirthDateSource {
+            public function fetchRows(string $url, int $chunkSize = 100): \Illuminate\Support\Collection
+            {
+                return collect([
+                    [
+                        'block_id' => 'row-new',
+                        'source_name' => 'Hj. Contoh Baru',
+                        'normalized_name' => 'CONTOH BARU',
+                        'name_aliases' => ['CONTOH BARU', 'CONTOHBARU'],
+                        'gender_id' => 2,
+                        'dob' => '1999-12-31',
+                        'yob' => '1999',
+                        'parent_aliases' => [],
+                        'parent_block_ids' => [],
+                        'spouse_aliases' => [],
+                        'spouse_block_ids' => [],
+                    ],
+                ]);
+            }
+        });
+
+        $exitCode = $this->artisan('notion:sync-birth-dates', [
+            'url' => self::NOTION_URL,
+            '--apply' => true,
+            '--create-missing' => true,
+        ]);
+
+        $this->assertSame(0, $exitCode);
+
+        $user = User::where('name', 'CONTOH BARU')->first();
+        $this->assertNotNull($user);
+        $this->assertSame('CONTOH BARU', $user->nickname);
+        $this->assertSame(2, (int) $user->gender_id);
+        $this->assertSame('1999-12-31', optional($user->dob)->format('Y-m-d'));
     }
 
     protected function tearDown(): void
