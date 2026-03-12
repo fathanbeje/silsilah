@@ -6,6 +6,7 @@ use App\Services\CemeteryLocationOptions;
 use App\Services\FamilyScopeResolver;
 use App\User;
 use App\UserEditRequest;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
@@ -16,6 +17,12 @@ use Ramsey\Uuid\Uuid;
 
 class PublicUserEditRequestsController extends Controller
 {
+    private const ALLOWED_PHOTO_MIME_TYPES = [
+        'image/jpeg',
+        'image/png',
+        'image/webp',
+    ];
+
     public function __construct(
         private CemeteryLocationOptions $cemeteryLocationOptions,
         private FamilyScopeResolver $familyScopeResolver
@@ -66,7 +73,7 @@ class PublicUserEditRequestsController extends Controller
             'cemetery_location_address' => 'nullable|string|max:255',
             'cemetery_location_latitude' => 'nullable|string|max:255',
             'cemetery_location_longitude' => 'nullable|string|max:255',
-            'photo' => 'nullable|image|max:10000',
+            'photo' => 'nullable|file|mimes:jpg,jpeg,png,webp|mimetypes:image/jpeg,image/png,image/webp|max:10000|dimensions:min_width=100,min_height=100,max_width=8000,max_height=8000',
             'new_spouses' => 'array',
             'new_spouses.*.request_key' => 'nullable|string|max:80',
             'new_spouses.*.name' => 'nullable|string|max:255',
@@ -287,6 +294,8 @@ class PublicUserEditRequestsController extends Controller
 
     private function storeStagedPhoto($uploadedPhoto): string
     {
+        $this->assertSafePhotoUpload($uploadedPhoto);
+
         $directory = storage_path('app/public/edit-requests');
         if (!is_dir($directory)) {
             mkdir($directory, 0755, true);
@@ -313,6 +322,13 @@ class PublicUserEditRequestsController extends Controller
         file_put_contents($absolutePath, (string) $image);
 
         return $relativePath;
+    }
+
+    private function assertSafePhotoUpload(UploadedFile $uploadedPhoto): void
+    {
+        if (!in_array($uploadedPhoto->getMimeType(), self::ALLOWED_PHOTO_MIME_TYPES, true)) {
+            abort(422, 'Jenis file foto tidak diizinkan.');
+        }
     }
 
     private function validationFailureResponse(Request $request, array $errors)

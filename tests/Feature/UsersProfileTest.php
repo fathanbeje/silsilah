@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Jobs\Images\OptimizeImages;
 use App\User;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
@@ -384,5 +385,33 @@ class UsersProfileTest extends TestCase
         $this->assertNotNull($user->photo_path);
         Bus::assertDispatched(OptimizeImages::class);
         Storage::assertExists($user->photo_path);
+    }
+
+    /** @test */
+    public function user_profile_photo_upload_rejects_svg_files()
+    {
+        $user = $this->loginAsUser();
+        $file = UploadedFile::fake()->create('payload.svg', 10, 'image/svg+xml');
+
+        $this->call('PATCH', route('users.photo-upload', $user), [], [], ['photo' => $file]);
+        $this->assertResponseStatus(302);
+        $this->assertSessionHasErrors('photo');
+    }
+
+    /** @test */
+    public function public_edit_request_photo_upload_rejects_svg_files()
+    {
+        $target = factory(User::class)->create();
+        $file = UploadedFile::fake()->create('payload.svg', 10, 'image/svg+xml');
+
+        $this->call('POST', route('user-edit-requests.store', $target), [
+            'requester_name' => 'Pengusul',
+            'requester_whatsapp' => '08123456789',
+            'nickname' => $target->nickname,
+            'gender_id' => $target->gender_id,
+        ], [], ['photo' => $file], ['HTTP_X-Requested-With' => 'XMLHttpRequest']);
+
+        $this->assertResponseStatus(422);
+        $this->seeJsonContains(['message' => 'Data usulan belum valid.']);
     }
 }

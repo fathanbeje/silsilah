@@ -11,6 +11,7 @@ use App\Services\ParentCoupleResolver;
 use App\Support\FamilyViewBuilder;
 use App\User;
 use App\UserMetadata;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -20,6 +21,12 @@ use Storage;
 
 class UsersController extends Controller
 {
+    private const ALLOWED_PHOTO_MIME_TYPES = [
+        'image/jpeg',
+        'image/png',
+        'image/webp',
+    ];
+
     public function __construct(
         private FamilyViewBuilder $familyViewBuilder,
         private CemeteryLocationOptions $cemeteryLocationOptions,
@@ -324,7 +331,7 @@ class UsersController extends Controller
     public function photoUpload(Request $request, User $user)
     {
         $request->validate([
-            'photo' => 'required|image|max:10000',
+            'photo' => 'required|file|mimes:jpg,jpeg,png,webp|mimetypes:image/jpeg,image/png,image/webp|max:10000|dimensions:min_width=100,min_height=100,max_width=8000,max_height=8000',
         ]);
 
         if (Storage::exists($user->photo_path)) {
@@ -508,6 +515,8 @@ class UsersController extends Controller
 
     private function storeOptimizedSquarePhoto($uploadedPhoto)
     {
+        $this->assertSafePhotoUpload($uploadedPhoto);
+
         $directory = storage_path('app/public/images');
         if (!is_dir($directory)) {
             mkdir($directory, 0755, true);
@@ -540,5 +549,12 @@ class UsersController extends Controller
         $encoded->save($absolutePath);
 
         return $relativePath;
+    }
+
+    private function assertSafePhotoUpload(UploadedFile $uploadedPhoto): void
+    {
+        if (!in_array($uploadedPhoto->getMimeType(), self::ALLOWED_PHOTO_MIME_TYPES, true)) {
+            abort(422, 'Jenis file foto tidak diizinkan.');
+        }
     }
 }
