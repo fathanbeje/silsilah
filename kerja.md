@@ -129,10 +129,24 @@ Berdasarkan output yang terlihat pada sesi ini, script tersebut menjalankan lang
 
 - `git fetch`
 - `git pull --ff-only`
-- `composer install`
-- `php artisan migrate`
-- clear/cache ulang config, route, dan view
+- `composer install --no-scripts`
+- `php artisan package:discover` sebagai user `frankenphp`
+- `php artisan migrate` sebagai user `frankenphp`
+- clear/cache ulang config, route, dan view sebagai user `frankenphp`
 - restart service aplikasi
+
+Catatan hardening:
+
+- Jangan jalankan `php artisan view:cache`, `config:cache`, `route:cache`, `optimize`, atau `package:discover` sebagai `root` pada server live.
+- Jika command Artisan dijalankan manual di VPS, gunakan:
+
+```powershell
+ssh -i C:\Users\Administrator\.ssh\vps_deploy_ed25519 -p 2288 root@103.177.95.140 "su -s /bin/bash frankenphp -c 'cd /www/wwwroot/bani-syamsuri.eu.org && php artisan view:clear && php artisan view:cache'"
+```
+
+- Permission yang harus tetap dimiliki `frankenphp:frankenphp`:
+  - `/www/wwwroot/bani-syamsuri.eu.org/storage`
+  - `/www/wwwroot/bani-syamsuri.eu.org/bootstrap/cache`
 
 ## 7. Verifikasi Live
 
@@ -209,3 +223,8 @@ curl.exe -I https://syamsuri.bani.my.id/
 - Untuk perubahan schema, pastikan migration ikut ter-push sebelum sync.
 - Untuk migrasi FrankenPHP worker mode, pakai file di `deploy/frankenphp/` dan worker runtime di `worker/`.
 - Setelah perubahan file `worker/*.php`, `deploy/frankenphp/*`, atau config systemd/Caddyfile, restart service `frankenphp-bani-silsilah`.
+- Setelah deploy manual atau recovery, normalisasi lagi ownership jika perlu:
+
+```powershell
+ssh -i C:\Users\Administrator\.ssh\vps_deploy_ed25519 -p 2288 root@103.177.95.140 "chown -R frankenphp:frankenphp /www/wwwroot/bani-syamsuri.eu.org/storage /www/wwwroot/bani-syamsuri.eu.org/bootstrap/cache"
+```

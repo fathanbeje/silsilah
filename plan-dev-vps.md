@@ -162,11 +162,23 @@ Setelah `git pull`, jalankan sesuai kebutuhan:
 | Kondisi                          | Command                            |
 |----------------------------------|------------------------------------|
 | Ada migrasi database baru        | `php artisan migrate --force`      |
-| Ada package composer baru        | `composer install --no-dev`        |
-| Ada perubahan config/route       | `php artisan optimize`             |
-| Cache perlu dibersihkan          | `php artisan cache:clear`          |
+| Ada package composer baru        | `composer install --no-dev --no-scripts` lalu `php artisan package:discover` sebagai user service |
+| Ada perubahan config/route       | `php artisan optimize` sebagai user service |
+| Cache perlu dibersihkan          | `php artisan cache:clear` sebagai user service |
 | Ada perubahan `worker/*.php`     | `systemctl restart frankenphp-bani-silsilah` |
 | Ada perubahan SCSS (jarang)      | `npm run prod` *(Node.js v14/16)*  |
+
+Untuk server FrankenPHP worker ini, user service aktif adalah `frankenphp`. Jangan jalankan cache/view/config Artisan sebagai `root`, karena file hasil cache bisa menjadi tidak writable oleh worker HTTP dan memicu `500`.
+
+Contoh aman:
+
+```bash
+cd /www/wwwroot/bani-syamsuri.eu.org
+composer install --no-dev --no-scripts --optimize-autoloader
+chown -R frankenphp:frankenphp storage bootstrap/cache
+su -s /bin/bash frankenphp -c 'cd /www/wwwroot/bani-syamsuri.eu.org && php artisan package:discover && php artisan migrate --force && php artisan config:clear && php artisan route:clear && php artisan view:clear && php artisan view:cache'
+systemctl restart frankenphp-syamsuri-bani-my-id.service
+```
 
 ---
 
