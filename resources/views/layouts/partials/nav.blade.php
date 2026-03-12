@@ -53,7 +53,9 @@
                                 <li><a href="{{ route('deploy-sync.index') }}">Deploy Sync</a></li>
                             @endif
                             <li><a href="{{ route('profile') }}">{{ __('app.my_profile') }}</a></li>
-                            <li><a href="{{ route('gedcom.index') }}">Import GEDCOM</a></li>
+                            @if (is_system_admin(auth()->user()))
+                                <li><a href="{{ route('gedcom.index') }}">Import GEDCOM</a></li>
+                            @endif
                             <li><a href="{{ route('password_change') }}">{{ __('auth.change_password') }}</a></li>
                             <li>
                                 <a href="{{ route('logout') }}" onclick="event.preventDefault();

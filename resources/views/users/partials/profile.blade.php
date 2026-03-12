@@ -3,6 +3,21 @@
     <div class="panel-body text-center">
         {{ userPhoto($user, ['style' => 'width:100%;max-width:300px']) }}
     </div>
+    @if (auth()->check() && is_system_admin(auth()->user()))
+    <div class="panel-body" style="padding-top:0">
+        {{ Form::open(['route' => ['users.quick-deceased', $user], 'method' => 'patch']) }}
+            <input type="hidden" name="is_deceased" value="0">
+            <div class="checkbox" style="margin:0">
+                <label>
+                    <input type="checkbox" name="is_deceased" value="1" {{ $user->isDeceased() ? 'checked' : '' }}>
+                    {{ __('user.is_deceased') }}
+                </label>
+            </div>
+            <div class="text-muted small">{{ __('user.deceased_status_hint') }}</div>
+            <button type="submit" class="btn btn-xs btn-default" style="margin-top:8px">{{ __('user.save_deceased_status') }}</button>
+        {{ Form::close() }}
+    </div>
+    @endif
     <table class="table">
         <tbody>
             <tr>

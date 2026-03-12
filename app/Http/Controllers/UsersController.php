@@ -124,7 +124,7 @@ class UsersController extends Controller
         $chartData = $this->familyViewBuilder->buildChartData($user);
 
         $publicView = true;
-        $allowPublicEditSuggestions = auth()->guest();
+        $allowPublicEditSuggestions = auth()->guest() || (auth()->check() && !is_system_admin(auth()->user()));
         $canClaim = !$user->email;
 
         return view('users.public-chart', compact(
@@ -132,6 +132,22 @@ class UsersController extends Controller
             'fatherGrandma', 'motherGrandpa', 'motherGrandma',
             'siblings', 'colspan', 'publicView', 'allowPublicEditSuggestions', 'canClaim'
         ) + $chartData);
+    }
+
+    public function updateQuickDeceased(Request $request, User $user)
+    {
+        abort_unless(auth()->check() && is_system_admin(auth()->user()), 403);
+
+        $user->is_deceased = $request->boolean('is_deceased');
+
+        if (! $user->is_deceased) {
+            $user->dod = null;
+            $user->yod = null;
+        }
+
+        $user->save();
+
+        return back()->with('status', __('user.deceased_status_updated'));
     }
 
     public function autocomplete(Request $request)

@@ -33,6 +33,72 @@ class UsersProfileTest extends TestCase
     }
 
     /** @test */
+    public function non_admin_does_not_see_gedcom_import_link()
+    {
+        $user = $this->loginAsUser(['email' => 'member@example.com']);
+
+        $this->visit(route('profile'));
+        $this->dontSee('Import GEDCOM');
+    }
+
+    /** @test */
+    public function non_admin_cannot_access_gedcom_import_route()
+    {
+        $user = $this->loginAsUser(['email' => 'member@example.com']);
+
+        $this->get(route('gedcom.index'));
+        $this->assertResponseStatus(403);
+    }
+
+    /** @test */
+    public function logged_in_non_admin_can_open_public_edit_request_form()
+    {
+        $member = $this->loginAsUser(['email' => 'member@example.com']);
+        $target = factory(User::class)->create();
+
+        $this->visit(route('users.chart', $target))
+            ->see('Usulkan Perubahan Data');
+
+        $this->get(route('user-edit-requests.create', $target));
+        $this->assertResponseOk();
+        $this->see('Nama pengaju');
+    }
+
+    /** @test */
+    public function admin_cannot_open_public_edit_request_form()
+    {
+        config(['app.system_admin_emails' => 'admin@example.com']);
+
+        $admin = $this->loginAsUser(['email' => 'admin@example.com']);
+        $target = factory(User::class)->create(['manager_id' => $admin->id]);
+
+        $this->get(route('user-edit-requests.create', $target));
+        $this->assertResponseStatus(403);
+    }
+
+    /** @test */
+    public function admin_can_quickly_toggle_deceased_status_from_profile_page()
+    {
+        config(['app.system_admin_emails' => 'admin@example.com']);
+
+        $admin = $this->loginAsUser(['email' => 'admin@example.com']);
+        $target = factory(User::class)->create(['manager_id' => $admin->id, 'is_deceased' => false]);
+
+        $this->visit(route('users.show', $target))
+            ->seeElement('input', ['name' => 'is_deceased', 'value' => '1'])
+            ->see(trans('user.save_deceased_status'));
+
+        $this->submitForm(trans('user.save_deceased_status'), [
+            'is_deceased' => '1',
+        ]);
+
+        $this->seeInDatabase('users', [
+            'id' => $target->id,
+            'is_deceased' => true,
+        ]);
+    }
+
+    /** @test */
     public function user_can_view_other_users_profile()
     {
         $user = $this->loginAsUser();

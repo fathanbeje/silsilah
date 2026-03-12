@@ -21,11 +21,11 @@ class PublicUserEditRequestsController extends Controller
         private FamilyScopeResolver $familyScopeResolver
     )
     {
-        $this->middleware('guest');
     }
 
     public function create(User $user)
     {
+        $this->abortIfUserCannotSubmit();
         $this->abortIfUserOutsideScope($user);
         $user->loadMissing(['couples', 'metadata']);
 
@@ -43,6 +43,7 @@ class PublicUserEditRequestsController extends Controller
 
     public function store(Request $request, User $user)
     {
+        $this->abortIfUserCannotSubmit();
         $this->abortIfUserOutsideScope($user);
 
         $validator = Validator::make($request->all(), [
@@ -334,6 +335,13 @@ class PublicUserEditRequestsController extends Controller
 
         if (!$this->familyScopeResolver->isVisibleUser($user)) {
             abort(404);
+        }
+    }
+
+    private function abortIfUserCannotSubmit(): void
+    {
+        if (auth()->check() && is_system_admin(auth()->user())) {
+            abort(403);
         }
     }
 }

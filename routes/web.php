@@ -41,10 +41,8 @@ Route::controller(UsersController::class)->group(function () {
 
 Route::post('users/{user}/claim-registration', [ClaimRegistrationController::class, 'store'])->middleware('family.scope')->name('claim-registration.store');
 Route::post('users/{user}/registration-requests', [RegistrationRequestsController::class, 'store'])->middleware('family.scope')->name('registration-requests.store');
-Route::middleware('guest')->group(function () {
-    Route::get('users/{user}/edit-requests/create', [PublicUserEditRequestsController::class, 'create'])->middleware('family.scope')->name('user-edit-requests.create');
-    Route::post('users/{user}/edit-requests', [PublicUserEditRequestsController::class, 'store'])->middleware('family.scope')->name('user-edit-requests.store');
-});
+Route::get('users/{user}/edit-requests/create', [PublicUserEditRequestsController::class, 'create'])->middleware('family.scope')->name('user-edit-requests.create');
+Route::post('users/{user}/edit-requests', [PublicUserEditRequestsController::class, 'store'])->middleware('family.scope')->name('user-edit-requests.store');
 
 Route::middleware('auth')->group(function () {
     Route::controller(HomeController::class)->group(function () {
@@ -75,9 +73,6 @@ Route::middleware('auth')->group(function () {
 
     Route::get('birthdays', [BirthdayController::class, 'index'])->name('birthdays.index');
     
-    Route::get('gedcom/import', [GedcomController::class, 'index'])->name('gedcom.index');
-    Route::post('gedcom/import', [GedcomController::class, 'store'])->name('gedcom.store');
-
     /**
      * Couple/Marriages Routes
      */
@@ -117,6 +112,9 @@ Route::group(['middleware' => ['auth', 'admin']], function () {
         Route::post('deploy-sync/run', 'run')->name('deploy-sync.run');
     });
 
+    Route::get('gedcom/import', [GedcomController::class, 'index'])->name('gedcom.index');
+    Route::post('gedcom/import', [GedcomController::class, 'store'])->name('gedcom.store');
+
     Route::resource('domain-family-scopes', DomainFamilyScopesController::class)->except(['show']);
 
     Route::controller(RegistrationRequestsController::class)->group(function () {
@@ -129,4 +127,6 @@ Route::group(['middleware' => ['auth', 'admin']], function () {
         Route::get('user-edit-requests/{userEditRequest}', 'show')->name('user-edit-requests.show');
         Route::patch('user-edit-requests/{userEditRequest}', 'update')->name('user-edit-requests.update');
     });
+
+    Route::patch('users/{user}/quick-deceased', [UsersController::class, 'updateQuickDeceased'])->name('users.quick-deceased');
 });
