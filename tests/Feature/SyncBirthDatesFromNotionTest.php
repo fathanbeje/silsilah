@@ -91,7 +91,7 @@ class SyncBirthDatesFromNotionTest extends TestCase
         $rows = $source->fetchRows(self::NOTION_URL, 50);
 
         $this->assertCount(2, $rows);
-        $this->assertSame('HJ. MUNAFI\'AH', $rows[0]['normalized_name']);
+        $this->assertSame('MUNAFI AH', $rows[0]['normalized_name']);
         $this->assertSame(2, $rows[0]['gender_id']);
         $this->assertSame('1936-01-01', $rows[0]['dob']);
         $this->assertSame('1981-09-20', $rows[1]['dob']);
@@ -119,7 +119,7 @@ class SyncBirthDatesFromNotionTest extends TestCase
                 return collect([
                     [
                         'source_name' => '(Almh.) Hj. Munafi\'ah',
-                        'normalized_name' => 'HJ. MUNAFI\'AH',
+                        'normalized_name' => 'MUNAFI AH',
                         'gender_id' => 2,
                         'dob' => '1936-01-01',
                         'yob' => '1936',

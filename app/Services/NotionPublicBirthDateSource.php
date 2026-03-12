@@ -113,6 +113,9 @@ class NotionPublicBirthDateSource
 
         $value = preg_replace('/^\((?:ALM|ALMH)\.?\)\s*/iu', '', $value);
         $value = preg_replace('/^(?:ALM|ALMH)\.?\s+/iu', '', $value);
+        $value = preg_replace('/^(?:(?:K\s*\.?\s*)?H(?:\s*\.?\s*)?(?:J(?:\s*\.?\s*)?)?\s+)+/iu', '', $value);
+        $value = str_replace(['’', '‘', '`', '´'], "'", $value);
+        $value = preg_replace("/[.'’‘`´]+/u", ' ', $value);
         $value = preg_replace('/\s+/', ' ', $value);
 
         return User::normalizeUppercase($value);
