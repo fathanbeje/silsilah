@@ -148,6 +148,51 @@ class SyncBirthDatesFromNotionTest extends TestCase
         $this->assertSame('1981', (string) $son->fresh()->yob);
     }
 
+    /** @test */
+    public function notion_birth_date_sync_can_match_name_variant_when_family_context_is_unique()
+    {
+        $husband = factory(User::class)->states('male')->create([
+            'name' => 'K.H. MUHAJIR',
+            'nickname' => 'MUHAJIR',
+        ]);
+
+        $wife = factory(User::class)->states('female')->create([
+            'name' => 'IMRITI NUR FAIQOH',
+            'nickname' => 'IMRITI',
+            'dob' => null,
+            'yob' => null,
+        ]);
+
+        $wife->addHusband($husband);
+
+        $this->app->instance(NotionPublicBirthDateSource::class, new class extends NotionPublicBirthDateSource {
+            public function fetchRows(string $url, int $chunkSize = 100): \Illuminate\Support\Collection
+            {
+                return collect([
+                    [
+                        'source_name' => 'Imrithi Noer Faiqoh',
+                        'normalized_name' => 'IMRITHI NOER FAIQOH',
+                        'name_aliases' => ['IMRITHI NOER FAIQOH', 'IMRITHINOERFAIQOH'],
+                        'gender_id' => 2,
+                        'dob' => '1970-01-02',
+                        'yob' => '1970',
+                        'parent_aliases' => [],
+                        'spouse_aliases' => ['MUHAJIR'],
+                    ],
+                ]);
+            }
+        });
+
+        $exitCode = $this->artisan('notion:sync-birth-dates', [
+            'url' => self::NOTION_URL,
+            '--apply' => true,
+        ]);
+
+        $this->assertSame(0, $exitCode);
+        $this->assertSame('1970-01-02', optional($wife->fresh()->dob)->format('Y-m-d'));
+        $this->assertSame('1970', (string) $wife->fresh()->yob);
+    }
+
     protected function tearDown(): void
     {
         parent::tearDown();

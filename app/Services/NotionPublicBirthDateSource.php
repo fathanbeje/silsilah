@@ -34,6 +34,8 @@ class NotionPublicBirthDateSource
             'title' => 'title',
             'gender' => $this->findPropertyIdByName($schema, 'L/P'),
             'birth_date' => $this->findPropertyIdByName($schema, 'Lahir'),
+            'parents' => $this->findPropertyIdByName($schema, 'Ortu'),
+            'spouses' => $this->findPropertyIdByName($schema, 'Suami/Istri'),
         ];
 
         if (! $propertyMap['gender'] || ! $propertyMap['birth_date']) {
@@ -78,26 +80,50 @@ class NotionPublicBirthDateSource
             return collect();
         }
 
-        return $blockIds
+        $blocks = $blockIds
             ->chunk(max(1, $chunkSize))
             ->flatMap(function (Collection $chunk) use ($url, $propertyMap) {
-                return $chunk->map(function (string $blockId) use ($url, $propertyMap) {
+                return $chunk->mapWithKeys(function (string $blockId) use ($url) {
                     $response = $this->postJson($url, 'loadCachedPageChunkV2', [
                         'page' => ['id' => $blockId],
                         'cursor' => ['stack' => []],
                         'verticalColumns' => false,
                     ]);
 
-                    return $this->mapBlockToRow(
-                        data_get($response, "recordMap.block.{$blockId}.value", []),
-                        $propertyMap
-                    );
+                    return [$blockId => data_get($response, "recordMap.block.{$blockId}.value", [])];
                 });
+            })
+            ->filter(function (array $block) {
+                return ($block['type'] ?? null) === 'page';
+            });
+
+        return $blocks
+            ->map(function (array $block) use ($propertyMap, $blocks) {
+                return $this->mapBlockToRow($block, $propertyMap, $blocks);
             })
             ->filter(function (array $row) {
                 return ! empty($row['source_name']) && ! empty($row['dob']);
             })
             ->values();
+    }
+
+    public function comparableNameVariants(?string $value): Collection
+    {
+        $normalized = $this->normalizeComparableName($value);
+        if (! $normalized) {
+            return collect();
+        }
+
+        $variants = collect([$normalized]);
+        $variants->push(str_replace(' ', '', $normalized));
+
+        $withoutKinship = preg_replace('/^(?:MBAH|MBK|MAS|BU|IBU|PAK|BAPAK)\s+/u', '', $normalized);
+        if ($withoutKinship && $withoutKinship !== $normalized) {
+            $variants->push($withoutKinship);
+            $variants->push(str_replace(' ', '', $withoutKinship));
+        }
+
+        return $variants->filter()->unique()->values();
     }
 
     public function normalizeComparableName(?string $value): ?string
@@ -217,17 +243,22 @@ class NotionPublicBirthDateSource
         return null;
     }
 
-    private function mapBlockToRow(array $block, array $propertyMap): array
+    private function mapBlockToRow(array $block, array $propertyMap, Collection $blocks): array
     {
         if (($block['type'] ?? null) !== 'page') {
             return [
                 'block_id' => $block['id'] ?? null,
                 'source_name' => null,
                 'normalized_name' => null,
+                'name_aliases' => [],
                 'gender_label' => null,
                 'gender_id' => null,
                 'dob' => null,
                 'yob' => null,
+                'parent_names' => [],
+                'parent_aliases' => [],
+                'spouse_names' => [],
+                'spouse_aliases' => [],
             ];
         }
 
@@ -235,16 +266,61 @@ class NotionPublicBirthDateSource
         $sourceName = $this->extractPlainText($properties->get($propertyMap['title']));
         $genderLabel = $this->extractPlainText($properties->get($propertyMap['gender']));
         $dob = $this->extractDateValue($properties->get($propertyMap['birth_date']));
+        $parentNames = $this->resolveRelatedNames($properties->get($propertyMap['parents']), $blocks);
+        $spouseNames = $this->resolveRelatedNames($properties->get($propertyMap['spouses']), $blocks);
 
         return [
             'block_id' => $block['id'] ?? null,
             'source_name' => $sourceName,
             'normalized_name' => $this->normalizeComparableName($sourceName),
+            'name_aliases' => $this->comparableNameVariants($sourceName)->all(),
             'gender_label' => $genderLabel,
             'gender_id' => $this->mapGender($genderLabel),
             'dob' => $dob,
             'yob' => $dob ? substr($dob, 0, 4) : null,
+            'parent_names' => $parentNames->all(),
+            'parent_aliases' => $parentNames
+                ->flatMap(fn (string $name) => $this->comparableNameVariants($name))
+                ->unique()
+                ->values()
+                ->all(),
+            'spouse_names' => $spouseNames->all(),
+            'spouse_aliases' => $spouseNames
+                ->flatMap(fn (string $name) => $this->comparableNameVariants($name))
+                ->unique()
+                ->values()
+                ->all(),
         ];
+    }
+
+    private function resolveRelatedNames($propertyValue, Collection $blocks): Collection
+    {
+        return collect($this->extractPageIds($propertyValue))
+            ->map(function (string $id) use ($blocks) {
+                return $this->extractPlainText(data_get($blocks->get($id, []), 'properties.title'));
+            })
+            ->filter()
+            ->values();
+    }
+
+    private function extractPageIds($value): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        $ids = [];
+        foreach ($value as $item) {
+            if (is_array($item)) {
+                if (($item[0] ?? null) === 'p' && ! empty($item[1]) && is_string($item[1])) {
+                    $ids[] = $item[1];
+                }
+
+                $ids = array_merge($ids, $this->extractPageIds($item));
+            }
+        }
+
+        return array_values(array_unique($ids));
     }
 
     private function extractPlainText($propertyValue): ?string

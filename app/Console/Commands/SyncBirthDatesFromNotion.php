@@ -99,17 +99,37 @@ class SyncBirthDatesFromNotion extends Command
     private function buildUserIndexes(): array
     {
         $users = User::query()
-            ->select(['id', 'name', 'nickname', 'gender_id', 'dob', 'yob'])
+            ->with([
+                'father:id,name,nickname,gender_id',
+                'mother:id,name,nickname,gender_id',
+                'couples:id,name,nickname,gender_id',
+            ])
+            ->select(['id', 'name', 'nickname', 'gender_id', 'dob', 'yob', 'father_id', 'mother_id'])
             ->get();
 
         $byName = [];
         $byNameGender = [];
+        $aliasesByUser = [];
+        $contextByUser = [];
 
         foreach ($users as $user) {
             $aliases = collect([
-                $this->notionBirthDateSource->normalizeComparableName($user->name),
-                $this->notionBirthDateSource->normalizeComparableName($user->nickname),
-            ])->filter()->unique()->values();
+                $this->notionBirthDateSource->comparableNameVariants($user->name),
+                $this->notionBirthDateSource->comparableNameVariants($user->nickname),
+            ])->flatten()->filter()->unique()->values();
+
+            $contextAliases = collect([
+                $user->father?->name,
+                $user->mother?->name,
+            ])
+                ->merge($user->couples->pluck('name'))
+                ->flatMap(fn ($name) => $this->notionBirthDateSource->comparableNameVariants($name))
+                ->filter()
+                ->unique()
+                ->values();
+
+            $aliasesByUser[$user->id] = $aliases;
+            $contextByUser[$user->id] = $contextAliases;
 
             foreach ($aliases as $alias) {
                 $byName[$alias][$user->id] = $user;
@@ -118,27 +138,112 @@ class SyncBirthDatesFromNotion extends Command
         }
 
         return [
+            'users' => $users,
             'by_name' => collect($byName)->map(fn ($items) => collect($items)->values()),
             'by_name_gender' => collect($byNameGender)->map(fn ($items) => collect($items)->values()),
+            'aliases_by_user' => collect($aliasesByUser),
+            'context_by_user' => collect($contextByUser),
         ];
     }
 
     private function matchUsers(array $row, array $indexes): Collection
     {
-        $normalizedName = $row['normalized_name'] ?? null;
-        if (! $normalizedName) {
+        $rowAliases = collect($row['name_aliases'] ?? [])
+            ->filter()
+            ->values();
+
+        if ($rowAliases->isEmpty() && ! empty($row['normalized_name'])) {
+            $rowAliases = collect([$row['normalized_name']]);
+        }
+
+        if ($rowAliases->isEmpty()) {
             return collect();
         }
 
         $matches = collect();
-        if (! empty($row['gender_id'])) {
-            $matches = $indexes['by_name_gender']->get($normalizedName.'|'.$row['gender_id'], collect());
+        foreach ($rowAliases as $alias) {
+            if (! empty($row['gender_id'])) {
+                $matches = $matches->merge($indexes['by_name_gender']->get($alias.'|'.$row['gender_id'], collect()));
+            }
+
+            $matches = $matches->merge($indexes['by_name']->get($alias, collect()));
         }
 
-        if ($matches->isEmpty()) {
-            $matches = $indexes['by_name']->get($normalizedName, collect());
+        $matches = $matches->unique('id')->values();
+
+        if ($matches->isNotEmpty()) {
+            return $matches;
         }
 
-        return $matches->unique('id')->values();
+        return $this->fuzzyMatchUsers($row, $indexes);
+    }
+
+    private function fuzzyMatchUsers(array $row, array $indexes): Collection
+    {
+        $rowAliases = collect($row['name_aliases'] ?? [])
+            ->filter()
+            ->values();
+
+        if ($rowAliases->isEmpty()) {
+            return collect();
+        }
+
+        $rowContext = collect(array_merge(
+            $row['parent_aliases'] ?? [],
+            $row['spouse_aliases'] ?? []
+        ))->filter()->unique()->values();
+
+        $scored = $indexes['users']
+            ->filter(function (User $user) use ($row) {
+                return empty($row['gender_id']) || (int) $user->gender_id === (int) $row['gender_id'];
+            })
+            ->map(function (User $user) use ($rowAliases, $rowContext, $indexes) {
+                $userAliases = $indexes['aliases_by_user']->get($user->id, collect());
+                $contextAliases = $indexes['context_by_user']->get($user->id, collect());
+
+                $score = 0.0;
+                foreach ($rowAliases as $rowAlias) {
+                    foreach ($userAliases as $userAlias) {
+                        similar_text($rowAlias, $userAlias, $percent);
+                        $score = max($score, $percent);
+                    }
+                }
+
+                $contextOverlap = $rowContext->intersect($contextAliases)->count();
+
+                return [
+                    'user' => $user,
+                    'score' => $score,
+                    'context_overlap' => $contextOverlap,
+                ];
+            })
+            ->filter(function (array $candidate) {
+                if ($candidate['context_overlap'] > 0) {
+                    return $candidate['score'] >= 70;
+                }
+
+                return $candidate['score'] >= 92;
+            })
+            ->sort(function (array $a, array $b) {
+                return [$b['context_overlap'], $b['score']] <=> [$a['context_overlap'], $a['score']];
+            })
+            ->values();
+
+        if ($scored->isEmpty()) {
+            return collect();
+        }
+
+        $top = $scored->first();
+        $second = $scored->get(1);
+
+        $isClearlyBest = ! $second
+            || $top['context_overlap'] > $second['context_overlap']
+            || $top['score'] >= ($second['score'] + 5);
+
+        if (! $isClearlyBest) {
+            return collect();
+        }
+
+        return collect([$top['user']]);
     }
 }
