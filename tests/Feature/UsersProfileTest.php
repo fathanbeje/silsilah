@@ -66,6 +66,17 @@ class UsersProfileTest extends TestCase
     }
 
     /** @test */
+    public function public_edit_request_form_keeps_existing_female_gender_selected()
+    {
+        $target = factory(User::class)->states('female')->create();
+
+        $this->get(route('user-edit-requests.create', $target));
+        $this->assertResponseOk();
+        $this->see('option value="2" selected');
+        $this->dontSee('option value="1" selected');
+    }
+
+    /** @test */
     public function admin_cannot_open_public_edit_request_form()
     {
         config(['app.system_admin_emails' => 'admin@example.com']);

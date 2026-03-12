@@ -6,6 +6,13 @@
     data-existing-spouses="{{ e(json_encode($existingSpouseOptions)) }}"
 >
     {{ csrf_field() }}
+    @php
+        $selectedGenderId = old('gender_id');
+
+        if ($selectedGenderId === null || $selectedGenderId === '') {
+            $selectedGenderId = $user->gender_id;
+        }
+    @endphp
     <div class="public-edit-request-form">
         <div class="public-edit-request-form__header">
             <div>
@@ -28,7 +35,7 @@
                         <div class="row">
                             <div class="col-sm-6"><div class="form-group form-group-sm"><label>Nama</label><input type="text" name="name" class="form-control" value="{{ old('name', $user->name) }}"></div></div>
                             <div class="col-sm-6"><div class="form-group form-group-sm"><label>Nama panggilan <span class="text-danger">*</span></label><input type="text" name="nickname" class="form-control" value="{{ old('nickname', $user->nickname) }}" required></div></div>
-                            <div class="col-sm-6"><div class="form-group form-group-sm"><label>Jenis kelamin <span class="text-danger">*</span></label><select name="gender_id" class="form-control" required><option value="1" @selected(old('gender_id', $user->gender_id) == 1)>Laki-laki</option><option value="2" @selected(old('gender_id', $user->gender_id) == 2)>Perempuan</option></select></div></div>
+                            <div class="col-sm-6"><div class="form-group form-group-sm"><label>Jenis kelamin <span class="text-danger">*</span></label><select name="gender_id" class="form-control" required><option value="" {{ $selectedGenderId ? '' : 'selected' }} disabled>Pilih jenis kelamin</option><option value="1" {{ (int) $selectedGenderId === 1 ? 'selected' : '' }}>Laki-laki</option><option value="2" {{ (int) $selectedGenderId === 2 ? 'selected' : '' }}>Perempuan</option></select></div></div>
                             <div class="col-sm-6"><div class="form-group form-group-sm"><label>Urutan lahir</label><input type="number" min="1" name="birth_order" class="form-control" value="{{ old('birth_order', $user->birth_order) }}"></div></div>
                             <div class="col-sm-6"><div class="form-group form-group-sm"><label>Tanggal lahir</label><input type="date" name="dob" class="form-control" value="{{ old('dob', optional($user->dob)->format('Y-m-d')) }}"></div></div>
                             <div class="col-sm-6"><div class="form-group form-group-sm"><label>Tahun lahir</label><input type="text" name="yob" class="form-control" value="{{ old('yob', $user->yob) }}" placeholder="YYYY"></div></div>
