@@ -1,4 +1,4 @@
-<div class="panel panel-default">
+<div class="panel panel-default" id="family-panel">
     <div class="panel-heading"><h3 class="panel-title">{{ __('user.family') }}</h3></div>
 
     <table class="table">
@@ -58,21 +58,21 @@
             <tr>
                 <th class="col-sm-4">{{ __('user.parent') }}</th>
                 <td class="col-sm-8">
-                    @can ('edit', $user)
-                    <div class="pull-right">
-                        @unless (request('action') == 'set_parent')
-                            {{ link_to_route('users.show', __('user.set_parent'), [$user->id, 'action' => 'set_parent'], ['class' => 'btn btn-link btn-xs']) }}
-                        @endunless
-                    </div>
-                    @endcan
-
                     @if ($user->parent)
                     {{ optional($user->parent->husband)->display_name }}{{ $user->parent->husband && $user->parent->wife ? ' & ' : '' }}{{ optional($user->parent->wife)->display_name }}
+                    @else
+                    <span class="text-muted">{{ __('app.unknown') }}</span>
                     @endif
+                    <div class="help-block" style="margin-bottom:0;">
+                        Lengkapi ayah dan ibu, lalu pasangan orang tua akan tersambung otomatis.
+                    </div>
 
                     @can('edit', $user)
                         @if (request('action') == 'set_parent')
-                            {{ Form::open(['route' => ['family-actions.set-parent', $user->id]]) }}
+                            <div class="alert alert-warning" style="margin-top:12px; margin-bottom:0;">
+                                Mode lama masih tersedia untuk perbaikan data khusus.
+                            </div>
+                            {{ Form::open(['route' => ['family-actions.set-parent', $user->id], 'style' => 'margin-top:12px;']) }}
                             {!! FormField::select('set_parent_id', $allMariageList, ['label' => false, 'value' => $user->parent_id, 'placeholder' => __('app.select_from_existing_couples')]) !!}
                             {{ Form::submit(__('app.update'), ['class' => 'btn btn-info btn-sm', 'id' => 'set_parent_button']) }}
                             {{ link_to_route('users.show', __('app.cancel'), $user, ['class' => 'btn btn-default btn-sm']) }}

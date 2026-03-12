@@ -40,11 +40,14 @@ class DomainFamilyScopeTest extends TestCase
 
         $payload = json_decode($response->getContent(), true);
         $names = collect($payload)->pluck('name')->all();
+        $corePayload = collect($payload)->firstWhere('id', $core->id);
 
         $this->assertContains($core->display_name, $names);
         $this->assertContains($descendant->display_name, $names);
         $this->assertContains($descendantSpouse->display_name, $names);
         $this->assertNotContains($spouseParent->display_name, $names);
+        $this->assertSame(route('users.chart', $core, false), $corePayload['chart_url']);
+        $this->assertSame(route('users.show', $core, false), $corePayload['profile_url']);
     }
 
     /** @test */

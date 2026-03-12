@@ -13,11 +13,20 @@ class HomeController extends Controller
      */
     public function index()
     {
-        $user = auth()->user();
+        $user = auth()->user()->fresh([
+            'father',
+            'mother',
+            'parent.husband',
+            'parent.wife',
+            'childs',
+            'wifes',
+            'husbands',
+            'couples',
+        ]);
 
         $usersMariageList = [];
         foreach ($user->couples as $spouse) {
-            $usersMariageList[$spouse->pivot->id] = $user->name.' & '.$spouse->name;
+            $usersMariageList[$spouse->pivot->id] = $user->display_name.' & '.$spouse->display_name;
         }
 
         $malePersonList = $this->getPersonList(1);

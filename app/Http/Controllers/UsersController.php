@@ -7,6 +7,7 @@ use App\Http\Requests\Users\UpdateRequest;
 use App\Jobs\Users\DeleteAndReplaceUser;
 use App\Services\CemeteryLocationOptions;
 use App\Services\FamilyScopeResolver;
+use App\Services\ParentCoupleResolver;
 use App\Support\FamilyViewBuilder;
 use App\User;
 use App\UserMetadata;
@@ -22,7 +23,8 @@ class UsersController extends Controller
     public function __construct(
         private FamilyViewBuilder $familyViewBuilder,
         private CemeteryLocationOptions $cemeteryLocationOptions,
-        private FamilyScopeResolver $familyScopeResolver
+        private FamilyScopeResolver $familyScopeResolver,
+        private ParentCoupleResolver $parentCoupleResolver
     )
     {
     }
@@ -157,7 +159,9 @@ class UsersController extends Controller
                     'name' => $user->display_name,
                     'nickname' => $user->nickname,
                     'gender' => $user->gender,
+                    'profile_url' => route('users.show', $user, false),
                     'chart_url' => route('users.chart', $user, false),
+                    'tree_url' => auth()->check() ? route('users.tree', $user, false) : null,
                     'parents' => trim(collect([
                         $user->father ? trans('user.father').': '.$user->father->display_name : null,
                         $user->mother ? trans('user.mother').': '.$user->mother->display_name : null,
@@ -252,6 +256,7 @@ class UsersController extends Controller
     {
         $userAttributes = $request->validated();
         $user->update($userAttributes);
+        $this->parentCoupleResolver->syncUser($user);
         $userAttributes = collect($userAttributes);
 
         $this->updateUserMetadata($user, $userAttributes);

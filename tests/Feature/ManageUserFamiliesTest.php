@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Couple;
 use App\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -26,10 +27,10 @@ class ManageUserFamiliesTest extends TestCase
         ]);
 
         $this->seeInDatabase('users', [
-            'nickname' => 'Nama Ayah',
+            'nickname' => 'NAMA AYAH',
         ]);
 
-        $this->assertEquals('Nama Ayah', $user->fresh()->father->nickname);
+        $this->assertEquals('NAMA AYAH', $user->fresh()->father->nickname);
     }
 
     /** @test */
@@ -48,11 +49,11 @@ class ManageUserFamiliesTest extends TestCase
         ]);
 
         $this->seeInDatabase('users', [
-            'nickname'   => 'Nama Ibu',
+            'nickname'   => 'NAMA IBU',
             'manager_id' => $user->id,
         ]);
 
-        $this->assertEquals('Nama Ibu', $user->fresh()->mother->nickname);
+        $this->assertEquals('NAMA IBU', $user->fresh()->mother->nickname);
     }
 
     /** @test */
@@ -73,7 +74,7 @@ class ManageUserFamiliesTest extends TestCase
         ]);
 
         $this->seeInDatabase('users', [
-            'nickname'   => 'Nama Anak 1',
+            'nickname'   => 'NAMA ANAK 1',
             'gender_id'  => 1,
             'father_id'  => $user->id,
             'mother_id'  => null,
@@ -91,21 +92,14 @@ class ManageUserFamiliesTest extends TestCase
 
         $marriageId = $husband->fresh()->wifes->first()->pivot->id;
 
-        $this->visit(route('profile'));
-        $this->seePageIs(route('profile'));
-        $this->click(trans('user.add_child'));
-        $this->seeElement('input', ['name' => 'add_child_name']);
-        $this->seeElement('input', ['name' => 'add_child_gender_id']);
-        $this->seeElement('select', ['name' => 'add_child_parent_id']);
-
-        $this->submitForm(trans('user.add_child'), [
+        $this->post(route('family-actions.add-child', $husband), [
             'add_child_name'      => 'Nama Anak 1',
             'add_child_gender_id' => 1,
             'add_child_parent_id' => $marriageId,
         ]);
 
         $this->seeInDatabase('users', [
-            'nickname'   => 'Nama Anak 1',
+            'nickname'   => 'NAMA ANAK 1',
             'gender_id'  => 1,
             'father_id'  => $husband->id,
             'mother_id'  => $wife->id,
@@ -130,7 +124,7 @@ class ManageUserFamiliesTest extends TestCase
         ]);
 
         $this->seeInDatabase('users', [
-            'nickname'    => 'Nama Anak 1',
+            'nickname'    => 'NAMA ANAK 1',
             'gender_id'   => 1,
             'father_id'   => $user->id,
             'mother_id'   => null,
@@ -155,12 +149,12 @@ class ManageUserFamiliesTest extends TestCase
         ]);
 
         $this->seeInDatabase('users', [
-            'nickname'  => 'Nama Istri',
+            'nickname'  => 'NAMA ISTRI',
             'gender_id' => 2,
         ]);
 
         $wife = User::where([
-            'nickname'  => 'Nama Istri',
+            'nickname'  => 'NAMA ISTRI',
             'gender_id' => 2,
         ])->first();
 
@@ -187,13 +181,13 @@ class ManageUserFamiliesTest extends TestCase
         ]);
 
         $this->seeInDatabase('users', [
-            'nickname'   => 'Nama Suami',
+            'nickname'   => 'NAMA SUAMI',
             'gender_id'  => 1,
             'manager_id' => $user->id,
         ]);
 
         $husband = User::where([
-            'nickname'  => 'Nama Suami',
+            'nickname'  => 'NAMA SUAMI',
             'gender_id' => 1,
         ])->first();
 
@@ -311,8 +305,7 @@ class ManageUserFamiliesTest extends TestCase
 
         $marriageId = $husband->fresh()->wifes->first()->pivot->id;
 
-        $this->visit(route('profile'));
-        $this->click(__('user.set_parent'));
+        $this->visit(route('users.show', [$user->id, 'action' => 'set_parent']));
         $this->seeElement('select', ['name' => 'set_parent_id']);
 
         $this->submitForm('set_parent_button', [
@@ -321,8 +314,72 @@ class ManageUserFamiliesTest extends TestCase
 
         $this->seeInDatabase('users', [
             'id'         => $user->id,
+            'father_id'  => $husband->id,
+            'mother_id'  => $wife->id,
             'parent_id'  => $marriageId,
             'manager_id' => $user->id,
         ]);
+    }
+
+    /** @test */
+    public function setting_father_then_mother_auto_creates_parent_couple_for_the_user()
+    {
+        $user = $this->loginAsUser();
+        $father = factory(User::class)->states('male')->create();
+        $mother = factory(User::class)->states('female')->create();
+
+        $this->visit(route('profile'));
+        $this->click(trans('user.set_father'));
+        $this->submitForm('set_father_button', [
+            'set_father' => '',
+            'set_father_id' => $father->id,
+        ]);
+
+        $this->assertNull($user->fresh()->parent_id);
+
+        $this->visit(route('profile'));
+        $this->click(trans('user.set_mother'));
+        $this->submitForm('set_mother_button', [
+            'set_mother' => '',
+            'set_mother_id' => $mother->id,
+        ]);
+
+        $user->refresh();
+        $this->assertNotNull($user->parent_id);
+        $this->seeInDatabase('couples', [
+            'id' => $user->parent_id,
+            'husband_id' => $father->id,
+            'wife_id' => $mother->id,
+        ]);
+    }
+
+    /** @test */
+    public function setting_both_parents_reuses_existing_couple_instead_of_creating_a_duplicate()
+    {
+        $user = $this->loginAsUser();
+        $father = factory(User::class)->states('male')->create();
+        $mother = factory(User::class)->states('female')->create();
+        $couple = factory(Couple::class)->create([
+            'husband_id' => $father->id,
+            'wife_id' => $mother->id,
+            'manager_id' => $user->id,
+        ]);
+
+        $this->visit(route('profile'));
+        $this->click(trans('user.set_father'));
+        $this->submitForm('set_father_button', [
+            'set_father' => '',
+            'set_father_id' => $father->id,
+        ]);
+
+        $this->visit(route('profile'));
+        $this->click(trans('user.set_mother'));
+        $this->submitForm('set_mother_button', [
+            'set_mother' => '',
+            'set_mother_id' => $mother->id,
+        ]);
+
+        $this->assertSame($couple->id, $user->fresh()->parent_id);
+        $this->assertEquals(1, Couple::where('husband_id', $father->id)->where('wife_id', $mother->id)->count());
     }
 }

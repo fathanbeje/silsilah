@@ -20,6 +20,18 @@
     </style>
 </head>
 <body>
+    @php
+        $mobileLauncherRoutes = [
+            'users.search',
+            'users.search.page',
+            'users.chart',
+            'users.show',
+            'users.tree',
+            'users.marriages',
+            'users.death',
+            'profile',
+        ];
+    @endphp
     <div id="app">
         @include('layouts.partials.nav')
 
@@ -27,6 +39,9 @@
         @yield('content')
         </div>
     </div>
+    @if (in_array(Route::currentRouteName(), $mobileLauncherRoutes, true))
+        @include('layouts.partials.mobile-family-launcher')
+    @endif
 
     <!-- Scripts -->
     <script src="{{ secure_asset('js/app.js') }}"></script>

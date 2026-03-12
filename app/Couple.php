@@ -7,6 +7,15 @@ use Ramsey\Uuid\Uuid;
 
 class Couple extends Model
 {
+    protected $fillable = [
+        'id',
+        'husband_id',
+        'wife_id',
+        'marriage_date',
+        'divorce_date',
+        'manager_id',
+    ];
+
     /**
      * Indicates if the IDs are auto-incrementing.
      *

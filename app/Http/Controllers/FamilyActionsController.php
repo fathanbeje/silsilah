@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\User;
 use App\Couple;
-use Ramsey\Uuid\Uuid;
+use App\Services\ParentCoupleResolver;
+use App\User;
 use Illuminate\Http\Request;
+use Ramsey\Uuid\Uuid;
 
 class FamilyActionsController extends Controller
 {
+    public function __construct(private ParentCoupleResolver $parentCoupleResolver)
+    {
+    }
+
     /**
      * Set father for a user.
      *
@@ -36,6 +41,8 @@ class FamilyActionsController extends Controller
 
             $user->setFather($father);
         }
+
+        $this->parentCoupleResolver->syncUser($user);
 
         return back();
     }
@@ -67,6 +74,8 @@ class FamilyActionsController extends Controller
 
             $user->setMother($mother);
         }
+
+        $this->parentCoupleResolver->syncUser($user);
 
         return back();
     }
@@ -101,9 +110,7 @@ class FamilyActionsController extends Controller
 
         if ($request->get('add_child_parent_id')) {
             $couple = Couple::find($request->get('add_child_parent_id'));
-            $child->father_id = $couple->husband_id;
-            $child->mother_id = $couple->wife_id;
-            $child->save();
+            $this->parentCoupleResolver->assignCouple($child, $couple);
         } else {
             if ($user->gender_id == 1) {
                 $child->setFather($user);
@@ -111,6 +118,7 @@ class FamilyActionsController extends Controller
                 $child->setMother($user);
             }
 
+            $this->parentCoupleResolver->syncUser($child);
         }
 
         \DB::commit();
@@ -189,8 +197,15 @@ class FamilyActionsController extends Controller
      */
     public function setParent(Request $request, User $user)
     {
-        $user->parent_id = $request->get('set_parent_id');
-        $user->save();
+        $parentId = $request->get('set_parent_id');
+
+        if ($parentId) {
+            $couple = Couple::findOrFail($parentId);
+            $this->parentCoupleResolver->assignCouple($user, $couple);
+        } else {
+            $user->parent_id = null;
+            $user->save();
+        }
 
         return redirect()->route('users.show', $user);
     }
