@@ -74,6 +74,31 @@ class DomainFamilyScopeTest extends TestCase
     }
 
     /** @test */
+    public function guest_chart_still_hides_relatives_outside_scope()
+    {
+        [, $descendant, $descendantSpouse, $spouseParent] = $this->createScopedFamilyGraph();
+
+        $response = $this->scopedCall('syamsuri.bani.my.id', 'GET', route('users.chart', $descendantSpouse, false));
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertStringNotContainsString($spouseParent->name, $response->getContent());
+        $this->assertStringContainsString($descendant->name, $response->getContent());
+    }
+
+    /** @test */
+    public function admin_can_bypass_scope_inside_chart_relations()
+    {
+        [, , $descendantSpouse, $spouseParent] = $this->createScopedFamilyGraph();
+        config(['app.system_admin_emails' => 'admin@example.net']);
+        $this->loginAsUser(['email' => 'admin@example.net']);
+
+        $response = $this->scopedCall('syamsuri.bani.my.id', 'GET', route('users.chart', $descendantSpouse, false));
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertStringContainsString($spouseParent->name, $response->getContent());
+    }
+
+    /** @test */
     public function request_without_registered_host_falls_back_to_global_visibility()
     {
         [, , , $spouseParent] = $this->createScopedFamilyGraph();

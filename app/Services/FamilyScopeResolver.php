@@ -54,6 +54,10 @@ class FamilyScopeResolver
 
     public function isVisibleUser(User|string|null $user): bool
     {
+        if ($this->shouldBypassScope()) {
+            return true;
+        }
+
         if (!$this->hasActiveScope()) {
             return true;
         }
@@ -69,6 +73,10 @@ class FamilyScopeResolver
 
     public function applyToUserQuery(Builder $query): Builder
     {
+        if ($this->shouldBypassScope()) {
+            return $query;
+        }
+
         if (!$this->hasActiveScope()) {
             return $query;
         }
@@ -121,6 +129,10 @@ class FamilyScopeResolver
 
     public function filterUsers(Collection $users): Collection
     {
+        if ($this->shouldBypassScope()) {
+            return $users->values();
+        }
+
         if (!$this->hasActiveScope()) {
             return $users;
         }
@@ -189,5 +201,10 @@ class FamilyScopeResolver
         $host = strtolower(trim((string) $host));
 
         return $host !== '' ? $host : null;
+    }
+
+    private function shouldBypassScope(): bool
+    {
+        return auth()->check() && is_system_admin(auth()->user());
     }
 }
