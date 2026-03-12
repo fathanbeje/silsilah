@@ -13,7 +13,7 @@ return [
 
     // Attributes
     'husband'            => 'Kepala Keluarga',
-    'wife'               => 'Isteri',
+    'wife'               => 'Istri',
     'marriage_date'      => 'Tanggal Pernikahan',
     'divorce_date'       => 'Tanggal Perceraian',
 ];
