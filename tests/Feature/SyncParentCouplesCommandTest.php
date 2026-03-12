@@ -34,4 +34,31 @@ class SyncParentCouplesCommandTest extends TestCase
             'wife_id' => $mother->id,
         ]);
     }
+
+    /** @test */
+    public function it_backfills_father_and_mother_from_existing_parent_couple()
+    {
+        $father = factory(User::class)->states('male')->create();
+        $mother = factory(User::class)->states('female')->create();
+        $couple = factory(\App\Couple::class)->create([
+            'husband_id' => $father->id,
+            'wife_id' => $mother->id,
+        ]);
+        $child = factory(User::class)->create([
+            'father_id' => null,
+            'mother_id' => null,
+            'parent_id' => $couple->id,
+        ]);
+
+        $exitCode = $this->artisan('family:sync-parent-couples');
+
+        $this->assertSame(0, $exitCode);
+
+        $child->refresh();
+
+        $this->assertSame($father->id, $child->father_id);
+        $this->assertSame($mother->id, $child->mother_id);
+        $this->assertCount(1, $father->fresh()->childs);
+        $this->assertCount(1, $mother->fresh()->childs);
+    }
 }

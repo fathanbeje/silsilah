@@ -32,13 +32,35 @@ class ParentCoupleResolver
 
     public function syncUser(User $user): ?Couple
     {
+        $parent = $user->relationLoaded('parent') ? $user->parent : ($user->parent_id ? Couple::with(['husband', 'wife'])->find($user->parent_id) : null);
+
+        if ($parent) {
+            $fatherIdFromParent = $parent->husband_id;
+            $motherIdFromParent = $parent->wife_id;
+            $needsSave = false;
+
+            if ($fatherIdFromParent && $user->father_id !== $fatherIdFromParent) {
+                $user->father_id = $fatherIdFromParent;
+                $needsSave = true;
+            }
+
+            if ($motherIdFromParent && $user->mother_id !== $motherIdFromParent) {
+                $user->mother_id = $motherIdFromParent;
+                $needsSave = true;
+            }
+
+            if ($needsSave) {
+                $user->save();
+            }
+        }
+
         if (!$user->father_id || !$user->mother_id) {
-            if ($user->parent_id !== null) {
+            if ($user->parent_id !== null && !$parent) {
                 $user->parent_id = null;
                 $user->save();
             }
 
-            return null;
+            return $parent;
         }
 
         $father = $user->relationLoaded('father') ? $user->father : User::find($user->father_id);
@@ -97,12 +119,21 @@ class ParentCoupleResolver
             ->chunk(200, function ($users) use (&$processed, &$updated, &$cleared) {
                 foreach ($users as $user) {
                     $processed++;
-                    $before = $user->parent_id;
+                    $before = implode('|', [
+                        $user->father_id ?: 'null',
+                        $user->mother_id ?: 'null',
+                        $user->parent_id ?: 'null',
+                    ]);
                     $couple = $this->syncUser($user);
-                    $after = $user->fresh()->parent_id;
+                    $freshUser = $user->fresh();
+                    $after = implode('|', [
+                        $freshUser->father_id ?: 'null',
+                        $freshUser->mother_id ?: 'null',
+                        $freshUser->parent_id ?: 'null',
+                    ]);
 
                     if ($before !== $after) {
-                        if ($couple) {
+                        if ($freshUser->parent_id) {
                             $updated++;
                         } else {
                             $cleared++;
