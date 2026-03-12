@@ -34,6 +34,22 @@ class UsersProfileTest extends TestCase
     }
 
     /** @test */
+    public function guest_can_open_public_family_tree_without_profile_detail_button()
+    {
+        $target = factory(User::class)->create();
+        $child = factory(User::class)->create([
+            'father_id' => $target->id,
+            'manager_id' => $target->id,
+        ]);
+
+        $this->visit(route('users.tree', $target))
+            ->see($target->display_name)
+            ->see($child->display_name)
+            ->see(trans('app.show_family_tree'))
+            ->dontSee(trans('app.show_profile').' '.$target->display_name);
+    }
+
+    /** @test */
     public function non_admin_does_not_see_gedcom_import_link()
     {
         $user = $this->loginAsUser(['email' => 'member@example.com']);

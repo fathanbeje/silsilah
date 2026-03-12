@@ -580,7 +580,7 @@
             </a>
             @endif
 
-            @if (auth()->check() && $mobileContextUser)
+            @if ($mobileContextUser)
             <a class="family-mobile-sheet__link" href="{{ route('users.tree', $mobileContextUser) }}">
                 <strong>{{ __('app.family_tree') }}</strong>
                 <span>Buka tampilan pohon keluarga</span>
@@ -655,7 +655,7 @@
             <a class="family-desktop-dock__link" href="{{ route('users.chart', $mobileContextUser) }}"><strong>{{ __('app.family_chart') }}</strong></a>
             @endif
 
-            @if (auth()->check() && $mobileContextUser)
+            @if ($mobileContextUser)
             <a class="family-desktop-dock__link" href="{{ route('users.tree', $mobileContextUser) }}"><strong>{{ __('app.family_tree') }}</strong></a>
             @endif
 

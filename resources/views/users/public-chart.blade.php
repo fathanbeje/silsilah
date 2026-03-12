@@ -11,6 +11,11 @@
 @section('content')
 <h2 class="page-header">
     {{ $user->display_name }} <small>{{ trans('app.family_chart') }}</small>
+    <span class="pull-right">
+        <a href="{{ route('users.tree', $user) }}" class="btn btn-default">
+            {{ trans('app.show_family_tree') }}
+        </a>
+    </span>
 </h2>
 
 @if (session('status'))

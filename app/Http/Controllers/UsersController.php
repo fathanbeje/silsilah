@@ -184,7 +184,7 @@ class UsersController extends Controller
                     'gender' => $user->gender,
                     'profile_url' => route('users.show', $user, false),
                     'chart_url' => route('users.chart', $user, false),
-                    'tree_url' => auth()->check() ? route('users.tree', $user, false) : null,
+                    'tree_url' => route('users.tree', $user, false),
                     'parents' => trim(collect([
                         $user->father ? trans('user.father').': '.$user->father->display_name : null,
                         $user->mother ? trans('user.mother').': '.$user->mother->display_name : null,
