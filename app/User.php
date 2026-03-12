@@ -116,6 +116,11 @@ class User extends Authenticatable
         return '';
     }
 
+    public function displayNameWithGender(): string
+    {
+        return $this->display_name.' ('.$this->gender.')';
+    }
+
     public function isDeceased(): bool
     {
         return (bool) $this->is_deceased || ! empty($this->dod) || ! empty($this->yod);

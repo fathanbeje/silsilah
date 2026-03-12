@@ -3,7 +3,7 @@
     <div class="panel-body family-summary">
         <span class="family-summary__label">{{ trans('user.spouse') }}</span>
         @foreach ($rootSpouseLabels as $spouseLabel)
-        <span class="family-chip">@include('users.partials.chart-person-link', ['linkedUser' => $spouseLabel]) ({{ $spouseLabel->gender }})</span>
+        <span class="family-chip">@include('users.partials.chart-person-link', ['linkedUser' => $spouseLabel]) <span>({{ $spouseLabel->gender }})</span></span>
         @endforeach
     </div>
     @endif
@@ -60,7 +60,7 @@
             <tr>
                 <th>&nbsp;</th>
                 <td class="text-center lead" colspan="4">
-                    <strong>@include('users.partials.chart-person-link', ['linkedUser' => $user]) ({{ $user->gender }})</strong>
+                    <strong>@include('users.partials.chart-person-link', ['linkedUser' => $user]) <span>({{ $user->gender }})</span></strong>
                 </td>
             </tr>
             <tr>
@@ -83,13 +83,13 @@
                             <div class="col-md-4 col-sm-6">
                                 <div class="family-member-card">
                                     <div class="family-member-card__title">
-                                        <strong>@include('users.partials.chart-person-link', ['linkedUser' => $childCard['user']]) ({{ $childCard['user']->gender }})</strong>
+                                        <strong>@include('users.partials.chart-person-link', ['linkedUser' => $childCard['user']]) <span>({{ $childCard['user']->gender }})</span></strong>
                                     </div>
                                     @if ($childCard['spouse_labels']->isNotEmpty())
                                     <div class="family-member-card__meta">
                                         <span class="text-muted">{{ trans('user.spouse') }}:</span>
                                         @foreach ($childCard['spouse_labels'] as $spouseLabel)
-                                        <span class="family-chip">@include('users.partials.chart-person-link', ['linkedUser' => $spouseLabel]) ({{ $spouseLabel->gender }})</span>
+                                        <span class="family-chip">@include('users.partials.chart-person-link', ['linkedUser' => $spouseLabel]) <span>({{ $spouseLabel->gender }})</span></span>
                                         @endforeach
                                     </div>
                                     @endif
@@ -102,14 +102,14 @@
                                             @if ($grandchildGroup['spouse'])
                                             <div class="grandchild-group__title">
                                                 {{ trans('user.spouse') }}:
-                                                <span class="family-chip">@include('users.partials.chart-person-link', ['linkedUser' => $grandchildGroup['spouse']]) ({{ $grandchildGroup['spouse']->gender }})</span>
+                                                <span class="family-chip">@include('users.partials.chart-person-link', ['linkedUser' => $grandchildGroup['spouse']]) <span>({{ $grandchildGroup['spouse']->gender }})</span></span>
                                             </div>
                                             @elseif ($grandchildGroup['is_unmapped'])
                                             <div class="grandchild-group__title text-muted">{{ trans('app.family_branch_unmapped') }}</div>
                                             @endif
                                             <ul class="grandchild-group__list">
                                                 @foreach ($grandchildGroup['children'] as $grandchildCard)
-                                                <li>@include('users.partials.chart-person-link', ['linkedUser' => $grandchildCard['user']]) ({{ $grandchildCard['user']->gender }})</li>
+                                                <li>@include('users.partials.chart-person-link', ['linkedUser' => $grandchildCard['user']]) <span>({{ $grandchildCard['user']->gender }})</span></li>
                                                 @endforeach
                                             </ul>
                                         </div>

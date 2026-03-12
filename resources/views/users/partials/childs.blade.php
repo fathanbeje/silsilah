@@ -11,7 +11,7 @@
     <ul class="list-group">
         @forelse($user->childs as $child)
             <li class="list-group-item">
-                {{ $child->profileLink() }} ({{ $child->gender }})
+                {{ $child->profileLink() }} <span>({{ $child->gender }})</span>
             </li>
         @empty
             <li class="list-group-item">{{ __('app.childs_were_not_recorded') }}</li>

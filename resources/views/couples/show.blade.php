@@ -21,10 +21,10 @@
     <div class="row">
         @foreach($chunkedChild as $child)
         <div class="col-md-3">
-            <h4><strong>{{ ++$no }}. {{ $child->profileLink() }} ({{ $child->gender }})</strong></h4>
+            <h4><strong>{{ ++$no }}. {{ $child->profileLink() }} <span>({{ $child->gender }})</span></strong></h4>
             <ul style="padding-left: 35px">
                 @foreach($child->childs as $grand)
-                <li>{{ $grand->profileLink() }} ({{ $grand->gender }})</li>
+                <li>{{ $grand->profileLink() }} <span>({{ $grand->gender }})</span></li>
                 @endforeach
             </ul>
         </div>
