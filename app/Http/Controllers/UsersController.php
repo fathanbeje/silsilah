@@ -47,11 +47,11 @@ class UsersController extends Controller
         $users = [];
         $featuredTreeUsers = User::query()
             ->where(function ($query) {
-                $query->whereIn('name', ['SYAMSURI', 'YUSRUL'])
-                    ->orWhereIn('nickname', ['SYAMSURI', 'YUSRUL']);
+                $query->where('name', 'like', '%SYAMSURI%')
+                    ->orWhere('nickname', 'like', '%SYAMSURI%');
             })
             ->orderBy('name', 'asc')
-            ->limit(2)
+            ->limit(1)
             ->get();
 
         $featuredTreeUsers = $this->familyScopeResolver->filterUsers($featuredTreeUsers);

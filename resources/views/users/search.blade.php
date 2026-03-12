@@ -237,7 +237,7 @@
 
     {{ Form::open(['method' => 'get','class' => 'family-search-hero__search']) }}
     <div class="input-group">
-        {{ Form::text('q', request('q'), ['class' => 'form-control', 'placeholder' => 'Contoh: Syamsuri, Nur Ahadah, Yusrul', 'autocomplete' => 'off', 'id' => 'family-search-input']) }}
+        {{ Form::text('q', request('q'), ['class' => 'form-control', 'placeholder' => 'Contoh: Alm. Mbah Syamsuri, Nur Ahadah, Yusrul', 'autocomplete' => 'off', 'id' => 'family-search-input']) }}
         <span class="input-group-btn">
             {{ Form::submit('Cari Sekarang', ['class' => 'btn btn-primary']) }}
             <button type="button" class="btn btn-default family-search-guide__trigger" data-toggle="modal" data-target="#family-search-guide-modal">Panduan</button>
@@ -251,7 +251,7 @@
 
     <div class="family-search-examples">
         <span class="family-search-examples__label">Cari cepat:</span>
-        <a class="family-search-examples__chip" href="{{ route('users.search', ['q' => 'Syamsuri']) }}">Syamsuri</a>
+        <a class="family-search-examples__chip" href="{{ route('users.search', ['q' => 'Alm. Mbah Syamsuri']) }}">Alm. Mbah Syamsuri</a>
         <a class="family-search-examples__chip" href="{{ route('users.search', ['q' => 'Nur Ahadah']) }}">Nur Ahadah</a>
         <a class="family-search-examples__chip" href="{{ route('users.search', ['q' => 'Yusrul']) }}">Yusrul</a>
     </div>
