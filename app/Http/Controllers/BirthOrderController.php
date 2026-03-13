@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\FamilyScopeResolver;
 use App\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -10,6 +12,10 @@ use Illuminate\Support\Facades\DB;
 
 class BirthOrderController extends Controller
 {
+    public function __construct(private FamilyScopeResolver $familyScopeResolver)
+    {
+    }
+
     public function index(Request $request)
     {
         $query = trim((string) $request->get('q'));
@@ -21,7 +27,9 @@ class BirthOrderController extends Controller
             'familyGroups' => $familyGroups,
             'query' => $query,
             'showAll' => $showAll,
-            'totalMissingUsers' => User::query()->whereNull('birth_order')->count(),
+            'totalMissingUsers' => $this->scopeUserQuery(
+                User::query()->whereNull('birth_order')
+            )->count(),
         ]);
     }
 
@@ -51,7 +59,9 @@ class BirthOrderController extends Controller
             return back()->withErrors(['children' => __('app.birth_order_must_be_unique')]);
         }
 
-        $users = User::query()->whereIn('id', $children->keys()->all())->get();
+        $users = $this->scopeUserQuery(
+            User::query()->whereIn('id', $children->keys()->all())
+        )->get();
         if ($users->isEmpty()) {
             return back()->withErrors(['children' => __('app.birth_order_family_not_found')]);
         }
@@ -75,7 +85,7 @@ class BirthOrderController extends Controller
 
     private function buildFamilyGroups(string $query = '', bool $showAll = false): Collection
     {
-        $users = User::query()
+        $users = $this->scopeUserQuery(User::query())
             ->where(function ($query) {
                 $query->whereNotNull('father_id')
                     ->orWhereNotNull('mother_id')
@@ -145,6 +155,21 @@ class BirthOrderController extends Controller
             })
             ->sortByDesc('missing_count')
             ->values();
+    }
+
+    private function scopeUserQuery(Builder $query): Builder
+    {
+        if (!$this->familyScopeResolver->hasActiveScope()) {
+            return $query;
+        }
+
+        $visibleIds = $this->familyScopeResolver->visibleUserIds();
+
+        if (empty($visibleIds)) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->whereIn('users.id', $visibleIds);
     }
 
     private function familyKey(User $user): string

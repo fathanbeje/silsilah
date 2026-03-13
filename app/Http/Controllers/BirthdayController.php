@@ -3,10 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\User;
+use App\Services\FamilyScopeResolver;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
 class BirthdayController extends Controller
 {
+    public function __construct(private FamilyScopeResolver $familyScopeResolver)
+    {
+        $this->middleware(['auth', 'admin']);
+    }
+
     public function index()
     {
         $users = $this->getUpcomingBirthdays();
@@ -18,7 +25,8 @@ class BirthdayController extends Controller
     {
         $birthdayDateRaw = "concat(YEAR(CURDATE()), '-', RIGHT(dob, 5)) as birthday_date";
 
-        $userBirthdayQuery = User::whereNotNull('dob')
+        $userBirthdayQuery = $this->scopeUserQuery(User::query())
+            ->whereNotNull('dob')
             ->where(function ($query) {
                 $query->whereNull('users.is_deceased')
                     ->orWhere('users.is_deceased', false);
@@ -30,5 +38,20 @@ class BirthdayController extends Controller
         $users = $userBirthdayQuery->get();
 
         return $users;
+    }
+
+    private function scopeUserQuery(Builder $query): Builder
+    {
+        if (!$this->familyScopeResolver->hasActiveScope()) {
+            return $query;
+        }
+
+        $visibleIds = $this->familyScopeResolver->visibleUserIds();
+
+        if (empty($visibleIds)) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->whereIn('users.id', $visibleIds);
     }
 }
