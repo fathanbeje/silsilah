@@ -495,7 +495,7 @@ class UsersController extends Controller
             ->get();
 
         $searchExamples = $fallbackUsers
-            ->pluck('display_name')
+            ->map(fn (User $user) => $this->searchExampleLabel($user))
             ->filter()
             ->unique()
             ->values();
@@ -509,7 +509,7 @@ class UsersController extends Controller
 
     private function buildScopedLandingExamples(User $scopeRootUser): Collection
     {
-        $examples = collect([$scopeRootUser->display_name]);
+        $examples = collect([$this->searchExampleLabel($scopeRootUser)]);
         $visibleIds = $this->familyScopeResolver->visibleUserIds();
         $scopeRootMarriageIds = $scopeRootUser->marriageIds()->all();
 
@@ -529,7 +529,7 @@ class UsersController extends Controller
                     ->orderByRaw('COALESCE(birth_order, 999), name')
                     ->limit(2)
                     ->get()
-                    ->pluck('display_name')
+                    ->map(fn (User $user) => $this->searchExampleLabel($user))
             );
 
             if ($examples->filter()->unique()->count() < 3) {
@@ -554,7 +554,7 @@ class UsersController extends Controller
                         ->orderBy('name')
                         ->limit(3)
                         ->get()
-                        ->pluck('display_name')
+                        ->map(fn (User $user) => $this->searchExampleLabel($user))
                 );
             }
         }
@@ -573,6 +573,11 @@ class UsersController extends Controller
         }
 
         return 'Contoh: '.$searchExamples->implode(', ');
+    }
+
+    private function searchExampleLabel(User $user): string
+    {
+        return trim((string) ($user->name ?: $user->nickname ?: $user->display_name));
     }
 
     private function abortIfUserOutsideScope(User $user): void

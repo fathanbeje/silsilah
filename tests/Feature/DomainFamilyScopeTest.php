@@ -65,6 +65,23 @@ class DomainFamilyScopeTest extends TestCase
     }
 
     /** @test */
+    public function scoped_landing_examples_use_searchable_raw_names_without_deceased_prefix()
+    {
+        [$core, $descendant] = $this->createScopedFamilyGraph();
+
+        $core->update(['is_deceased' => true]);
+        $descendant->update(['is_deceased' => true]);
+
+        $response = $this->scopedCall('syamsuri.bani.my.id', 'GET', '/profile-search');
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertStringContainsString('Contoh: '.$core->name, $response->getContent());
+        $this->assertStringContainsString('q='.rawurlencode($descendant->name), $response->getContent());
+        $this->assertStringNotContainsString('Contoh: '.$core->display_name, $response->getContent());
+        $this->assertStringNotContainsString('q='.rawurlencode($descendant->display_name), $response->getContent());
+    }
+
+    /** @test */
     public function guest_cannot_open_chart_for_spouse_parent_outside_scope()
     {
         [, , , $spouseParent] = $this->createScopedFamilyGraph();

@@ -261,7 +261,7 @@
     @if (!empty($landingTreeRootUser))
     <div class="family-search-examples" style="margin-top:12px;">
         <span class="family-search-examples__label">Lihat pohon:</span>
-        <a class="family-search-examples__chip" href="{{ route('users.tree', $landingTreeRootUser) }}">{{ $landingTreeRootUser->display_name }}</a>
+        <a class="family-search-examples__chip" href="{{ route('users.tree', $landingTreeRootUser) }}">{{ $landingTreeRootUser->name ?: $landingTreeRootUser->display_name }}</a>
     </div>
     @endif
 </section>

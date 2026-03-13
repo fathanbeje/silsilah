@@ -353,7 +353,16 @@
         function updateBackToCoreButtonState() {
             if (!backToCoreButton || !treeViewport) return;
 
-            var isAtCore = treeViewport.scrollLeft <= 8 && treeViewport.scrollTop <= 8;
+            var rootEntry = wrapper.querySelector('.entry-root');
+            var rootCard = rootEntry ? rootEntry.querySelector(':scope > [data-tree-card]') : null;
+            var horizontalDistance = treeViewport.scrollLeft;
+            var verticalDistance = Math.abs(window.scrollY - Math.max(0, (treeViewport.getBoundingClientRect().top + window.scrollY) - 96));
+
+            if (rootCard) {
+                horizontalDistance = Math.abs(treeViewport.scrollLeft - Math.max(0, rootCard.offsetLeft - 20));
+            }
+
+            var isAtCore = horizontalDistance <= 8 && verticalDistance <= 12;
             backToCoreButton.classList.toggle('is-idle', isAtCore);
         }
 
@@ -364,11 +373,26 @@
             if (!rootEntry) return;
 
             var rootCard = rootEntry.querySelector(':scope > [data-tree-card]');
-            if (!rootCard) return;
+            var viewportTargetTop = Math.max(0, (treeViewport.getBoundingClientRect().top + window.scrollY) - 96);
 
-            treeViewport.scrollTo({
-                left: Math.max(0, rootCard.offsetLeft - 20),
-                top: Math.max(0, rootCard.offsetTop - 20),
+            window.scrollTo({
+                top: viewportTargetTop,
+                behavior: 'smooth'
+            });
+
+            if (rootCard) {
+                treeViewport.scrollTo({
+                    left: Math.max(0, rootCard.offsetLeft - 20),
+                    top: Math.max(0, rootCard.offsetTop - 20),
+                    behavior: 'smooth'
+                });
+
+                return;
+            }
+
+            rootEntry.scrollIntoView({
+                block: 'nearest',
+                inline: 'start',
                 behavior: 'smooth'
             });
         }

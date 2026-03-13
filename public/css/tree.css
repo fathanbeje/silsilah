@@ -135,7 +135,7 @@ body {
 .tree-node-box {
     width: 100%;
     position: relative;
-    padding: 9px 12px 10px;
+    padding: 8px 10px 9px 7px;
     border-radius: 18px;
     border: 1px solid #c1d4e6;
     background:
@@ -203,7 +203,7 @@ body {
 .tree-person-line {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     min-width: 0;
     color: #21415d;
     font-weight: 700;
@@ -227,8 +227,8 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     padding: 0;
     border: 1px solid #d1ddea;
     border-radius: 999px;
