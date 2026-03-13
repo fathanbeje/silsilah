@@ -102,11 +102,11 @@ Contoh blok aktif di VPS:
 
 ```caddyfile
 :8092 {
-    root * /www/wwwroot/bani-syamsuri.eu.org/public
+    root * /www/wwwroot/syamsuri.bani.my.id/public
 
     php_server {
         worker {
-            file /www/wwwroot/bani-syamsuri.eu.org/worker/entry.php
+            file /www/wwwroot/syamsuri.bani.my.id/worker/entry.php
             num {$APP_WORKER_NUM}
             env APP_ENABLE_WORKER {$APP_ENABLE_WORKER}
             env APP_WORKER_MAX_REQUESTS {$APP_WORKER_MAX_REQUESTS}
@@ -173,10 +173,10 @@ Untuk server FrankenPHP worker ini, user service aktif adalah `frankenphp`. Jang
 Contoh aman:
 
 ```bash
-cd /www/wwwroot/bani-syamsuri.eu.org
+cd /www/wwwroot/syamsuri.bani.my.id
 composer install --no-dev --no-scripts --optimize-autoloader
 chown -R frankenphp:frankenphp storage bootstrap/cache
-su -s /bin/bash frankenphp -c 'cd /www/wwwroot/bani-syamsuri.eu.org && php artisan package:discover && php artisan migrate --force && php artisan config:clear && php artisan route:clear && php artisan view:clear && php artisan view:cache'
+su -s /bin/bash frankenphp -c 'cd /www/wwwroot/syamsuri.bani.my.id && php artisan package:discover && php artisan migrate --force && php artisan config:clear && php artisan route:clear && php artisan view:clear && php artisan view:cache'
 systemctl restart frankenphp-syamsuri-bani-my-id.service
 ```
 
@@ -238,7 +238,7 @@ VPS
 └── Nginx public :443
     └── reverse proxy -> 127.0.0.1:8092
         └── FrankenPHP worker service
-            └── /www/wwwroot/bani-syamsuri.eu.org/public
+            └── /www/wwwroot/syamsuri.bani.my.id/public
                 └── worker/entry.php
 
 Workflow dev:

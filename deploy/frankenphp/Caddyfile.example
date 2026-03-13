@@ -9,7 +9,7 @@
 }
 
 :8092 {
-    root * /www/wwwroot/bani-syamsuri.eu.org/public
+    root * /www/wwwroot/syamsuri.bani.my.id/public
     encode zstd gzip
 
     @blocked_methods method TRACE TRACK
@@ -32,7 +32,7 @@
 
     php_server {
         worker {
-            file /www/wwwroot/bani-syamsuri.eu.org/worker/entry.php
+            file /www/wwwroot/syamsuri.bani.my.id/worker/entry.php
             match /index.php
             num 4
             env APP_ENABLE_WORKER 1

@@ -1,5 +1,5 @@
 [Unit]
-Description=FrankenPHP Silsilah Worker (bani-syamsuri.eu.org)
+Description=FrankenPHP Silsilah Worker (syamsuri.bani.my.id)
 After=network-online.target mariadb.service mysql.service
 Wants=network-online.target
 
@@ -7,7 +7,7 @@ Wants=network-online.target
 Type=simple
 User=frankenphp
 Group=frankenphp
-WorkingDirectory=/www/wwwroot/bani-syamsuri.eu.org
+WorkingDirectory=/www/wwwroot/syamsuri.bani.my.id
 
 Environment=APP_ENV=production
 Environment=APP_DEBUG=false
@@ -32,7 +32,7 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=full
 ProtectHome=true
-ReadWritePaths=/var/lib/frankenphp /var/log/frankenphp /www/wwwroot/bani-syamsuri.eu.org/storage /www/wwwroot/bani-syamsuri.eu.org/bootstrap/cache
+ReadWritePaths=/var/lib/frankenphp /var/log/frankenphp /www/wwwroot/syamsuri.bani.my.id/storage /www/wwwroot/syamsuri.bani.my.id/bootstrap/cache
 
 [Install]
 WantedBy=multi-user.target

@@ -24,15 +24,15 @@ Workflow tetap mengikuti `git push` lalu sync di VPS.
 Pastikan file berikut sudah ada di server:
 
 ```bash
-cd /www/wwwroot/bani-syamsuri.eu.org
+cd /www/wwwroot/syamsuri.bani.my.id
 ls worker/entry.php worker/request-reset.php
 ```
 
 ## Pasang config worker
 
 ```bash
-cp /www/wwwroot/bani-syamsuri.eu.org/deploy/frankenphp/Caddyfile.example /etc/frankenphp/Caddyfile-bani-silsilah
-cp /www/wwwroot/bani-syamsuri.eu.org/deploy/frankenphp/frankenphp-silsilah.service.example /etc/systemd/system/frankenphp-bani-silsilah.service
+cp /www/wwwroot/syamsuri.bani.my.id/deploy/frankenphp/Caddyfile.example /etc/frankenphp/Caddyfile-bani-silsilah
+cp /www/wwwroot/syamsuri.bani.my.id/deploy/frankenphp/frankenphp-silsilah.service.example /etc/systemd/system/frankenphp-bani-silsilah.service
 systemctl daemon-reload
 frankenphp validate --config /etc/frankenphp/Caddyfile-bani-silsilah
 systemctl restart frankenphp-bani-silsilah

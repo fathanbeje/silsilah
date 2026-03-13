@@ -141,12 +141,12 @@ Catatan hardening:
 - Jika command Artisan dijalankan manual di VPS, gunakan:
 
 ```powershell
-ssh -i C:\Users\Administrator\.ssh\vps_deploy_ed25519 -p 2288 root@103.177.95.140 "su -s /bin/bash frankenphp -c 'cd /www/wwwroot/bani-syamsuri.eu.org && php artisan view:clear && php artisan view:cache'"
+ssh -i C:\Users\Administrator\.ssh\vps_deploy_ed25519 -p 2288 root@103.177.95.140 "su -s /bin/bash frankenphp -c 'cd /www/wwwroot/syamsuri.bani.my.id && php artisan view:clear && php artisan view:cache'"
 ```
 
 - Permission yang harus tetap dimiliki `frankenphp:frankenphp`:
-  - `/www/wwwroot/bani-syamsuri.eu.org/storage`
-  - `/www/wwwroot/bani-syamsuri.eu.org/bootstrap/cache`
+  - `/www/wwwroot/syamsuri.bani.my.id/storage`
+  - `/www/wwwroot/syamsuri.bani.my.id/bootstrap/cache`
 
 ## 7. Verifikasi Live
 
@@ -183,13 +183,13 @@ ssh -i C:\Users\Administrator\.ssh\vps_deploy_ed25519 -p 2288 root@103.177.95.14
 ### Baca log aplikasi aktif
 
 ```powershell
-ssh -i C:\Users\Administrator\.ssh\vps_deploy_ed25519 -p 2288 root@103.177.95.140 "tail -n 120 /www/wwwroot/bani-syamsuri.eu.org/storage/logs/laravel-2026-03-12.log"
+ssh -i C:\Users\Administrator\.ssh\vps_deploy_ed25519 -p 2288 root@103.177.95.140 "tail -n 120 /www/wwwroot/syamsuri.bani.my.id/storage/logs/laravel-2026-03-12.log"
 ```
 
 ### Cek commit live di VPS
 
 ```powershell
-ssh -i C:\Users\Administrator\.ssh\vps_deploy_ed25519 -p 2288 root@103.177.95.140 "cd /www/wwwroot/bani-syamsuri.eu.org && git rev-parse HEAD"
+ssh -i C:\Users\Administrator\.ssh\vps_deploy_ed25519 -p 2288 root@103.177.95.140 "cd /www/wwwroot/syamsuri.bani.my.id && git rev-parse HEAD"
 ```
 
 ## 9. Ringkasan Pola Eksekusi
@@ -226,5 +226,5 @@ curl.exe -I https://syamsuri.bani.my.id/
 - Setelah deploy manual atau recovery, normalisasi lagi ownership jika perlu:
 
 ```powershell
-ssh -i C:\Users\Administrator\.ssh\vps_deploy_ed25519 -p 2288 root@103.177.95.140 "chown -R frankenphp:frankenphp /www/wwwroot/bani-syamsuri.eu.org/storage /www/wwwroot/bani-syamsuri.eu.org/bootstrap/cache"
+ssh -i C:\Users\Administrator\.ssh\vps_deploy_ed25519 -p 2288 root@103.177.95.140 "chown -R frankenphp:frankenphp /www/wwwroot/syamsuri.bani.my.id/storage /www/wwwroot/syamsuri.bani.my.id/bootstrap/cache"
 ```
