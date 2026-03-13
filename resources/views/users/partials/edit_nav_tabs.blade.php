@@ -1,19 +1,31 @@
-<!-- Nav tabs -->
-<ul class="nav nav-pills nav-stacked">
-    <li class="{{ request('tab') == null ? 'active' : '' }}">
-        {!! link_to_route('users.edit', __('user.edit'), [$user->id]) !!}
-    </li>
-    <li class="{{ request('tab') == 'contact_address' ? 'active' : '' }}">
-        {!! link_to_route('users.edit', __('app.address').' &amp; '.__('app.contact'), [$user->id, 'tab' => 'contact_address']) !!}
-    </li>
-    <li class="{{ request('tab') == 'login_account' ? 'active' : '' }}">
-        {!! link_to_route('users.edit', __('app.login_account'), [$user->id, 'tab' => 'login_account']) !!}
-    </li>
-    <li class="{{ request('tab') == 'death' ? 'active' : '' }}">
-        {!! link_to_route('users.edit', __('user.death'), [$user->id, 'tab' => 'death']) !!}
-    </li>
-</ul>
-<br>
+<div class="edit-section-nav">
+    <div class="panel panel-default">
+        <div class="panel-heading"><h3 class="panel-title">Bagian Edit</h3></div>
+        <div class="list-group">
+            <a class="list-group-item" href="#section-profile">
+                Data utama
+                <small>Nama, panggilan, gender, urutan lahir, tanggal lahir.</small>
+            </a>
+            <a class="list-group-item" href="#section-contact-address">
+                Alamat &amp; kontak
+                <small>Alamat, kota, dan nomor telepon.</small>
+            </a>
+            <a class="list-group-item" href="#section-login-account">
+                Akun login
+                <small>Email dan password login pengguna ini.</small>
+            </a>
+            <a class="list-group-item" href="#section-death">
+                Data wafat
+                <small>Status wafat, tanggal wafat, dan lokasi makam.</small>
+            </a>
+            <a class="list-group-item" href="#section-photo">
+                Foto profil
+                <small>Upload, paste clipboard, atau drag-and-drop foto.</small>
+            </a>
+        </div>
+    </div>
+</div>
+
 @can('delete', $user)
 {{ link_to_route('users.edit', __('user.delete'), [$user, 'action' => 'delete'], ['class' => 'btn btn-danger', 'id' => 'del-user-'.$user->id]) }}
 @endcan
