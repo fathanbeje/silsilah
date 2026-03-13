@@ -50,14 +50,14 @@ class UsersController extends Controller
 
         if ($showSearchResults) {
             $query = $this->searchUsersQuery($q);
-            $users = $this->familyScopeResolver->applyToUserQuery($query)
+            $users = $this->familyScopeResolver->applyToUserQueryWithinScope($query)
                 ->with('father', 'mother')
                 ->orderBy('name', 'asc')
                 ->paginate(24);
 
             $users->setCollection(
                 $users->getCollection()->map(function (User $user) {
-                    $this->applyScopedRelationsToUser($user);
+                    $this->applyScopedRelationsToUser($user, true);
 
                     return $user;
                 })
@@ -173,13 +173,13 @@ class UsersController extends Controller
         }
 
         $query = $this->searchUsersQuery($q);
-        $users = $this->familyScopeResolver->applyToUserQuery($query)
+        $users = $this->familyScopeResolver->applyToUserQueryWithinScope($query)
             ->with('father', 'mother')
             ->orderBy('name', 'asc')
             ->limit(10)
             ->get()
             ->map(function (User $user) {
-                $this->applyScopedRelationsToUser($user);
+                $this->applyScopedRelationsToUser($user, true);
 
                 return $user;
             })
@@ -601,33 +601,39 @@ class UsersController extends Controller
         }
     }
 
-    private function applyScopedRelationsToUser(User $user): void
+    private function applyScopedRelationsToUser(User $user, bool $strictScope = false): void
     {
         if (!$this->familyScopeResolver->hasActiveScope()) {
             return;
         }
 
-        if (auth()->check() && is_system_admin(auth()->user())) {
+        if (!$strictScope && auth()->check() && is_system_admin(auth()->user())) {
             return;
         }
 
         if ($user->relationLoaded('father')) {
-            $user->setRelation('father', $this->scopedRelatedUser($user->father));
+            $user->setRelation('father', $this->scopedRelatedUser($user->father, $strictScope));
         }
 
         if ($user->relationLoaded('mother')) {
-            $user->setRelation('mother', $this->scopedRelatedUser($user->mother));
+            $user->setRelation('mother', $this->scopedRelatedUser($user->mother, $strictScope));
         }
 
         if ($user->relationLoaded('childs')) {
-            $user->setRelation('childs', $this->familyScopeResolver->filterUsers($user->childs));
+            $user->setRelation('childs', $strictScope
+                ? $this->familyScopeResolver->filterUsersWithinScope($user->childs)
+                : $this->familyScopeResolver->filterUsers($user->childs));
         }
 
         if ($user->relationLoaded('parent')) {
             $parent = $user->parent;
             if ($parent) {
-                $husbandVisible = $parent->husband && $this->familyScopeResolver->isVisibleUser($parent->husband);
-                $wifeVisible = $parent->wife && $this->familyScopeResolver->isVisibleUser($parent->wife);
+                $husbandVisible = $parent->husband && ($strictScope
+                    ? $this->familyScopeResolver->isVisibleUserWithinScope($parent->husband)
+                    : $this->familyScopeResolver->isVisibleUser($parent->husband));
+                $wifeVisible = $parent->wife && ($strictScope
+                    ? $this->familyScopeResolver->isVisibleUserWithinScope($parent->wife)
+                    : $this->familyScopeResolver->isVisibleUser($parent->wife));
 
                 if (!$husbandVisible && !$wifeVisible) {
                     $user->setRelation('parent', null);
@@ -644,25 +650,33 @@ class UsersController extends Controller
         }
 
         if ($user->relationLoaded('wifes')) {
-            $user->setRelation('wifes', $this->familyScopeResolver->filterUsers($user->wifes));
+            $user->setRelation('wifes', $strictScope
+                ? $this->familyScopeResolver->filterUsersWithinScope($user->wifes)
+                : $this->familyScopeResolver->filterUsers($user->wifes));
         }
 
         if ($user->relationLoaded('husbands')) {
-            $user->setRelation('husbands', $this->familyScopeResolver->filterUsers($user->husbands));
+            $user->setRelation('husbands', $strictScope
+                ? $this->familyScopeResolver->filterUsersWithinScope($user->husbands)
+                : $this->familyScopeResolver->filterUsers($user->husbands));
         }
 
         if ($user->relationLoaded('couples')) {
-            $user->setRelation('couples', $this->familyScopeResolver->filterUsers($user->couples));
+            $user->setRelation('couples', $strictScope
+                ? $this->familyScopeResolver->filterUsersWithinScope($user->couples)
+                : $this->familyScopeResolver->filterUsers($user->couples));
         }
     }
 
-    private function scopedRelatedUser(?User $user): ?User
+    private function scopedRelatedUser(?User $user, bool $strictScope = false): ?User
     {
         if (!$user) {
             return null;
         }
 
-        return $this->familyScopeResolver->isVisibleUser($user) ? $user : null;
+        return ($strictScope
+            ? $this->familyScopeResolver->isVisibleUserWithinScope($user)
+            : $this->familyScopeResolver->isVisibleUser($user)) ? $user : null;
     }
 
     private function loadVisibleChilds(User $user)

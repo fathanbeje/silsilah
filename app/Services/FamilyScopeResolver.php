@@ -79,6 +79,20 @@ class FamilyScopeResolver
             return true;
         }
 
+        return $this->isVisibleUserWithinScope($user);
+    }
+
+    public function applyToUserQuery(Builder $query): Builder
+    {
+        if ($this->shouldBypassScope()) {
+            return $query;
+        }
+
+        return $this->applyToUserQueryWithinScope($query);
+    }
+
+    public function isVisibleUserWithinScope(User|string|null $user): bool
+    {
         if (!$this->hasActiveScope()) {
             return true;
         }
@@ -92,12 +106,8 @@ class FamilyScopeResolver
         return in_array($userId, $this->visibleUserIds(), true);
     }
 
-    public function applyToUserQuery(Builder $query): Builder
+    public function applyToUserQueryWithinScope(Builder $query): Builder
     {
-        if ($this->shouldBypassScope()) {
-            return $query;
-        }
-
         if (!$this->hasActiveScope()) {
             return $query;
         }
@@ -154,6 +164,11 @@ class FamilyScopeResolver
             return $users->values();
         }
 
+        return $this->filterUsersWithinScope($users);
+    }
+
+    public function filterUsersWithinScope(Collection $users): Collection
+    {
         if (!$this->hasActiveScope()) {
             return $users;
         }

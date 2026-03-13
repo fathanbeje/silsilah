@@ -113,6 +113,42 @@ class DomainFamilyScopeTest extends TestCase
     }
 
     /** @test */
+    public function admin_landing_search_results_remain_scoped_to_current_host()
+    {
+        [$core, $descendant, $descendantSpouse, $spouseParent] = $this->createScopedFamilyGraph();
+        config(['app.system_admin_emails' => 'admin@example.net']);
+        $this->loginAsUser(['email' => 'admin@example.net']);
+
+        $response = $this->scopedCall('syamsuri.bani.my.id', 'GET', '/profile-search', ['q' => 'scope']);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertStringContainsString($core->display_name, $response->getContent());
+        $this->assertStringContainsString($descendant->display_name, $response->getContent());
+        $this->assertStringContainsString($descendantSpouse->display_name, $response->getContent());
+        $this->assertStringNotContainsString($spouseParent->display_name, $response->getContent());
+    }
+
+    /** @test */
+    public function admin_landing_autocomplete_remains_scoped_to_current_host()
+    {
+        [$core, $descendant, $descendantSpouse, $spouseParent] = $this->createScopedFamilyGraph();
+        config(['app.system_admin_emails' => 'admin@example.net']);
+        $this->loginAsUser(['email' => 'admin@example.net']);
+
+        $response = $this->scopedCall('syamsuri.bani.my.id', 'GET', '/profile-search/autocomplete', ['q' => 'scope']);
+
+        $this->assertSame(200, $response->getStatusCode());
+
+        $payload = json_decode($response->getContent(), true);
+        $names = collect($payload)->pluck('name')->all();
+
+        $this->assertContains($core->display_name, $names);
+        $this->assertContains($descendant->display_name, $names);
+        $this->assertContains($descendantSpouse->display_name, $names);
+        $this->assertNotContains($spouseParent->display_name, $names);
+    }
+
+    /** @test */
     public function request_without_registered_host_renders_empty_public_landing()
     {
         [$core, $descendant, $descendantSpouse, $spouseParent] = $this->createScopedFamilyGraph();
