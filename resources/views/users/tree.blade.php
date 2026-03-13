@@ -15,10 +15,6 @@
     >
         <span class="tree-tools__fab-glow" aria-hidden="true"></span>
         <span class="tree-tools__fab-icon" aria-hidden="true">&#9881;</span>
-        <span class="tree-tools__fab-copy">
-            <span class="tree-tools__fab-label">Tree</span>
-            <span class="tree-tools__fab-subtitle">Kontrol</span>
-        </span>
     </button>
     <button
         type="button"
