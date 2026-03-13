@@ -24,8 +24,8 @@ class SyncBirthDatesFromNotionTest extends TestCase
 
                     return match ($pageId) {
                         '7ddd3b07-ca20-491c-aacd-9527d7e1e0a7' => $this->pageChunkResponse(),
-                        'row-1' => $this->singleRowResponse('row-1', '(Almh.) Hj. Munafi\'ah', 'Binti', '1936-01-01'),
-                        'row-2' => $this->singleRowResponse('row-2', 'Yusrul Hana', 'Bin', '1981-09-20'),
+                        'row-1' => $this->singleRowResponse('row-1', '(Almh.) Hj. Munafi\'ah', 'Binti', '1936-01-01', 'Wafat'),
+                        'row-2' => $this->singleRowResponse('row-2', 'Yusrul Hana', 'Bin', '1981-09-20', 'Hidup'),
                         default => throw new \RuntimeException('Unexpected page '.$pageId),
                     };
                 }
@@ -66,7 +66,7 @@ class SyncBirthDatesFromNotionTest extends TestCase
                 ];
             }
 
-            private function singleRowResponse(string $rowId, string $name, string $gender, string $startDate): array
+            private function singleRowResponse(string $rowId, string $name, string $gender, string $startDate, string $lifeStatus): array
             {
                 return [
                     'recordMap' => [
@@ -79,6 +79,7 @@ class SyncBirthDatesFromNotionTest extends TestCase
                                         'title' => [[$name]],
                                         '`Ryo' => [[$gender]],
                                         'c{wo' => [['‣', [['d', ['type' => 'date', 'start_date' => $startDate]]]]],
+                                        'ITpv' => [[$lifeStatus]],
                                     ],
                                 ],
                             ],
@@ -93,7 +94,9 @@ class SyncBirthDatesFromNotionTest extends TestCase
         $this->assertCount(2, $rows);
         $this->assertSame('MUNAFI AH', $rows[0]['normalized_name']);
         $this->assertSame(2, $rows[0]['gender_id']);
+        $this->assertTrue($rows[0]['is_deceased']);
         $this->assertSame('1936-01-01', $rows[0]['dob']);
+        $this->assertFalse($rows[1]['is_deceased']);
         $this->assertSame('1981-09-20', $rows[1]['dob']);
     }
 
@@ -122,6 +125,7 @@ class SyncBirthDatesFromNotionTest extends TestCase
                         'source_name' => '(Almh.) Hj. Munafi\'ah',
                         'normalized_name' => 'MUNAFI AH',
                         'gender_id' => 2,
+                        'is_deceased' => true,
                         'dob' => '1936-01-01',
                         'yob' => '1936',
                     ],
@@ -130,6 +134,7 @@ class SyncBirthDatesFromNotionTest extends TestCase
                         'source_name' => 'Yusrul Hana',
                         'normalized_name' => 'YUSRUL HANA',
                         'gender_id' => 1,
+                        'is_deceased' => false,
                         'dob' => '1981-09-20',
                         'yob' => '1981',
                     ],
@@ -146,6 +151,7 @@ class SyncBirthDatesFromNotionTest extends TestCase
 
         $this->assertSame('1936-01-01', optional($mother->fresh()->dob)->format('Y-m-d'));
         $this->assertSame('1936', (string) $mother->fresh()->yob);
+        $this->assertTrue((bool) $mother->fresh()->is_deceased);
         $this->assertSame('1981-09-20', optional($son->fresh()->dob)->format('Y-m-d'));
         $this->assertSame('1981', (string) $son->fresh()->yob);
     }
@@ -177,6 +183,7 @@ class SyncBirthDatesFromNotionTest extends TestCase
                         'normalized_name' => 'IMRITHI NOER FAIQOH',
                         'name_aliases' => ['IMRITHI NOER FAIQOH', 'IMRITHINOERFAIQOH'],
                         'gender_id' => 2,
+                        'is_deceased' => false,
                         'dob' => '1970-01-02',
                         'yob' => '1970',
                         'parent_aliases' => [],
@@ -209,6 +216,7 @@ class SyncBirthDatesFromNotionTest extends TestCase
                         'normalized_name' => 'CONTOH BARU',
                         'name_aliases' => ['CONTOH BARU', 'CONTOHBARU'],
                         'gender_id' => 2,
+                        'is_deceased' => true,
                         'dob' => '1999-12-31',
                         'yob' => '1999',
                         'parent_aliases' => [],
@@ -233,6 +241,7 @@ class SyncBirthDatesFromNotionTest extends TestCase
         $this->assertSame('CONTOH BARU', $user->nickname);
         $this->assertSame(2, (int) $user->gender_id);
         $this->assertSame('1999-12-31', optional($user->dob)->format('Y-m-d'));
+        $this->assertTrue((bool) $user->is_deceased);
     }
 
     protected function tearDown(): void

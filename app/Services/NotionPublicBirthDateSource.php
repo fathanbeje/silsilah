@@ -36,6 +36,7 @@ class NotionPublicBirthDateSource
             'birth_date' => $this->findPropertyIdByName($schema, 'Lahir'),
             'parents' => $this->findPropertyIdByName($schema, 'Ortu'),
             'spouses' => $this->findPropertyIdByName($schema, 'Suami/Istri'),
+            'life_status' => $this->findPropertyIdByName($schema, 'Status1'),
         ];
 
         if (! $propertyMap['gender'] || ! $propertyMap['birth_date']) {
@@ -266,6 +267,7 @@ class NotionPublicBirthDateSource
         $sourceName = $this->extractPlainText($properties->get($propertyMap['title']));
         $genderLabel = $this->extractPlainText($properties->get($propertyMap['gender']));
         $dob = $this->extractDateValue($properties->get($propertyMap['birth_date']));
+        $lifeStatus = $this->extractPlainText($properties->get($propertyMap['life_status'] ?? null));
         $parentNames = $this->resolveRelatedNames($properties->get($propertyMap['parents']), $blocks);
         $spouseNames = $this->resolveRelatedNames($properties->get($propertyMap['spouses']), $blocks);
         $parentBlockIds = $this->extractPageIds($properties->get($propertyMap['parents']));
@@ -278,6 +280,8 @@ class NotionPublicBirthDateSource
             'name_aliases' => $this->comparableNameVariants($sourceName)->all(),
             'gender_label' => $genderLabel,
             'gender_id' => $this->mapGender($genderLabel),
+            'life_status' => $lifeStatus,
+            'is_deceased' => $this->inferDeceasedState($sourceName, $lifeStatus),
             'dob' => $dob,
             'yob' => $dob ? substr($dob, 0, 4) : null,
             'parent_names' => $parentNames->all(),
@@ -389,5 +393,17 @@ class NotionPublicBirthDateSource
             'BINTI' => 2,
             default => null,
         };
+    }
+
+    private function inferDeceasedState(?string $sourceName, ?string $lifeStatus): bool
+    {
+        $normalizedName = User::normalizeUppercase($sourceName);
+        $normalizedStatus = User::normalizeUppercase($lifeStatus);
+
+        if (is_string($normalizedName) && preg_match('/^\((?:ALM|ALMH)\.?\)|^(?:ALM|ALMH)\.?\s+/u', $normalizedName)) {
+            return true;
+        }
+
+        return $normalizedStatus === 'WAFAT';
     }
 }

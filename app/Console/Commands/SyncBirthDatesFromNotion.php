@@ -79,11 +79,17 @@ class SyncBirthDatesFromNotion extends Command
             $rowUserMap[$rowKey] = $user->id;
 
             if ($fillEmptyOnly && ($user->dob || $user->yob)) {
+                if ($apply && ! empty($row['is_deceased']) && ! $user->is_deceased) {
+                    $user->is_deceased = true;
+                    $user->save();
+                }
                 $skippedExisting++;
                 continue;
             }
 
-            if ($user->dob === $row['dob'] && (string) $user->yob === (string) $row['yob']) {
+            $shouldMarkDeceased = ! empty($row['is_deceased']) && ! $user->is_deceased;
+
+            if ($user->dob === $row['dob'] && (string) $user->yob === (string) $row['yob'] && ! $shouldMarkDeceased) {
                 $unchanged++;
                 continue;
             }
@@ -100,6 +106,9 @@ class SyncBirthDatesFromNotion extends Command
             if ($apply) {
                 $user->dob = $row['dob'];
                 $user->yob = $row['yob'];
+                if (! empty($row['is_deceased'])) {
+                    $user->is_deceased = true;
+                }
                 $user->save();
             }
 
@@ -290,6 +299,7 @@ class SyncBirthDatesFromNotion extends Command
         $user->gender_id = (int) $row['gender_id'];
         $user->dob = $row['dob'] ?? null;
         $user->yob = $row['yob'] ?? null;
+        $user->is_deceased = ! empty($row['is_deceased']);
 
         $this->line(sprintf(
             '[create] %s | dob %s | yob %s',
