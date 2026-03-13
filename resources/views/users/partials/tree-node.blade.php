@@ -17,6 +17,10 @@
     data-has-children="{{ $hasChildren ? 'true' : 'false' }}"
     data-expanded="{{ $isExpanded ? 'true' : 'false' }}"
     data-entry-base-height="{{ $entryMinHeight }}"
+    data-tree-person-name="{{ $user->display_name }}"
+    data-tree-person-photo="{{ userPhotoPath($user->photo_path, $user->gender_id) }}"
+    data-tree-person-status="{{ $user->isDeceased() ? 'deceased' : 'alive' }}"
+    data-tree-person-status-label="{{ $userStatusLabel }}"
     style="min-height: {{ $entryMinHeight }}px;"
 >
     <div class="tree-node-card" data-tree-card>
