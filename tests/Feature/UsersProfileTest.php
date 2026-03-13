@@ -211,6 +211,36 @@ class UsersProfileTest extends TestCase
     }
 
     /** @test */
+    public function editing_non_death_profile_fields_does_not_clear_deceased_status()
+    {
+        $user = $this->loginAsUser([
+            'is_deceased' => true,
+            'dob' => '1959-06-09',
+            'yob' => '1959',
+            'dod' => '2003-10-17',
+            'yod' => '2003',
+        ]);
+
+        $this->visit(route('users.edit', [$user->id, 'tab' => 'contact_address']));
+        $this->submitForm(trans('app.update'), [
+            'address' => 'Alamat Baru',
+            'city' => 'Kota Baru',
+            'phone' => '081111111111',
+        ]);
+
+        $user->refresh();
+
+        $this->assertTrue((bool) $user->is_deceased);
+        $this->assertSame('1959-06-09', optional($user->dob)->format('Y-m-d'));
+        $this->assertSame('1959', (string) $user->yob);
+        $this->assertSame('2003-10-17', optional($user->dod)->format('Y-m-d'));
+        $this->assertSame('2003', (string) $user->yod);
+        $this->assertSame('Alamat Baru', $user->address);
+        $this->assertSame('Kota Baru', $user->city);
+        $this->assertSame('081111111111', $user->phone);
+    }
+
+    /** @test */
     public function user_can_edit_login_account()
     {
         $user = $this->loginAsUser();

@@ -60,9 +60,18 @@ class UpdateRequest extends FormRequest
     {
         $formData = parent::validated();
 
-        $formData['yod'] = $this->getYod($formData);
-        $formData['yob'] = $this->getYob($formData);
-        $formData['is_deceased'] = $this->getIsDeceased($formData);
+        if ($this->touchesBirthFields($formData)) {
+            $formData['yob'] = $this->getYob($formData);
+        } else {
+            unset($formData['dob'], $formData['yob']);
+        }
+
+        if ($this->touchesDeathFields($formData)) {
+            $formData['yod'] = $this->getYod($formData);
+            $formData['is_deceased'] = $this->getIsDeceased($formData);
+        } else {
+            unset($formData['dod'], $formData['yod'], $formData['is_deceased']);
+        }
 
         if (isset($formData['password']) && $formData['password']) {
             $formData['password'] = bcrypt($formData['password']);
@@ -106,5 +115,18 @@ class UpdateRequest extends FormRequest
         }
 
         return !empty($formData['is_deceased']);
+    }
+
+    private function touchesDeathFields(array $formData): bool
+    {
+        return array_key_exists('dod', $formData)
+            || array_key_exists('yod', $formData)
+            || array_key_exists('is_deceased', $formData);
+    }
+
+    private function touchesBirthFields(array $formData): bool
+    {
+        return array_key_exists('dob', $formData)
+            || array_key_exists('yob', $formData);
     }
 }
