@@ -235,13 +235,33 @@
             });
         }
 
+        function syncEntryHeights() {
+            Array.prototype.forEach.call(
+                wrapper.querySelectorAll('[data-tree-entry]'),
+                function (entry) {
+                    var card = entry.querySelector(':scope > [data-tree-card]');
+                    var baseHeight = parseInt(entry.getAttribute('data-entry-base-height') || '64', 10);
+
+                    if (!card) {
+                        entry.style.minHeight = baseHeight + 'px';
+                        return;
+                    }
+
+                    var cardHeight = Math.ceil(card.offsetHeight || 0);
+                    entry.style.minHeight = Math.max(baseHeight, cardHeight + 20) + 'px';
+                }
+            );
+        }
+
         function queueRender() {
             if (renderQueued) return;
 
             renderQueued = true;
             window.requestAnimationFrame(function () {
                 renderQueued = false;
+                syncEntryHeights();
                 renderTreeConnectors();
+                updateBackToCoreButtonState();
             });
         }
 
@@ -359,7 +379,9 @@
             var verticalDistance = Math.abs(window.scrollY - Math.max(0, (treeViewport.getBoundingClientRect().top + window.scrollY) - 96));
 
             if (rootCard) {
-                horizontalDistance = Math.abs(treeViewport.scrollLeft - Math.max(0, rootCard.offsetLeft - 20));
+                horizontalDistance = Math.abs(
+                    treeViewport.scrollLeft - Math.max(0, rootCard.offsetLeft - ((treeViewport.clientWidth - rootCard.offsetWidth) / 2))
+                );
             }
 
             var isAtCore = horizontalDistance <= 8 && verticalDistance <= 12;
@@ -382,7 +404,7 @@
 
             if (rootCard) {
                 treeViewport.scrollTo({
-                    left: Math.max(0, rootCard.offsetLeft - 20),
+                    left: Math.max(0, rootCard.offsetLeft - ((treeViewport.clientWidth - rootCard.offsetWidth) / 2)),
                     top: Math.max(0, rootCard.offsetTop - 20),
                     behavior: 'smooth'
                 });
@@ -492,6 +514,9 @@
         if ('ResizeObserver' in window) {
             resizeObserver = new ResizeObserver(queueRender);
             resizeObserver.observe(wrapper);
+            Array.prototype.forEach.call(wrapper.querySelectorAll('[data-tree-card] img'), function (image) {
+                resizeObserver.observe(image);
+            });
         }
 
         queueRender();

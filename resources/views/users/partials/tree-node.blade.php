@@ -17,6 +17,7 @@
     data-node-depth="{{ $node['node_depth'] }}"
     data-has-children="{{ $hasChildren ? 'true' : 'false' }}"
     data-expanded="{{ $isExpanded ? 'true' : 'false' }}"
+    data-entry-base-height="{{ $entryMinHeight }}"
     style="min-height: {{ $entryMinHeight }}px;"
 >
     <div class="tree-node-card" data-tree-card>
