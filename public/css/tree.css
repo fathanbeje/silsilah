@@ -75,137 +75,6 @@ body.tree-dragging * {
     position: relative;
 }
 
-.tree-ancestor-rail {
-    position: sticky;
-    top: 78px;
-    z-index: 18;
-    margin-bottom: -60px;
-    padding: 10px 0 6px;
-    pointer-events: none;
-}
-
-.tree-ancestor-rail[hidden] {
-    display: none;
-}
-
-.tree-ancestor-rail__track {
-    display: inline-flex;
-    align-items: stretch;
-    gap: 10px;
-    max-width: min(100%, calc(100vw - 40px));
-    padding: 10px 12px;
-    border-radius: 22px;
-    background: rgba(245, 250, 255, 0.88);
-    border: 1px solid rgba(186, 207, 225, 0.72);
-    box-shadow: 0 20px 34px rgba(27, 54, 78, 0.12);
-    backdrop-filter: blur(14px);
-    overflow-x: auto;
-}
-
-.tree-ancestor-rail__item {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    min-width: 0;
-    max-width: 220px;
-    padding: 9px 12px;
-    border-radius: 18px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(239, 247, 253, 0.96));
-    border: 1px solid rgba(185, 205, 223, 0.92);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.96);
-}
-
-.tree-ancestor-rail__item::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    right: -7px;
-    width: 9px;
-    height: 9px;
-    margin-top: -4px;
-    border-top: 2px solid rgba(86, 122, 151, 0.44);
-    border-right: 2px solid rgba(86, 122, 151, 0.44);
-    transform: rotate(45deg);
-}
-
-.tree-ancestor-rail__item:last-child::after {
-    display: none;
-}
-
-.tree-ancestor-rail__item.is-focus {
-    border-color: rgba(70, 124, 191, 0.8);
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(222, 238, 252, 0.98));
-    box-shadow:
-        0 14px 24px rgba(47, 125, 182, 0.14),
-        inset 0 1px 0 rgba(255, 255, 255, 0.98);
-}
-
-.tree-ancestor-rail__avatar {
-    flex: 0 0 auto;
-    width: 34px;
-    height: 34px;
-    overflow: hidden;
-    border-radius: 12px;
-    border: 1px solid rgba(190, 209, 224, 0.92);
-    background: #fff;
-    box-shadow: 0 8px 16px rgba(27, 54, 78, 0.12);
-}
-
-.tree-ancestor-rail__avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.tree-ancestor-rail__body {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-}
-
-.tree-ancestor-rail__eyebrow {
-    color: #68839b;
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-.tree-ancestor-rail__title {
-    display: block;
-    color: #163a56;
-    font-size: 12px;
-    font-weight: 800;
-    line-height: 1.25;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.tree-ancestor-rail__status {
-    display: inline-flex;
-    align-items: center;
-    width: fit-content;
-    margin-top: 4px;
-    padding: 2px 7px;
-    border-radius: 999px;
-    font-size: 9px;
-    font-weight: 800;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-}
-
-.tree-ancestor-rail__status.is-alive {
-    background: rgba(76, 154, 120, 0.14);
-    color: #2d7d5d;
-}
-
-.tree-ancestor-rail__status.is-deceased {
-    background: rgba(162, 93, 93, 0.14);
-    color: #8f4b4b;
-}
-
 #wrapper {
     position: relative;
     display: inline-block;
@@ -222,11 +91,7 @@ body.tree-dragging * {
     padding: 8px 5px 10px;
     background: var(--tree-bg);
     border-radius: 28px;
-    transition: padding-top 0.2s ease, box-shadow 0.2s ease;
-}
-
-.tree-stage.has-ancestor-rail .tree-viewport {
-    padding-top: 72px;
+    transition: box-shadow 0.2s ease;
 }
 
 .tree-stage.is-expanded-all .tree-viewport {
@@ -351,13 +216,6 @@ body.tree-dragging * {
     box-shadow:
         0 14px 28px rgba(27, 54, 78, 0.11),
         inset 0 1px 0 rgba(255, 255, 255, 0.94);
-}
-
-.entry.is-focus-source > .tree-node-card .tree-node-box {
-    border-color: rgba(65, 121, 189, 0.86);
-    box-shadow:
-        0 16px 28px rgba(47, 125, 182, 0.14),
-        inset 0 1px 0 rgba(255, 255, 255, 0.96);
 }
 
 .tree-tools__fab {
@@ -1116,32 +974,9 @@ body.tree-dragging * {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .tree-ancestor-rail {
-        top: 72px;
-    }
 }
 
 @media (max-width: 767px) {
-    .tree-ancestor-rail {
-        top: 66px;
-        margin-bottom: -52px;
-        padding-top: 6px;
-    }
-
-    .tree-ancestor-rail__track {
-        max-width: calc(100vw - 24px);
-        padding: 8px 10px;
-    }
-
-    .tree-ancestor-rail__item {
-        max-width: 180px;
-        padding: 8px 10px;
-    }
-
-    .tree-stage.has-ancestor-rail .tree-viewport {
-        padding-top: 64px;
-    }
-
     .tree-viewport {
         margin-left: -15px;
         margin-right: -15px;

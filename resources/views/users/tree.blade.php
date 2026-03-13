@@ -84,9 +84,6 @@
     </section>
 </div>
 <div class="tree-stage" data-tree-stage>
-    <div class="tree-ancestor-rail" data-tree-ancestor-rail hidden>
-        <div class="tree-ancestor-rail__track" data-tree-ancestor-rail-track></div>
-    </div>
     <div class="tree-viewport" data-tree-viewport data-tree-drag-surface data-drag-enabled="false">
         <div id="wrapper" class="tree-diagram" data-tree-root-id="{{ $user->id }}">
             @include('users.partials.tree-node', ['node' => $node, 'level' => 1, 'isRoot' => true])
@@ -194,8 +191,7 @@
         var treeStage = document.querySelector('[data-tree-stage]');
         var treeViewport = document.querySelector('[data-tree-viewport]');
         var wrapper = document.getElementById('wrapper');
-        var rootEntry = wrapper ? wrapper.querySelector('.entry-root') : null;
-        if (!wrapper || !treeViewport || !treeStage || !rootEntry) return;
+        if (!wrapper || !treeViewport || !treeStage) return;
 
         var NS = 'http://www.w3.org/2000/svg';
         var svg = null;
@@ -203,7 +199,6 @@
         var resizeObserver = null;
         var connectorPalette = ['#b7cde0', '#bed8cf', '#c8d2e8', '#d1d9c9', '#d8cde3', '#d4dde8'];
         var activePreview = null;
-        var currentFocusNodeId = null;
         var toolsToggleButton = document.querySelector('[data-tree-tools-toggle]');
         var toolsPanel = document.querySelector('[data-tree-tools-panel]');
         var toolsBackdrop = document.querySelector('[data-tree-tools-backdrop]');
@@ -215,8 +210,6 @@
         var zoomValue = document.querySelector('[data-tree-zoom-value]');
         var zoomResetButton = document.querySelector('[data-tree-zoom-reset]');
         var zoomPresetButtons = Array.prototype.slice.call(document.querySelectorAll('[data-tree-zoom-preset]'));
-        var ancestorRail = document.querySelector('[data-tree-ancestor-rail]');
-        var ancestorRailTrack = document.querySelector('[data-tree-ancestor-rail-track]');
         var ZOOM_MIN = 50;
         var ZOOM_MAX = 125;
         var ZOOM_STEP = 5;
@@ -263,185 +256,8 @@
             }
         }
 
-        function getEntryById(nodeId) {
-            if (!nodeId) return null;
-
-            return wrapper.querySelector('[data-tree-entry][data-node-id="' + nodeId + '"]');
-        }
-
-        function getParentEntry(entry) {
-            if (!entry || entry.classList.contains('entry-root')) return null;
-
-            var parentBranch = entry.parentElement;
-            if (!parentBranch || !parentBranch.hasAttribute('data-tree-branch')) return null;
-
-            return parentBranch.closest('[data-tree-entry]');
-        }
-
-        function getChildEntries(entry) {
-            if (!entry) return [];
-
-            var branch = entry.querySelector(':scope > [data-tree-branch]');
-            if (!branch || branch.hidden || window.getComputedStyle(branch).display === 'none') return [];
-
-            return Array.prototype.filter.call(branch.children, function (child) {
-                return child.hasAttribute('data-tree-entry') && window.getComputedStyle(child).display !== 'none';
-            });
-        }
-
-        function firstVisibleChild(entry) {
-            var children = getChildEntries(entry);
-            return children.length ? children[0] : null;
-        }
-
-        function isEntryVisible(entry) {
-            if (!entry || window.getComputedStyle(entry).display === 'none') {
-                return false;
-            }
-
-            var cursor = entry;
-
-            while (cursor && !cursor.classList.contains('entry-root')) {
-                var branch = cursor.parentElement;
-                if (branch && branch.hasAttribute('data-tree-branch') && branch.hidden) {
-                    return false;
-                }
-
-                cursor = branch ? branch.closest('[data-tree-entry]') : null;
-            }
-
-            return true;
-        }
-
-        function resolveDefaultFocusEntry() {
-            var cursor = rootEntry;
-            var next = firstVisibleChild(cursor);
-
-            while (next) {
-                cursor = next;
-                next = firstVisibleChild(cursor);
-            }
-
-            return cursor || rootEntry;
-        }
-
-        function resolveFocusEntry() {
-            var focusEntry = getEntryById(currentFocusNodeId);
-
-            if (focusEntry && isEntryVisible(focusEntry)) {
-                return focusEntry;
-            }
-
-            return resolveDefaultFocusEntry();
-        }
-
-        function clearFocusMarkers() {
-            Array.prototype.forEach.call(
-                wrapper.querySelectorAll('[data-tree-entry].is-focus-source'),
-                function (entry) {
-                    entry.classList.remove('is-focus-source');
-                }
-            );
-        }
-
-        function setFocusEntry(entry) {
-            if (!entry) return;
-
-            currentFocusNodeId = entry.getAttribute('data-node-id');
-            wrapper.setAttribute('data-focus-node-id', currentFocusNodeId);
-            clearFocusMarkers();
-            entry.classList.add('is-focus-source');
-        }
-
-        function buildAncestorChain(entry) {
-            var chain = [];
-            var cursor = entry;
-
-            while (cursor) {
-                chain.push(cursor);
-                cursor = getParentEntry(cursor);
-            }
-
-            return chain.reverse();
-        }
-
-        function railItemLabel(index, chainLength) {
-            if (index === 0) return 'Core';
-            if (index === chainLength - 1) return 'Fokus';
-
-            return 'Turunan';
-        }
-
-        function createRailItem(entry, index, chainLength) {
-            var item = document.createElement('div');
-            var avatar = document.createElement('span');
-            var avatarImage = document.createElement('img');
-            var body = document.createElement('span');
-            var eyebrow = document.createElement('span');
-            var title = document.createElement('span');
-            var status = document.createElement('span');
-            var statusLabel = entry.getAttribute('data-tree-person-status-label') || '';
-            var statusState = entry.getAttribute('data-tree-person-status') || 'alive';
-
-            item.className = 'tree-ancestor-rail__item' + (index === chainLength - 1 ? ' is-focus' : '');
-            avatar.className = 'tree-ancestor-rail__avatar';
-            avatarImage.src = entry.getAttribute('data-tree-person-photo') || '';
-            avatarImage.alt = entry.getAttribute('data-tree-person-name') || '';
-            avatarImage.loading = 'lazy';
-            avatar.appendChild(avatarImage);
-
-            body.className = 'tree-ancestor-rail__body';
-            eyebrow.className = 'tree-ancestor-rail__eyebrow';
-            eyebrow.textContent = railItemLabel(index, chainLength);
-            title.className = 'tree-ancestor-rail__title';
-            title.textContent = entry.getAttribute('data-tree-person-name') || '';
-            status.className = 'tree-ancestor-rail__status is-' + statusState;
-            status.textContent = statusLabel;
-
-            body.appendChild(eyebrow);
-            body.appendChild(title);
-            body.appendChild(status);
-            item.appendChild(avatar);
-            item.appendChild(body);
-
-            return item;
-        }
-
-        function updateAncestorRail() {
-            if (!ancestorRail || !ancestorRailTrack) return;
-
-            var expanded = allEntriesExpanded();
-            var focusEntry = resolveFocusEntry();
-
-            treeStage.classList.toggle('is-expanded-all', expanded);
-            treeStage.classList.toggle('has-ancestor-rail', expanded);
-            treeViewport.setAttribute('data-drag-enabled', expanded ? 'true' : 'false');
-
-            if (!focusEntry) {
-                clearFocusMarkers();
-                ancestorRail.hidden = true;
-                ancestorRailTrack.innerHTML = '';
-                return;
-            }
-
-            setFocusEntry(focusEntry);
-
-            if (!expanded) {
-                ancestorRail.hidden = true;
-                ancestorRailTrack.innerHTML = '';
-                return;
-            }
-
-            ancestorRail.hidden = false;
-            ancestorRailTrack.innerHTML = '';
-
-            buildAncestorChain(focusEntry).forEach(function (entry, index, chain) {
-                ancestorRailTrack.appendChild(createRailItem(entry, index, chain.length));
-            });
-        }
-
         function isDragTargetInteractive(target) {
-            return !!target.closest('a, button, [data-tree-card], [data-tree-preview], [data-tree-tools], [data-tree-ancestor-rail]');
+            return !!target.closest('a, button, [data-tree-card], [data-tree-preview], [data-tree-tools]');
         }
 
         function releaseDragState() {
@@ -647,7 +463,6 @@
                 syncEntryHeights();
                 renderTreeConnectors();
                 updateGlobalToggleState();
-                updateAncestorRail();
             });
         }
 
@@ -675,12 +490,16 @@
             var nextAction = allEntriesExpanded() ? 'collapse' : 'expand';
             var labelAttribute = nextAction === 'collapse' ? 'data-tree-label-collapse' : 'data-tree-label-expand';
             var label = globalToggleButton.getAttribute(labelAttribute) || '';
+            var expanded = nextAction === 'collapse';
 
             if (globalToggleText) {
                 globalToggleText.textContent = label;
             } else {
                 globalToggleButton.textContent = label;
             }
+
+            treeStage.classList.toggle('is-expanded-all', expanded);
+            treeViewport.setAttribute('data-drag-enabled', expanded ? 'true' : 'false');
             globalToggleButton.setAttribute('data-tree-action', nextAction);
             globalToggleButton.disabled = entries.length === 0;
         }
@@ -870,11 +689,6 @@
                 return;
             }
 
-            var clickedEntry = event.target.closest('[data-tree-entry]');
-            if (clickedEntry) {
-                setFocusEntry(clickedEntry);
-            }
-
             if (event.target.closest('a')) return;
 
             var toggleBox = event.target.closest('[data-tree-toggle]');
@@ -902,7 +716,6 @@
             if (!toggleBox) return;
 
             event.preventDefault();
-            setFocusEntry(toggleBox.closest('[data-tree-entry]'));
             toggleEntry(toggleBox.closest('[data-tree-entry]'));
         });
 

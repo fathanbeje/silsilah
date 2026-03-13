@@ -108,8 +108,6 @@ class UsersProfileTest extends TestCase
         $this->assertStringContainsString('Reset ke 100%', $content);
         $this->assertStringContainsString('data-tree-zoom-value', $content);
         $this->assertStringContainsString('data-tree-zoom-preset', $content);
-        $this->assertStringContainsString('data-tree-ancestor-rail', $content);
-        $this->assertStringContainsString('data-tree-ancestor-rail-track', $content);
         $this->assertStringContainsString('data-tree-drag-surface', $content);
         $this->assertStringContainsString('data-drag-enabled="false"', $content);
         $this->assertStringContainsString('Statistik Keturunan '.$core->display_name, $content);
