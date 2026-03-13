@@ -354,8 +354,9 @@ class UsersController extends Controller
      */
     private function getPersonList(int $genderId)
     {
-        return User::query()
-            ->where('gender_id', $genderId)
+        return $this->familyScopeResolver->applyToUserQuery(
+            User::query()->where('gender_id', $genderId)
+        )
             ->orderBy('nickname')
             ->get(['id', 'nickname', 'name'])
             ->mapWithKeys(function (User $user) {
@@ -395,8 +396,29 @@ class UsersController extends Controller
     private function getAllMariageList()
     {
         $allMariageList = [];
+        $couplesQuery = Couple::with('husband', 'wife');
 
-        foreach (Couple::with('husband', 'wife')->get() as $couple) {
+        if ($this->familyScopeResolver->hasActiveScope()) {
+            $visibleIds = $this->familyScopeResolver->visibleUserIds();
+
+            if (empty($visibleIds)) {
+                return $allMariageList;
+            }
+
+            $couplesQuery->where(function ($query) use ($visibleIds) {
+                $query->whereIn('husband_id', $visibleIds)
+                    ->orWhereIn('wife_id', $visibleIds);
+            });
+        }
+
+        foreach ($couplesQuery->get() as $couple) {
+            if (
+                ($couple->husband && !$this->familyScopeResolver->isVisibleUser($couple->husband)) ||
+                ($couple->wife && !$this->familyScopeResolver->isVisibleUser($couple->wife))
+            ) {
+                continue;
+            }
+
             $allMariageList[$couple->id] = $couple->husband->display_name.' & '.$couple->wife->display_name;
         }
 

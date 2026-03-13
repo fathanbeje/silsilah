@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\FamilyScopeResolver;
 use App\User;
 
 class HomeController extends Controller
 {
+    public function __construct(private FamilyScopeResolver $familyScopeResolver)
+    {
+    }
+
     /**
      * Show the application dashboard.
      *
@@ -42,8 +47,9 @@ class HomeController extends Controller
 
     private function getPersonList(int $genderId)
     {
-        return User::query()
-            ->where('gender_id', $genderId)
+        return $this->familyScopeResolver->applyToUserQuery(
+            User::query()->where('gender_id', $genderId)
+        )
             ->orderBy('nickname')
             ->get(['id', 'nickname', 'name'])
             ->mapWithKeys(function (User $user) {

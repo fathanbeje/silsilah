@@ -123,6 +123,26 @@ class DomainFamilyScopeTest extends TestCase
         $this->assertStringContainsString($spouseParent->name, $response->getContent());
     }
 
+    /** @test */
+    public function scoped_admin_only_sees_current_host_in_domain_scope_management()
+    {
+        [$core] = $this->createScopedFamilyGraph();
+        config(['app.system_admin_emails' => 'admin@example.net']);
+        $this->loginAsUser(['email' => 'admin@example.net']);
+
+        DomainFamilyScope::create([
+            'host' => 'salam.bani.my.id',
+            'core_user_id' => $core->id,
+            'is_active' => true,
+        ]);
+
+        $response = $this->scopedCall('syamsuri.bani.my.id', 'GET', route('domain-family-scopes.index', [], false));
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertStringContainsString('syamsuri.bani.my.id', $response->getContent());
+        $this->assertStringNotContainsString('salam.bani.my.id', $response->getContent());
+    }
+
     private function createScopedFamilyGraph(): array
     {
         $core = factory(User::class)->states('male')->create([
