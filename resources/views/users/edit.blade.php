@@ -266,6 +266,20 @@
             });
         }
 
+        var loginAccountToggle = form ? form.querySelector('.js-login-account-toggle') : null;
+        var loginAccountFields = form ? form.querySelectorAll('[data-login-account-field]') : [];
+
+        if (loginAccountToggle) {
+            var syncLoginAccountFields = function() {
+                loginAccountFields.forEach(function(field) {
+                    field.disabled = !loginAccountToggle.checked;
+                });
+            };
+
+            syncLoginAccountFields();
+            loginAccountToggle.addEventListener('change', syncLoginAccountFields);
+        }
+
         window.addEventListener('beforeunload', function (event) {
             if (!isDirty) {
                 return;

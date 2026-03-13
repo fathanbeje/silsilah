@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Users;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateRequest extends FormRequest
 {
@@ -25,10 +26,13 @@ class UpdateRequest extends FormRequest
      */
     public function rules()
     {
+        $user = $this->route('user');
+
         return [
             'nickname'    => 'sometimes|required|string|max:255',
             'name'        => 'sometimes|required|string|max:255',
             'gender_id'   => 'sometimes|required|numeric',
+            'update_login_account' => 'nullable|boolean',
             'is_deceased' => 'nullable|boolean',
             'dob'         => 'nullable|date|date_format:Y-m-d',
             'yob'         => 'nullable|date_format:Y',
@@ -37,7 +41,7 @@ class UpdateRequest extends FormRequest
             'phone'       => 'nullable|string|max:255',
             'address'     => 'nullable|string|max:255',
             'city'        => 'nullable|string|max:255',
-            'email'       => 'nullable|string|max:255',
+            'email'       => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user?->id, 'id')],
             'password'    => 'nullable|min:6|max:15',
             'birth_order' => 'nullable|numeric|min:1',
 
@@ -72,6 +76,12 @@ class UpdateRequest extends FormRequest
         } else {
             unset($formData['dod'], $formData['yod'], $formData['is_deceased']);
         }
+
+        if (! $this->boolean('update_login_account')) {
+            unset($formData['email'], $formData['password']);
+        }
+
+        unset($formData['update_login_account']);
 
         if (isset($formData['password']) && $formData['password']) {
             $formData['password'] = bcrypt($formData['password']);
