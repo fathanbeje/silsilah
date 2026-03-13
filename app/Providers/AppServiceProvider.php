@@ -45,11 +45,17 @@ class AppServiceProvider extends ServiceProvider
             $pendingUserEditRequestCount = 0;
 
             if (Auth::check() && is_system_admin(Auth::user())) {
+                $familyScopeResolver = app(FamilyScopeResolver::class);
+
                 $pendingRegistrationRequestCount = RegistrationRequest::query()
+                    ->forTenant($familyScopeResolver)
                     ->where('status', RegistrationRequest::STATUS_PENDING)
                     ->count();
 
-                $pendingUserEditRequestCount = UserEditRequest::pending()->count();
+                $pendingUserEditRequestCount = UserEditRequest::query()
+                    ->forTenant($familyScopeResolver)
+                    ->pending()
+                    ->count();
             }
 
             $view->with([

@@ -20,6 +20,7 @@ class RegistrationRequestsController extends Controller
     public function index()
     {
         $requests = RegistrationRequest::with(['user', 'reviewer'])
+            ->forTenant($this->familyScopeResolver)
             ->orderByRaw("case when status = 'pending' then 0 else 1 end")
             ->latest()
             ->paginate(20);
@@ -55,6 +56,7 @@ class RegistrationRequestsController extends Controller
             'password' => Hash::make($validated['password']),
             'requested_birth_date' => $validated['requested_birth_date'] ?? null,
             'notes' => $validated['notes'] ?? null,
+            'domain_host' => $this->familyScopeResolver->currentHost(),
         ])->save();
 
         return back()->with('status', trans('auth.registration_request_sent'));
@@ -62,6 +64,8 @@ class RegistrationRequestsController extends Controller
 
     public function update(Request $request, RegistrationRequest $registrationRequest)
     {
+        $this->abortIfRegistrationRequestOutsideScope($registrationRequest);
+
         $validated = $request->validate([
             'status' => 'required|in:'.implode(',', [
                 RegistrationRequest::STATUS_PENDING,
@@ -105,6 +109,29 @@ class RegistrationRequestsController extends Controller
         }
 
         if (!$this->familyScopeResolver->isVisibleUser($user)) {
+            abort(404);
+        }
+    }
+
+    private function abortIfRegistrationRequestOutsideScope(RegistrationRequest $registrationRequest): void
+    {
+        if (!$this->familyScopeResolver->hasActiveScope()) {
+            return;
+        }
+
+        $currentHost = $this->familyScopeResolver->currentHost();
+
+        if ($registrationRequest->domain_host) {
+            if ($registrationRequest->domain_host !== $currentHost) {
+                abort(404);
+            }
+
+            return;
+        }
+
+        $registrationRequest->loadMissing('user');
+
+        if (!$this->familyScopeResolver->isVisibleUser($registrationRequest->user)) {
             abort(404);
         }
     }

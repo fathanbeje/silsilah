@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Services\FamilyScopeResolver;
 use Illuminate\Database\Eloquent\Model;
 
 class RegistrationRequest extends Model
@@ -17,6 +18,7 @@ class RegistrationRequest extends Model
         'password',
         'requested_birth_date',
         'notes',
+        'domain_host',
         'status',
         'reviewed_at',
         'reviewed_by',
@@ -35,5 +37,28 @@ class RegistrationRequest extends Model
     public function reviewer()
     {
         return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    public function scopeForTenant($query, FamilyScopeResolver $familyScopeResolver)
+    {
+        if (!$familyScopeResolver->hasActiveScope()) {
+            return $query;
+        }
+
+        $host = $familyScopeResolver->currentHost();
+        $visibleIds = $familyScopeResolver->visibleUserIds();
+
+        return $query->where(function ($tenantQuery) use ($host, $visibleIds) {
+            $tenantQuery->where('domain_host', $host);
+
+            if (!empty($visibleIds)) {
+                $tenantQuery->orWhere(function ($legacyQuery) use ($visibleIds) {
+                    $legacyQuery->whereNull('domain_host')
+                        ->whereHas('user', function ($userQuery) use ($visibleIds) {
+                            $userQuery->whereIn('id', $visibleIds);
+                        });
+                });
+            }
+        });
     }
 }

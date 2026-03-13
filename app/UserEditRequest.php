@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Services\FamilyScopeResolver;
 use Illuminate\Database\Eloquent\Model;
 
 class UserEditRequest extends Model
@@ -19,6 +20,7 @@ class UserEditRequest extends Model
         'target_user_id',
         'requester_name',
         'requester_whatsapp',
+        'domain_host',
         'status',
         'submitted_at',
         'reviewed_at',
@@ -58,6 +60,29 @@ class UserEditRequest extends Model
     public function isPending(): bool
     {
         return $this->status === self::STATUS_PENDING;
+    }
+
+    public function scopeForTenant($query, FamilyScopeResolver $familyScopeResolver)
+    {
+        if (!$familyScopeResolver->hasActiveScope()) {
+            return $query;
+        }
+
+        $host = $familyScopeResolver->currentHost();
+        $visibleIds = $familyScopeResolver->visibleUserIds();
+
+        return $query->where(function ($tenantQuery) use ($host, $visibleIds) {
+            $tenantQuery->where('domain_host', $host);
+
+            if (!empty($visibleIds)) {
+                $tenantQuery->orWhere(function ($legacyQuery) use ($visibleIds) {
+                    $legacyQuery->whereNull('domain_host')
+                        ->whereHas('targetUser', function ($userQuery) use ($visibleIds) {
+                            $userQuery->whereIn('id', $visibleIds);
+                        });
+                });
+            }
+        });
     }
 
     public function summaryParts(): array

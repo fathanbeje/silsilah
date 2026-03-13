@@ -27,7 +27,7 @@ class FamilyScopeResolver
         }
 
         $this->scopeLoaded = true;
-        $host = $this->normalizeHost($this->request->getHost());
+        $host = $this->currentHost();
 
         if ($host === null) {
             return $this->scope = null;
@@ -40,6 +40,11 @@ class FamilyScopeResolver
             ->first();
 
         return $this->scope;
+    }
+
+    public function currentHost(): ?string
+    {
+        return $this->normalizeHost($this->request->getHost());
     }
 
     public function hasActiveScope(): bool

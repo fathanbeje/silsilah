@@ -130,6 +130,7 @@ class PublicUserEditRequestsController extends Controller
         $editRequest->target_user_id = $user->id;
         $editRequest->requester_name = trim($validated['requester_name']);
         $editRequest->requester_whatsapp = trim($validated['requester_whatsapp']);
+        $editRequest->domain_host = $this->familyScopeResolver->currentHost();
         $editRequest->status = UserEditRequest::STATUS_PENDING;
         $editRequest->submitted_at = Carbon::now();
         $editRequest->proposed_profile = $proposedProfile;

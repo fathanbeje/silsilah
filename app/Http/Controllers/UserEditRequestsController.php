@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\ApplyUserEditRequest;
+use App\Services\FamilyScopeResolver;
 use App\User;
 use App\UserEditRequest;
 use Illuminate\Http\Request;
@@ -11,7 +12,10 @@ use Illuminate\Support\Collection;
 
 class UserEditRequestsController extends Controller
 {
-    public function __construct(private ApplyUserEditRequest $applyUserEditRequest)
+    public function __construct(
+        private ApplyUserEditRequest $applyUserEditRequest,
+        private FamilyScopeResolver $familyScopeResolver
+    )
     {
         $this->middleware(['auth', 'admin']);
     }
@@ -19,6 +23,7 @@ class UserEditRequestsController extends Controller
     public function index(Request $request)
     {
         $requests = UserEditRequest::with(['targetUser', 'reviewer'])
+            ->forTenant($this->familyScopeResolver)
             ->when($request->filled('status'), function ($query) use ($request) {
                 $query->where('status', $request->get('status'));
             })
@@ -42,6 +47,7 @@ class UserEditRequestsController extends Controller
 
     public function show(UserEditRequest $userEditRequest)
     {
+        $this->abortIfUserEditRequestOutsideScope($userEditRequest);
         $userEditRequest->loadMissing(['targetUser.metadata', 'targetUser.couples', 'reviewer']);
 
         return view('user-edit-requests.partials.detail', [
@@ -58,6 +64,8 @@ class UserEditRequestsController extends Controller
 
     public function update(Request $request, UserEditRequest $userEditRequest)
     {
+        $this->abortIfUserEditRequestOutsideScope($userEditRequest);
+
         $validated = $request->validate([
             'action' => 'required|in:approve,reject',
             'review_notes' => 'nullable|string|max:2000',
@@ -87,6 +95,29 @@ class UserEditRequestsController extends Controller
         ]);
 
         return back()->with('status', 'Usulan perubahan ditolak.');
+    }
+
+    private function abortIfUserEditRequestOutsideScope(UserEditRequest $userEditRequest): void
+    {
+        if (!$this->familyScopeResolver->hasActiveScope()) {
+            return;
+        }
+
+        $currentHost = $this->familyScopeResolver->currentHost();
+
+        if ($userEditRequest->domain_host) {
+            if ($userEditRequest->domain_host !== $currentHost) {
+                abort(404);
+            }
+
+            return;
+        }
+
+        $userEditRequest->loadMissing('targetUser');
+
+        if (!$this->familyScopeResolver->isVisibleUser($userEditRequest->targetUser)) {
+            abort(404);
+        }
     }
 
     private function profileDiffs(UserEditRequest $editRequest): Collection
