@@ -12,6 +12,10 @@
         <div class="panel panel-default">
             <div class="panel-heading"><strong>Pengaturan Header Situs</strong></div>
             <div class="panel-body">
+                <div class="alert alert-info">
+                    Header ini berlaku untuk host aktif:
+                    <strong>{{ $currentHost ?: 'global default' }}</strong>
+                </div>
                 <form method="POST" action="{{ route('app-settings.update') }}">
                     {{ csrf_field() }}
                     {{ method_field('PATCH') }}
@@ -27,7 +31,7 @@
                             maxlength="120"
                             required
                         >
-                        <p class="help-block">Contoh: <strong>Silsilah Bani Syamsuri</strong>. Teks ini akan tampil di navbar dan judul tab browser.</p>
+                        <p class="help-block">Contoh: <strong>Silsilah Bani Syamsuri</strong>. Teks ini hanya tampil untuk host aktif di atas, pada navbar dan judul tab browser.</p>
                         @if ($errors->has('site_header_name'))
                         <span class="help-block"><strong>{{ $errors->first('site_header_name') }}</strong></span>
                         @endif

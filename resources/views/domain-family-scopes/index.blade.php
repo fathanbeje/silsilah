@@ -9,9 +9,22 @@
 <div class="alert alert-success">{{ session('status') }}</div>
 @endif
 
+<div class="alert alert-info">
+    <div><strong>Host aktif:</strong> {{ $currentHost ?: '-' }}</div>
+    <div style="margin-top: 6px;">Satu host/subdomain cukup punya satu scope aktif yang menunjuk ke <strong>CORE</strong> keluarga untuk host tersebut.</div>
+</div>
+
+@if (!$canCreateScope)
+<div class="alert alert-warning">
+    Pada tenant scoped, halaman ini hanya menampilkan scope untuk host aktif. Pembuatan host baru sebaiknya dilakukan dari context admin global.
+</div>
+@endif
+
+@if ($canCreateScope)
 <div class="text-right" style="margin-bottom: 15px;">
     <a href="{{ route('domain-family-scopes.create') }}" class="btn btn-primary btn-sm">Tambah Scope Domain</a>
 </div>
+@endif
 
 <div class="panel panel-default table-responsive">
     <table class="table table-condensed">

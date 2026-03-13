@@ -88,8 +88,24 @@ function app_setting($key, $default = null)
             return $default;
         }
 
+        $host = null;
+
+        try {
+            $host = request()?->getHost();
+        } catch (\Throwable $exception) {
+            $host = null;
+        }
+
         $value = AppSetting::query()
             ->where('key', $key)
+            ->when($host, function ($query) use ($host) {
+                $query->where(function ($settingQuery) use ($host) {
+                    $settingQuery->where('host', strtolower(trim($host)))
+                        ->orWhereNull('host');
+                })->orderByRaw("case when host = ? then 0 else 1 end", [$host]);
+            }, function ($query) {
+                $query->whereNull('host');
+            })
             ->value('value');
 
         return filled($value) ? $value : $default;

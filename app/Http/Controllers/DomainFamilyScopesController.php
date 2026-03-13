@@ -21,7 +21,11 @@ class DomainFamilyScopesController extends Controller
             ->orderBy('host')
             ->paginate(20);
 
-        return view('domain-family-scopes.index', compact('scopes'));
+        return view('domain-family-scopes.index', [
+            'scopes' => $scopes,
+            'currentHost' => $this->familyScopeResolver->currentHost(),
+            'canCreateScope' => !$this->familyScopeResolver->hasActiveScope(),
+        ]);
     }
 
     public function create()
@@ -31,6 +35,7 @@ class DomainFamilyScopesController extends Controller
         return view('domain-family-scopes.create', [
             'scope' => new DomainFamilyScope(),
             'coreUserOptions' => $this->coreUserOptions(),
+            'lockHost' => false,
         ]);
     }
 
@@ -50,6 +55,7 @@ class DomainFamilyScopesController extends Controller
         return view('domain-family-scopes.edit', [
             'scope' => $domainFamilyScope,
             'coreUserOptions' => $this->coreUserOptions(),
+            'lockHost' => $this->familyScopeResolver->hasActiveScope(),
         ]);
     }
 

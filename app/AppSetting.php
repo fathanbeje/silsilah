@@ -9,6 +9,7 @@ class AppSetting extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'host',
         'key',
         'value',
     ];
