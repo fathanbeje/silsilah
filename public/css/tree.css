@@ -287,11 +287,28 @@ body {
     font-weight: 700;
 }
 
+.tree-summary-card__headline {
+    min-width: 0;
+}
+
 .tree-summary-card__lead {
     margin: 2px 0 0;
     max-width: 420px;
     color: #53708a;
     text-align: right;
+}
+
+.tree-summary-card__core-badge {
+    flex: 0 0 auto;
+    align-self: center;
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #21415d, #3f6f94);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    box-shadow: 0 10px 18px rgba(33, 65, 93, 0.16);
 }
 
 .tree-summary-table {
@@ -316,6 +333,74 @@ body {
 
 .tree-summary-table > tbody > tr > td[data-generation-label] {
     font-weight: 700;
+}
+
+.tree-summary-totals {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.tree-summary-total-card {
+    position: relative;
+    overflow: hidden;
+    padding: 16px 18px;
+    border-radius: 20px;
+    border: 1px solid #d9e6f2;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 247, 252, 0.96));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+.tree-summary-total-card::after {
+    content: "";
+    position: absolute;
+    inset: auto -30px -40px auto;
+    width: 110px;
+    height: 110px;
+    border-radius: 999px;
+    opacity: 0.12;
+}
+
+.tree-summary-total-card--kandung::after {
+    background: #5b8cb0;
+}
+
+.tree-summary-total-card--mantu::after {
+    background: #4e9a87;
+}
+
+.tree-summary-total-card--grand::after {
+    background: #21415d;
+}
+
+.tree-summary-total-card__label {
+    position: relative;
+    z-index: 1;
+    margin-bottom: 8px;
+    color: #53708a;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.tree-summary-total-card__value {
+    position: relative;
+    z-index: 1;
+    font-size: 34px;
+    line-height: 1;
+    font-weight: 800;
+    color: #21415d;
+}
+
+.tree-summary-total-card__meta {
+    position: relative;
+    z-index: 1;
+    margin-top: 8px;
+    color: #5f7890;
+    font-size: 12px;
+    line-height: 1.5;
 }
 
 .tree-connectors {
@@ -371,6 +456,15 @@ body {
     .tree-summary-card__lead {
         max-width: none;
         text-align: left;
+    }
+
+    .tree-summary-card__core-badge {
+        margin-top: 10px;
+        display: inline-flex;
+    }
+
+    .tree-summary-totals {
+        grid-template-columns: 1fr;
     }
 }
 

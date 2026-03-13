@@ -13,14 +13,20 @@
         ->filter(function (array $stat) {
             return !empty($stat['kandung_count']) || !empty($stat['mantu_count']);
         });
+    $totalKandung = $visibleGenerationStats->sum('kandung_count');
+    $totalMantu = $visibleGenerationStats->sum('mantu_count');
+    $totalKeturunan = $totalKandung + $totalMantu;
 @endphp
 <div class="container tree-summary-strip">
     <hr>
     @if ($visibleGenerationStats->isNotEmpty())
     <div class="tree-summary-card">
         <div class="tree-summary-card__header">
-            <h3 class="tree-summary-card__title">Statistik Keturunan</h3>
-            <p class="tree-summary-card__lead">Rincian keturunan kandung dan mantu dari core per generasi.</p>
+            <div class="tree-summary-card__headline">
+                <h3 class="tree-summary-card__title">Statistik Keturunan {{ $user->display_name }}</h3>
+                <p class="tree-summary-card__lead">Rincian keturunan kandung dan mantu dari core aktif per generasi.</p>
+            </div>
+            <div class="tree-summary-card__core-badge" data-tree-summary-core>{{ $user->display_name }}</div>
         </div>
         <div class="table-responsive">
             <table class="table table-striped tree-summary-table">
@@ -41,6 +47,23 @@
                     @endforeach
                 </tbody>
             </table>
+        </div>
+        <div class="tree-summary-totals" data-tree-summary-totals>
+            <div class="tree-summary-total-card tree-summary-total-card--kandung">
+                <div class="tree-summary-total-card__label">Total Kandung</div>
+                <div class="tree-summary-total-card__value" data-total-kandung>{{ $totalKandung }}</div>
+                <div class="tree-summary-total-card__meta">Akumulasi seluruh generasi kandung</div>
+            </div>
+            <div class="tree-summary-total-card tree-summary-total-card--mantu">
+                <div class="tree-summary-total-card__label">Total Mantu</div>
+                <div class="tree-summary-total-card__value" data-total-mantu>{{ $totalMantu }}</div>
+                <div class="tree-summary-total-card__meta">Pasangan unik yang tercatat per generasi</div>
+            </div>
+            <div class="tree-summary-total-card tree-summary-total-card--grand">
+                <div class="tree-summary-total-card__label">Jumlah Kandung + Mantu</div>
+                <div class="tree-summary-total-card__value" data-total-keturunan>{{ $totalKeturunan }}</div>
+                <div class="tree-summary-total-card__meta">Ringkasan total seluruh statistik keturunan</div>
+            </div>
         </div>
     </div>
     @endif

@@ -101,7 +101,14 @@ class UsersProfileTest extends TestCase
         $this->assertStringContainsString('Expand Semua', $content);
         $this->assertStringContainsString('data-tree-bulk-action="collapse"', $content);
         $this->assertStringContainsString('data-tree-bulk-action="expand"', $content);
-        $this->assertStringContainsString('Statistik Keturunan', $content);
+        $this->assertStringContainsString('Statistik Keturunan '.$core->display_name, $content);
+        $this->assertStringContainsString('data-tree-summary-core', $content);
+        $this->assertStringContainsString('Total Kandung', $content);
+        $this->assertStringContainsString('Total Mantu', $content);
+        $this->assertStringContainsString('Jumlah Kandung + Mantu', $content);
+        $this->assertMatchesRegularExpression('/data-total-kandung[^>]*>2</', $content);
+        $this->assertMatchesRegularExpression('/data-total-mantu[^>]*>1</', $content);
+        $this->assertMatchesRegularExpression('/data-total-keturunan[^>]*>3</', $content);
         $this->assertMatchesRegularExpression(
             '/data-generation-level="1"[\s\S]*data-generation-label>\\s*Anak\\s*<[\s\S]*data-generation-kandung>1<[\s\S]*data-generation-mantu>1</',
             $content
