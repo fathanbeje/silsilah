@@ -10,7 +10,7 @@
         {!! FormField::file('photo', ['required' => true, 'accept' => 'image/*', 'label' => __('user.reupload_photo'), 'info' => ['text' => __('user.upload_photo_notes'), 'class' => 'warning']]) !!}
         <div class="photo-paste-area" id="photo-paste-area" tabindex="0" aria-label="Tempel gambar dari clipboard">
             <strong>Tempel gambar di sini</strong>
-            <div class="text-muted small">Klik area ini lalu tekan Ctrl+V, atau klik untuk memilih file.</div>
+            <div class="text-muted small">Klik area ini untuk fokus, lalu tekan Ctrl+V. Jika ingin pilih file, gunakan tombol di atas.</div>
             <div class="photo-paste-status small" id="photo-paste-status">Belum ada gambar dipilih.</div>
         </div>
     </div>
@@ -29,7 +29,7 @@
         border-radius: 10px;
         background: #f8fafc;
         text-align: center;
-        cursor: pointer;
+        cursor: default;
         transition: border-color .2s ease, background .2s ease, box-shadow .2s ease;
     }
 
@@ -60,7 +60,7 @@
 
         if (pasteArea && photoInput) {
             pasteArea.addEventListener('click', function () {
-                photoInput.click();
+                pasteArea.focus();
             });
 
             pasteArea.addEventListener('paste', function (e) {
