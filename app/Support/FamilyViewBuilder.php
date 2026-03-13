@@ -94,6 +94,7 @@ class FamilyViewBuilder
             foreach ($this->sortedChildren($user) as $child) {
                 $generationCounts[$depth] = ($generationCounts[$depth] ?? 0) + 1;
                 $generationStats[$depth]['kandung_count'] = ($generationStats[$depth]['kandung_count'] ?? 0) + 1;
+                $this->accumulateGenerationMember($child, $depth, $generationStats);
                 $this->accumulateGenerationSpouses($child, $depth, $generationStats, $generationSpouseIds);
                 $children->push(
                     $this->buildTreeNode($child, $depth + 1, $maxDepth, $generationCounts, $generationStats, $generationSpouseIds)
@@ -333,6 +334,9 @@ class FamilyViewBuilder
                 'label' => $this->generationLabel($generation),
                 'kandung_count' => 0,
                 'mantu_count' => 0,
+                'alive_count' => 0,
+                'deceased_count' => 0,
+                'member_total_count' => 0,
             ];
         }
 
@@ -357,7 +361,25 @@ class FamilyViewBuilder
 
             $generationSpouseIds[$generation][$spouse->id] = true;
             $generationStats[$generation]['mantu_count'] = ($generationStats[$generation]['mantu_count'] ?? 0) + 1;
+            $this->accumulateGenerationMember($spouse, $generation, $generationStats);
         }
+    }
+
+    private function accumulateGenerationMember(User $user, int $generation, array &$generationStats): void
+    {
+        if (! isset($generationStats[$generation])) {
+            return;
+        }
+
+        if ($user->isDeceased()) {
+            $generationStats[$generation]['deceased_count'] = ($generationStats[$generation]['deceased_count'] ?? 0) + 1;
+        } else {
+            $generationStats[$generation]['alive_count'] = ($generationStats[$generation]['alive_count'] ?? 0) + 1;
+        }
+
+        $generationStats[$generation]['member_total_count'] =
+            ($generationStats[$generation]['kandung_count'] ?? 0)
+            + ($generationStats[$generation]['mantu_count'] ?? 0);
     }
 
     private function generationLabel(int $generation): string

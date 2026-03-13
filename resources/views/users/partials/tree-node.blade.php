@@ -6,6 +6,8 @@
     $isExpanded = $node['default_expanded'];
     $rootActionHeight = $isRootNode && $hasChildren ? 44 : 0;
     $entryMinHeight = max(64, 50 + ($supportRowCount * 18) + $rootActionHeight);
+    $user = $node['user'];
+    $userStatusLabel = $user->isDeceased() ? 'Wafat' : 'Hidup';
 @endphp
 
 <div
@@ -23,8 +25,40 @@
             data-tree-box
             @if ($hasChildren && !$isRootNode) data-tree-toggle="true" role="button" tabindex="0" aria-expanded="{{ $isExpanded ? 'true' : 'false' }}" @endif
         >
-            <div class="tree-node-box__primary">
-                {{ link_to_route('users.tree', $node['user']->display_name, [$node['user']->id], ['title' => $node['user']->displayNameWithGender()]) }}
+            <div class="tree-node-box__primary tree-person-line">
+                <span
+                    class="tree-person-line__preview {{ $user->isDeceased() ? 'is-deceased' : 'is-alive' }}"
+                    data-tree-preview
+                >
+                    <button
+                        type="button"
+                        class="tree-person-line__avatar"
+                        data-tree-preview-trigger
+                        aria-expanded="false"
+                        aria-label="Lihat foto {{ $user->display_name }}"
+                    >
+                        <img
+                            src="{{ userPhotoPath($user->photo_path, $user->gender_id) }}"
+                            alt="{{ $user->display_name }}"
+                            loading="lazy"
+                        >
+                    </button>
+                    <span class="tree-person-line__popup" data-tree-preview-popup role="dialog" aria-hidden="true">
+                        <img
+                            src="{{ userPhotoPath($user->photo_path, $user->gender_id) }}"
+                            alt="{{ $user->display_name }}"
+                            class="tree-person-line__popup-photo"
+                            loading="lazy"
+                        >
+                        <span class="tree-person-line__popup-name">{{ $user->display_name }}</span>
+                        <span class="tree-person-line__popup-status {{ $user->isDeceased() ? 'is-deceased' : 'is-alive' }}">
+                            {{ $userStatusLabel }}
+                        </span>
+                    </span>
+                </span>
+                <span class="tree-person-line__name">
+                    {{ link_to_route('users.tree', $user->display_name, [$user->id], ['title' => $user->displayNameWithGender()]) }}
+                </span>
             </div>
             @if ($hasChildren && !$isRootNode)
             <span class="tree-node-box__toggle-indicator" aria-hidden="true"></span>
@@ -32,9 +66,46 @@
             @if ($displaySpouseLabels->isNotEmpty())
             <div class="tree-node-box__spouses">
                 @foreach ($displaySpouseLabels as $spouseLabel)
+                @php
+                    $spouseStatusLabel = $spouseLabel->isDeceased() ? 'Wafat' : 'Hidup';
+                @endphp
                 <div class="tree-node-box__spouse">
                     <span class="tree-node-box__spouse-prefix">+</span>
-                    {{ link_to_route('users.tree', $spouseLabel->display_name, [$spouseLabel->id], ['title' => $spouseLabel->displayNameWithGender()]) }}
+                    <span class="tree-person-line tree-person-line--spouse">
+                        <span
+                            class="tree-person-line__preview {{ $spouseLabel->isDeceased() ? 'is-deceased' : 'is-alive' }}"
+                            data-tree-preview
+                        >
+                            <button
+                                type="button"
+                                class="tree-person-line__avatar"
+                                data-tree-preview-trigger
+                                aria-expanded="false"
+                                aria-label="Lihat foto {{ $spouseLabel->display_name }}"
+                            >
+                                <img
+                                    src="{{ userPhotoPath($spouseLabel->photo_path, $spouseLabel->gender_id) }}"
+                                    alt="{{ $spouseLabel->display_name }}"
+                                    loading="lazy"
+                                >
+                            </button>
+                            <span class="tree-person-line__popup" data-tree-preview-popup role="dialog" aria-hidden="true">
+                                <img
+                                    src="{{ userPhotoPath($spouseLabel->photo_path, $spouseLabel->gender_id) }}"
+                                    alt="{{ $spouseLabel->display_name }}"
+                                    class="tree-person-line__popup-photo"
+                                    loading="lazy"
+                                >
+                                <span class="tree-person-line__popup-name">{{ $spouseLabel->display_name }}</span>
+                                <span class="tree-person-line__popup-status {{ $spouseLabel->isDeceased() ? 'is-deceased' : 'is-alive' }}">
+                                    {{ $spouseStatusLabel }}
+                                </span>
+                            </span>
+                        </span>
+                        <span class="tree-person-line__name">
+                            {{ link_to_route('users.tree', $spouseLabel->display_name, [$spouseLabel->id], ['title' => $spouseLabel->displayNameWithGender()]) }}
+                        </span>
+                    </span>
                 </div>
                 @endforeach
             </div>

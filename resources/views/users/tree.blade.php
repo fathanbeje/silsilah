@@ -3,6 +3,16 @@
 @section('subtitle', trans('app.family_tree'))
 
 @section('user-content')
+<button
+    type="button"
+    class="tree-back-to-core"
+    data-tree-back-to-core
+    aria-label="Kembali ke core"
+    title="Kembali ke core"
+>
+    <span aria-hidden="true">&larr;</span>
+    <span class="tree-back-to-core__label">Kembali ke core</span>
+</button>
 <div class="tree-viewport">
     <div id="wrapper" class="tree-diagram">
         @include('users.partials.tree-node', ['node' => $node, 'level' => 1, 'isRoot' => true])
@@ -15,6 +25,8 @@
         });
     $totalKandung = $visibleGenerationStats->sum('kandung_count');
     $totalMantu = $visibleGenerationStats->sum('mantu_count');
+    $totalHidup = $visibleGenerationStats->sum('alive_count');
+    $totalWafat = $visibleGenerationStats->sum('deceased_count');
     $totalKeturunan = $totalKandung + $totalMantu;
 @endphp
 <div class="container tree-summary-strip">
@@ -24,17 +36,20 @@
         <div class="tree-summary-card__header">
             <div class="tree-summary-card__headline">
                 <h3 class="tree-summary-card__title">Statistik Keturunan {{ $user->display_name }}</h3>
-                <p class="tree-summary-card__lead">Rincian keturunan kandung dan mantu dari core aktif per generasi.</p>
+                <p class="tree-summary-card__lead">Rincian keturunan kandung dan mantu per generasi</p>
             </div>
             <div class="tree-summary-card__core-badge" data-tree-summary-core>{{ $user->display_name }}</div>
         </div>
         <div class="table-responsive">
-            <table class="table table-striped tree-summary-table">
+            <table class="table tree-summary-table">
                 <thead>
                     <tr>
                         <th>Generasi</th>
                         <th class="text-center">Kandung</th>
                         <th class="text-center">Mantu</th>
+                        <th class="text-center">Hidup</th>
+                        <th class="text-center">Wafat</th>
+                        <th class="text-center">Total</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -43,9 +58,22 @@
                         <td data-generation-label>{{ $stat['label'] }}</td>
                         <td class="text-center" data-generation-kandung>{{ $stat['kandung_count'] }}</td>
                         <td class="text-center" data-generation-mantu>{{ $stat['mantu_count'] }}</td>
+                        <td class="text-center" data-generation-alive>{{ $stat['alive_count'] }}</td>
+                        <td class="text-center" data-generation-deceased>{{ $stat['deceased_count'] }}</td>
+                        <td class="text-center" data-generation-total>{{ $stat['member_total_count'] }}</td>
                     </tr>
                     @endforeach
                 </tbody>
+                <tfoot>
+                    <tr data-generation-total-row>
+                        <th>Total Semua</th>
+                        <th class="text-center" data-total-kandung-row>{{ $totalKandung }}</th>
+                        <th class="text-center" data-total-mantu-row>{{ $totalMantu }}</th>
+                        <th class="text-center" data-total-hidup-row>{{ $totalHidup }}</th>
+                        <th class="text-center" data-total-wafat-row>{{ $totalWafat }}</th>
+                        <th class="text-center" data-total-keturunan-row>{{ $totalKeturunan }}</th>
+                    </tr>
+                </tfoot>
             </table>
         </div>
         <div class="tree-summary-totals" data-tree-summary-totals>
@@ -58,6 +86,16 @@
                 <div class="tree-summary-total-card__label">Total Mantu</div>
                 <div class="tree-summary-total-card__value" data-total-mantu>{{ $totalMantu }}</div>
                 <div class="tree-summary-total-card__meta">Pasangan unik yang tercatat per generasi</div>
+            </div>
+            <div class="tree-summary-total-card tree-summary-total-card--hidup">
+                <div class="tree-summary-total-card__label">Total Hidup</div>
+                <div class="tree-summary-total-card__value" data-total-hidup>{{ $totalHidup }}</div>
+                <div class="tree-summary-total-card__meta">Anggota generasi yang masih hidup</div>
+            </div>
+            <div class="tree-summary-total-card tree-summary-total-card--wafat">
+                <div class="tree-summary-total-card__label">Total Wafat</div>
+                <div class="tree-summary-total-card__value" data-total-wafat>{{ $totalWafat }}</div>
+                <div class="tree-summary-total-card__meta">Anggota generasi yang sudah wafat</div>
             </div>
             <div class="tree-summary-total-card tree-summary-total-card--grand">
                 <div class="tree-summary-total-card__label">Jumlah Kandung + Mantu</div>
@@ -79,6 +117,8 @@
 <script>
     (function () {
         var wrapper = document.getElementById('wrapper');
+        var treeViewport = document.querySelector('.tree-viewport');
+        var backToCoreButton = document.querySelector('[data-tree-back-to-core]');
         if (!wrapper) return;
 
         var NS = 'http://www.w3.org/2000/svg';
@@ -86,6 +126,7 @@
         var renderQueued = false;
         var resizeObserver = null;
         var connectorPalette = ['#b7cde0', '#bed8cf', '#c8d2e8', '#d1d9c9', '#d8cde3', '#d4dde8'];
+        var activePreview = null;
 
         function ensureSvg() {
             if (svg) return svg;
@@ -245,7 +286,110 @@
             setExpanded(entry, entry.getAttribute('data-expanded') !== 'true');
         }
 
+        function closePreview(preview) {
+            if (!preview) return;
+
+            preview.classList.remove('is-open');
+
+            var trigger = preview.querySelector('[data-tree-preview-trigger]');
+            var popup = preview.querySelector('[data-tree-preview-popup]');
+
+            if (trigger) {
+                trigger.setAttribute('aria-expanded', 'false');
+            }
+
+            if (popup) {
+                popup.setAttribute('aria-hidden', 'true');
+            }
+        }
+
+        function openPreview(preview) {
+            if (!preview) return;
+            if (activePreview && activePreview !== preview) {
+                closePreview(activePreview);
+            }
+
+            preview.classList.add('is-open');
+
+            var trigger = preview.querySelector('[data-tree-preview-trigger]');
+            var popup = preview.querySelector('[data-tree-preview-popup]');
+
+            if (trigger) {
+                trigger.setAttribute('aria-expanded', 'true');
+            }
+
+            if (popup) {
+                popup.setAttribute('aria-hidden', 'false');
+            }
+
+            activePreview = preview;
+        }
+
+        function togglePreview(preview) {
+            if (!preview) return;
+
+            if (preview.classList.contains('is-open')) {
+                closePreview(preview);
+                if (activePreview === preview) {
+                    activePreview = null;
+                }
+                return;
+            }
+
+            openPreview(preview);
+        }
+
+        function closeAllPreviews() {
+            Array.prototype.forEach.call(
+                wrapper.querySelectorAll('[data-tree-preview].is-open'),
+                function (preview) {
+                    closePreview(preview);
+                }
+            );
+
+            activePreview = null;
+        }
+
+        function updateBackToCoreButtonState() {
+            if (!backToCoreButton || !treeViewport) return;
+
+            var isAtCore = treeViewport.scrollLeft <= 8 && treeViewport.scrollTop <= 8;
+            backToCoreButton.classList.toggle('is-idle', isAtCore);
+        }
+
+        function scrollToCore() {
+            if (!treeViewport) return;
+
+            var rootEntry = wrapper.querySelector('.entry-root');
+            if (!rootEntry) return;
+
+            var rootCard = rootEntry.querySelector(':scope > [data-tree-card]');
+            if (!rootCard) return;
+
+            treeViewport.scrollTo({
+                left: Math.max(0, rootCard.offsetLeft - 20),
+                top: Math.max(0, rootCard.offsetTop - 20),
+                behavior: 'smooth'
+            });
+        }
+
         wrapper.addEventListener('click', function (event) {
+            var previewTrigger = event.target.closest('[data-tree-preview-trigger]');
+            if (previewTrigger) {
+                event.preventDefault();
+                event.stopPropagation();
+                togglePreview(previewTrigger.closest('[data-tree-preview]'));
+                return;
+            }
+
+            if (!event.target.closest('[data-tree-preview]')) {
+                closeAllPreviews();
+            }
+
+            if (event.target.closest('[data-tree-preview]')) {
+                return;
+            }
+
             var bulkAction = event.target.closest('[data-tree-bulk-action]');
             if (bulkAction) {
                 event.preventDefault();
@@ -262,7 +406,19 @@
         });
 
         wrapper.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                closeAllPreviews();
+                return;
+            }
+
             if (event.key !== 'Enter' && event.key !== ' ') return;
+
+            var previewTrigger = event.target.closest('[data-tree-preview-trigger]');
+            if (previewTrigger) {
+                event.preventDefault();
+                togglePreview(previewTrigger.closest('[data-tree-preview]'));
+                return;
+            }
 
             var toggleBox = event.target.closest('[data-tree-toggle]');
             if (!toggleBox) return;
@@ -271,13 +427,42 @@
             toggleEntry(toggleBox.closest('[data-tree-entry]'));
         });
 
+        document.addEventListener('click', function (event) {
+            if (!event.target.closest('[data-tree-preview]')) {
+                closeAllPreviews();
+            }
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                closeAllPreviews();
+            }
+        });
+
+        if (backToCoreButton) {
+            backToCoreButton.addEventListener('click', function () {
+                scrollToCore();
+            });
+        }
+
+        if (treeViewport) {
+            treeViewport.addEventListener('scroll', updateBackToCoreButtonState, { passive: true });
+        }
+
         window.addEventListener('load', queueRender);
         window.addEventListener('resize', queueRender);
+        window.addEventListener('resize', updateBackToCoreButtonState);
 
         if (document.fonts && document.fonts.ready) {
-            document.fonts.ready.then(queueRender);
+            document.fonts.ready.then(function () {
+                queueRender();
+                updateBackToCoreButtonState();
+            });
         } else {
-            setTimeout(queueRender, 60);
+            setTimeout(function () {
+                queueRender();
+                updateBackToCoreButtonState();
+            }, 60);
         }
 
         if ('ResizeObserver' in window) {
@@ -286,6 +471,7 @@
         }
 
         queueRender();
+        updateBackToCoreButtonState();
     })();
 </script>
 @endsection

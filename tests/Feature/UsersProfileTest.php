@@ -74,10 +74,12 @@ class UsersProfileTest extends TestCase
             'mother_id' => $rootSpouse->id,
             'parent_id' => $rootMarriage->id,
             'manager_id' => $core->id,
+            'is_deceased' => false,
         ]);
         $childSpouse = factory(User::class)->states('female')->create([
             'name' => 'MANTU TREE',
             'nickname' => 'MANTU TREE',
+            'is_deceased' => true,
         ]);
         $childMarriage = factory(Couple::class)->create([
             'husband_id' => $child->id,
@@ -91,6 +93,7 @@ class UsersProfileTest extends TestCase
             'mother_id' => $childSpouse->id,
             'parent_id' => $childMarriage->id,
             'manager_id' => $core->id,
+            'is_deceased' => true,
         ]);
 
         $response = $this->call('GET', route('users.tree', $core));
@@ -102,19 +105,34 @@ class UsersProfileTest extends TestCase
         $this->assertStringContainsString('data-tree-bulk-action="collapse"', $content);
         $this->assertStringContainsString('data-tree-bulk-action="expand"', $content);
         $this->assertStringContainsString('Statistik Keturunan '.$core->display_name, $content);
+        $this->assertStringContainsString('Rincian keturunan kandung dan mantu per generasi', $content);
+        $this->assertStringNotContainsString('dari core aktif', $content);
         $this->assertStringContainsString('data-tree-summary-core', $content);
         $this->assertStringContainsString('Total Kandung', $content);
         $this->assertStringContainsString('Total Mantu', $content);
+        $this->assertStringContainsString('Total Hidup', $content);
+        $this->assertStringContainsString('Total Wafat', $content);
         $this->assertStringContainsString('Jumlah Kandung + Mantu', $content);
+        $this->assertStringContainsString('Total Semua', $content);
+        $this->assertStringContainsString('Kembali ke core', $content);
+        $this->assertStringContainsString('data-tree-back-to-core', $content);
+        $this->assertStringContainsString('data-tree-preview-trigger', $content);
+        $this->assertStringContainsString('data-tree-preview-popup', $content);
+        $this->assertStringContainsString('Wafat', $content);
+        $this->assertStringContainsString('Hidup', $content);
         $this->assertMatchesRegularExpression('/data-total-kandung[^>]*>2</', $content);
         $this->assertMatchesRegularExpression('/data-total-mantu[^>]*>1</', $content);
+        $this->assertMatchesRegularExpression('/data-total-hidup[^>]*>1</', $content);
+        $this->assertMatchesRegularExpression('/data-total-wafat[^>]*>2</', $content);
         $this->assertMatchesRegularExpression('/data-total-keturunan[^>]*>3</', $content);
+        $this->assertMatchesRegularExpression('/data-total-hidup-row[^>]*>1</', $content);
+        $this->assertMatchesRegularExpression('/data-total-wafat-row[^>]*>2</', $content);
         $this->assertMatchesRegularExpression(
-            '/data-generation-level="1"[\s\S]*data-generation-label>\\s*Anak\\s*<[\s\S]*data-generation-kandung>1<[\s\S]*data-generation-mantu>1</',
+            '/data-generation-level="1"[\s\S]*data-generation-label>\\s*Anak\\s*<[\s\S]*data-generation-kandung>1<[\s\S]*data-generation-mantu>1<[\s\S]*data-generation-alive>1<[\s\S]*data-generation-deceased>1<[\s\S]*data-generation-total>2</',
             $content
         );
         $this->assertMatchesRegularExpression(
-            '/data-generation-level="2"[\s\S]*data-generation-label>\\s*Cucu\\s*<[\s\S]*data-generation-kandung>1<[\s\S]*data-generation-mantu>0</',
+            '/data-generation-level="2"[\s\S]*data-generation-label>\\s*Cucu\\s*<[\s\S]*data-generation-kandung>1<[\s\S]*data-generation-mantu>0<[\s\S]*data-generation-alive>0<[\s\S]*data-generation-deceased>1<[\s\S]*data-generation-total>1</',
             $content
         );
     }
