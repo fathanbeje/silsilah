@@ -266,7 +266,7 @@
     @endif
 </section>
 
-@if (request('q'))
+@if (!empty($showSearchResults))
 <div class="family-search-results-header">
     <h2 class="page-header">
         Hasil Pencarian

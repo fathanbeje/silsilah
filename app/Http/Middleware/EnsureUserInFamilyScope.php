@@ -16,6 +16,10 @@ class EnsureUserInFamilyScope
     {
         $user = $request->route('user');
 
+        if (! $this->familyScopeResolver->publicAccessAllowed()) {
+            abort(404);
+        }
+
         if (!$user || !$this->familyScopeResolver->hasActiveScope()) {
             return $next($request);
         }

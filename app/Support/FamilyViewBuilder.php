@@ -60,10 +60,13 @@ class FamilyViewBuilder
     public function buildTreeData(User $user, int $maxDepth = 6): array
     {
         $generationCounts = array_fill(1, $maxDepth, 0);
+        $generationStats = $this->makeGenerationStats($maxDepth);
+        $generationSpouseIds = [];
 
         return [
-            'node' => $this->buildTreeNode($user, 1, $maxDepth, $generationCounts),
+            'node' => $this->buildTreeNode($user, 1, $maxDepth, $generationCounts, $generationStats, $generationSpouseIds),
             'generationCounts' => $generationCounts,
+            'generationStats' => $generationStats,
         ];
     }
 
@@ -76,15 +79,24 @@ class FamilyViewBuilder
         ];
     }
 
-    private function buildTreeNode(User $user, int $depth, int $maxDepth, array &$generationCounts): array
+    private function buildTreeNode(
+        User $user,
+        int $depth,
+        int $maxDepth,
+        array &$generationCounts,
+        array &$generationStats,
+        array &$generationSpouseIds
+    ): array
     {
         $children = collect();
 
         if ($depth < $maxDepth) {
             foreach ($this->sortedChildren($user) as $child) {
                 $generationCounts[$depth] = ($generationCounts[$depth] ?? 0) + 1;
+                $generationStats[$depth]['kandung_count'] = ($generationStats[$depth]['kandung_count'] ?? 0) + 1;
+                $this->accumulateGenerationSpouses($child, $depth, $generationStats, $generationSpouseIds);
                 $children->push(
-                    $this->buildTreeNode($child, $depth + 1, $maxDepth, $generationCounts)
+                    $this->buildTreeNode($child, $depth + 1, $maxDepth, $generationCounts, $generationStats, $generationSpouseIds)
                 );
             }
         }
@@ -310,5 +322,53 @@ class FamilyViewBuilder
             'children' => collect(),
             'label' => null,
         ];
+    }
+
+    private function makeGenerationStats(int $maxDepth): array
+    {
+        $stats = [];
+
+        foreach (range(1, $maxDepth) as $generation) {
+            $stats[$generation] = [
+                'label' => $this->generationLabel($generation),
+                'kandung_count' => 0,
+                'mantu_count' => 0,
+            ];
+        }
+
+        return $stats;
+    }
+
+    private function accumulateGenerationSpouses(
+        User $user,
+        int $generation,
+        array &$generationStats,
+        array &$generationSpouseIds
+    ): void
+    {
+        foreach ($this->partnerCandidates($user) as $spouse) {
+            if (! $spouse || empty($spouse->id)) {
+                continue;
+            }
+
+            if (isset($generationSpouseIds[$generation][$spouse->id])) {
+                continue;
+            }
+
+            $generationSpouseIds[$generation][$spouse->id] = true;
+            $generationStats[$generation]['mantu_count'] = ($generationStats[$generation]['mantu_count'] ?? 0) + 1;
+        }
+    }
+
+    private function generationLabel(int $generation): string
+    {
+        return [
+            1 => 'Anak',
+            2 => 'Cucu',
+            3 => 'Cicit',
+            4 => 'Canggah',
+            5 => 'Wareng',
+            6 => 'Udheg-udheg',
+        ][$generation] ?? 'Generasi '.$generation;
     }
 }

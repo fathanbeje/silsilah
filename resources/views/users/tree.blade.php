@@ -8,32 +8,41 @@
         @include('users.partials.tree-node', ['node' => $node, 'level' => 1, 'isRoot' => true])
     </div>
 </div>
+@php
+    $visibleGenerationStats = collect($generationStats ?? [])
+        ->filter(function (array $stat) {
+            return !empty($stat['kandung_count']) || !empty($stat['mantu_count']);
+        });
+@endphp
 <div class="container tree-summary-strip">
-<hr>
-<div class="row">
-    @if (!empty($generationCounts[1]))
-    <div class="col-md-1 text-right">{{ trans('app.child_count') }}</div>
-    <div class="col-md-1 text-left"><strong style="font-size:30px">{{ $generationCounts[1] }}</strong></div>
-    @endif
-    @if (!empty($generationCounts[2]))
-    <div class="col-md-1 text-right">{{ trans('app.grand_child_count') }}</div>
-    <div class="col-md-1 text-left"><strong style="font-size:30px">{{ $generationCounts[2] }}</strong></div>
-    @endif
-    @if (!empty($generationCounts[3]))
-    <div class="col-md-1 text-right">Jumlah Cicit</div>
-    <div class="col-md-1 text-left"><strong style="font-size:30px">{{ $generationCounts[3] }}</strong></div>
-    @endif
-    @if (!empty($generationCounts[4]))
-    <div class="col-md-1 text-right">Jumlah Canggah</div>
-    <div class="col-md-1 text-left"><strong style="font-size:30px">{{ $generationCounts[4] }}</strong></div>
-    @endif
-    @if (!empty($generationCounts[5]))
-    <div class="col-md-1 text-right">Jumlah Wareng</div>
-    <div class="col-md-1 text-left"><strong style="font-size:30px">{{ $generationCounts[5] }}</strong></div>
-    @endif
-    @if (!empty($generationCounts[6]))
-    <div class="col-md-1 text-right">Jumlah Udheg2</div>
-    <div class="col-md-1 text-left"><strong style="font-size:30px">{{ $generationCounts[6] }}</strong></div>
+    <hr>
+    @if ($visibleGenerationStats->isNotEmpty())
+    <div class="tree-summary-card">
+        <div class="tree-summary-card__header">
+            <h3 class="tree-summary-card__title">Statistik Keturunan</h3>
+            <p class="tree-summary-card__lead">Rincian keturunan kandung dan mantu dari core per generasi.</p>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped tree-summary-table">
+                <thead>
+                    <tr>
+                        <th>Generasi</th>
+                        <th class="text-center">Kandung</th>
+                        <th class="text-center">Mantu</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($visibleGenerationStats as $level => $stat)
+                    <tr data-generation-level="{{ $level }}">
+                        <td data-generation-label>{{ $stat['label'] }}</td>
+                        <td class="text-center" data-generation-kandung>{{ $stat['kandung_count'] }}</td>
+                        <td class="text-center" data-generation-mantu>{{ $stat['mantu_count'] }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
     @endif
 </div>
 @endsection
@@ -175,6 +184,7 @@
         function setExpanded(entry, expanded) {
             var branch = entry.querySelector(':scope > [data-tree-branch]');
             var box = entry.querySelector(':scope > [data-tree-card] [data-tree-box]');
+            var suppressRender = arguments.length > 2 ? arguments[2] : false;
 
             if (!branch || !box || entry.classList.contains('entry-root')) return;
 
@@ -184,6 +194,23 @@
             if (box.hasAttribute('aria-expanded')) {
                 box.setAttribute('aria-expanded', expanded ? 'true' : 'false');
             }
+
+            if (!suppressRender) {
+                queueRender();
+            }
+        }
+
+        function setAllExpanded(expanded) {
+            Array.prototype.forEach.call(
+                wrapper.querySelectorAll('[data-tree-entry][data-has-children="true"]'),
+                function (entry) {
+                    if (entry.classList.contains('entry-root')) {
+                        return;
+                    }
+
+                    setExpanded(entry, expanded, true);
+                }
+            );
 
             queueRender();
         }
@@ -196,6 +223,13 @@
         }
 
         wrapper.addEventListener('click', function (event) {
+            var bulkAction = event.target.closest('[data-tree-bulk-action]');
+            if (bulkAction) {
+                event.preventDefault();
+                setAllExpanded(bulkAction.getAttribute('data-tree-bulk-action') === 'expand');
+                return;
+            }
+
             if (event.target.closest('a')) return;
 
             var toggleBox = event.target.closest('[data-tree-toggle]');

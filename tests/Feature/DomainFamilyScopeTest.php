@@ -113,14 +113,79 @@ class DomainFamilyScopeTest extends TestCase
     }
 
     /** @test */
-    public function request_without_registered_host_falls_back_to_global_visibility()
+    public function request_without_registered_host_renders_empty_public_landing()
     {
-        [, , , $spouseParent] = $this->createScopedFamilyGraph();
+        [$core, $descendant, $descendantSpouse, $spouseParent] = $this->createScopedFamilyGraph();
 
-        $response = $this->scopedCall('unscoped.bani.my.id', 'GET', '/profile-search', ['q' => 'luar']);
+        $response = $this->scopedCall('unscoped.bani.my.id', 'GET', '/profile-search', ['q' => 'scope']);
 
         $this->assertSame(200, $response->getStatusCode());
-        $this->assertStringContainsString($spouseParent->name, $response->getContent());
+        $this->assertStringNotContainsString($core->display_name, $response->getContent());
+        $this->assertStringNotContainsString($descendant->display_name, $response->getContent());
+        $this->assertStringNotContainsString($descendantSpouse->display_name, $response->getContent());
+        $this->assertStringNotContainsString($spouseParent->display_name, $response->getContent());
+        $this->assertStringNotContainsString('Hasil Pencarian', $response->getContent());
+    }
+
+    /** @test */
+    public function request_without_registered_host_returns_empty_public_autocomplete_results()
+    {
+        $this->createScopedFamilyGraph();
+
+        $response = $this->scopedCall('unscoped.bani.my.id', 'GET', '/profile-search/autocomplete', ['q' => 'scope']);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame([], json_decode($response->getContent(), true));
+    }
+
+    /** @test */
+    public function request_without_registered_host_cannot_open_public_family_routes()
+    {
+        [$core] = $this->createScopedFamilyGraph();
+        $core->update(['dob' => '1980-01-02', 'email' => null]);
+
+        $chartResponse = $this->scopedCall('unscoped.bani.my.id', 'GET', route('users.chart', $core, false));
+        $treeResponse = $this->scopedCall('unscoped.bani.my.id', 'GET', route('users.tree', $core, false));
+        $claimResponse = $this->scopedCall('unscoped.bani.my.id', 'POST', route('claim-registration.store', $core, false), [
+            'email' => 'pemohon@example.com',
+            'password' => 'secret123',
+            'password_confirmation' => 'secret123',
+            'dob' => '1980-01-02',
+        ]);
+        $registrationRequestResponse = $this->scopedCall('unscoped.bani.my.id', 'POST', route('registration-requests.store', $core, false), [
+            'request_email' => 'pemohon@example.com',
+            'password' => 'secret123',
+            'password_confirmation' => 'secret123',
+        ]);
+        $editRequestCreateResponse = $this->scopedCall('unscoped.bani.my.id', 'GET', route('user-edit-requests.create', $core, false));
+        $editRequestStoreResponse = $this->scopedCall('unscoped.bani.my.id', 'POST', route('user-edit-requests.store', $core, false), [
+            'requester_name' => 'Pemohon',
+            'requester_whatsapp' => '08123',
+            'nickname' => $core->nickname,
+            'gender_id' => (string) $core->gender_id,
+        ]);
+
+        $this->assertSame(404, $chartResponse->getStatusCode());
+        $this->assertSame(404, $treeResponse->getStatusCode());
+        $this->assertSame(404, $claimResponse->getStatusCode());
+        $this->assertSame(404, $registrationRequestResponse->getStatusCode());
+        $this->assertSame(404, $editRequestCreateResponse->getStatusCode());
+        $this->assertSame(404, $editRequestStoreResponse->getStatusCode());
+    }
+
+    /** @test */
+    public function localhost_without_registered_scope_still_allows_public_access()
+    {
+        [$core, $descendant] = $this->createScopedFamilyGraph();
+
+        $searchResponse = $this->scopedCall('localhost', 'GET', '/profile-search', ['q' => 'scope']);
+        $treeResponse = $this->scopedCall('localhost', 'GET', route('users.tree', $core, false));
+
+        $this->assertSame(200, $searchResponse->getStatusCode());
+        $this->assertStringContainsString($core->display_name, $searchResponse->getContent());
+        $this->assertStringContainsString($descendant->display_name, $searchResponse->getContent());
+        $this->assertSame(200, $treeResponse->getStatusCode());
+        $this->assertStringContainsString($core->display_name, $treeResponse->getContent());
     }
 
     /** @test */

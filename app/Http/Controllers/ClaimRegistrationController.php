@@ -55,6 +55,10 @@ class ClaimRegistrationController extends Controller
 
     private function abortIfUserOutsideScope(User $user): void
     {
+        if (! $this->familyScopeResolver->publicAccessAllowed()) {
+            abort(404);
+        }
+
         if (!$this->familyScopeResolver->hasActiveScope()) {
             return;
         }

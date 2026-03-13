@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Couple;
 use App\Jobs\Images\OptimizeImages;
 use App\DomainFamilyScope;
 use App\User;
@@ -27,17 +28,17 @@ class UsersProfileTest extends TestCase
         $johan = factory(user::class)->create(['name' => 'Johan']);
 
         $this->visitRoute('users.search', ['q' => 'jo']);
-        $this->seeRouteIs('users.search', ['q' => 'jo']);
+        $this->seePageIs('http://localhost/?q=jo');
 
-        $this->seeText('Jono');
-        $this->seeText('Johan');
-        $this->dontSeeText('Jeni');
+        $this->seeLink($jono->display_name, route('users.chart', $jono));
+        $this->seeLink($johan->display_name, route('users.chart', $johan));
+        $this->dontSeeLink($jeni->display_name, route('users.chart', $jeni));
     }
 
     /** @test */
     public function guest_can_open_public_family_tree_without_profile_detail_button()
     {
-        $target = factory(User::class)->create();
+        $target = factory(User::class)->states('male')->create();
         $child = factory(User::class)->create([
             'father_id' => $target->id,
             'manager_id' => $target->id,
@@ -48,6 +49,67 @@ class UsersProfileTest extends TestCase
             ->see($child->display_name)
             ->see(trans('app.show_family_tree'))
             ->dontSee(trans('app.show_profile').' '.$target->display_name);
+    }
+
+    /** @test */
+    public function public_family_tree_shows_root_controls_and_generation_breakdown()
+    {
+        $core = factory(User::class)->states('male')->create([
+            'name' => 'CORE TREE',
+            'nickname' => 'CORE TREE',
+        ]);
+        $rootSpouse = factory(User::class)->states('female')->create([
+            'name' => 'PASANGAN CORE',
+            'nickname' => 'PASANGAN CORE',
+        ]);
+        $rootMarriage = factory(Couple::class)->create([
+            'husband_id' => $core->id,
+            'wife_id' => $rootSpouse->id,
+            'manager_id' => $core->id,
+        ]);
+        $child = factory(User::class)->states('male')->create([
+            'name' => 'ANAK TREE',
+            'nickname' => 'ANAK TREE',
+            'father_id' => $core->id,
+            'mother_id' => $rootSpouse->id,
+            'parent_id' => $rootMarriage->id,
+            'manager_id' => $core->id,
+        ]);
+        $childSpouse = factory(User::class)->states('female')->create([
+            'name' => 'MANTU TREE',
+            'nickname' => 'MANTU TREE',
+        ]);
+        $childMarriage = factory(Couple::class)->create([
+            'husband_id' => $child->id,
+            'wife_id' => $childSpouse->id,
+            'manager_id' => $core->id,
+        ]);
+        factory(User::class)->states('male')->create([
+            'name' => 'CUCU TREE',
+            'nickname' => 'CUCU TREE',
+            'father_id' => $child->id,
+            'mother_id' => $childSpouse->id,
+            'parent_id' => $childMarriage->id,
+            'manager_id' => $core->id,
+        ]);
+
+        $response = $this->call('GET', route('users.tree', $core));
+        $content = $response->getContent();
+
+        $this->assertResponseOk();
+        $this->assertStringContainsString('Collapse Semua', $content);
+        $this->assertStringContainsString('Expand Semua', $content);
+        $this->assertStringContainsString('data-tree-bulk-action="collapse"', $content);
+        $this->assertStringContainsString('data-tree-bulk-action="expand"', $content);
+        $this->assertStringContainsString('Statistik Keturunan', $content);
+        $this->assertMatchesRegularExpression(
+            '/data-generation-level="1"[\s\S]*data-generation-label>\\s*Anak\\s*<[\s\S]*data-generation-kandung>1<[\s\S]*data-generation-mantu>1</',
+            $content
+        );
+        $this->assertMatchesRegularExpression(
+            '/data-generation-level="2"[\s\S]*data-generation-label>\\s*Cucu\\s*<[\s\S]*data-generation-kandung>1<[\s\S]*data-generation-mantu>0</',
+            $content
+        );
     }
 
     /** @test */

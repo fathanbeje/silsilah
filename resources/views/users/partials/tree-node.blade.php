@@ -1,10 +1,11 @@
 @php
     $displaySpouseLabels = $node['spouse_labels'];
     $supportRowCount = $displaySpouseLabels->count();
-    $entryMinHeight = max(64, 50 + ($supportRowCount * 18));
     $hasChildren = $node['has_children'];
     $isRootNode = !empty($isRoot);
     $isExpanded = $node['default_expanded'];
+    $rootActionHeight = $isRootNode && $hasChildren ? 44 : 0;
+    $entryMinHeight = max(64, 50 + ($supportRowCount * 18) + $rootActionHeight);
 @endphp
 
 <div
@@ -36,6 +37,20 @@
                     {{ link_to_route('users.tree', $spouseLabel->display_name, [$spouseLabel->id], ['title' => $spouseLabel->displayNameWithGender()]) }}
                 </div>
                 @endforeach
+            </div>
+            @endif
+            @if ($isRootNode && $hasChildren)
+            <div class="tree-node-box__root-actions" data-tree-root-actions>
+                <button
+                    type="button"
+                    class="btn btn-default btn-xs tree-node-box__root-action"
+                    data-tree-bulk-action="collapse"
+                >Collapse Semua</button>
+                <button
+                    type="button"
+                    class="btn btn-primary btn-xs tree-node-box__root-action"
+                    data-tree-bulk-action="expand"
+                >Expand Semua</button>
             </div>
             @endif
         </div>

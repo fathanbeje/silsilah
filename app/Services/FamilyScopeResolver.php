@@ -11,6 +11,8 @@ use Illuminate\Support\Collection;
 
 class FamilyScopeResolver
 {
+    private const LOCAL_DEVELOPMENT_HOSTS = ['localhost', '127.0.0.1', '::1'];
+
     private bool $scopeLoaded = false;
     private ?DomainFamilyScope $scope = null;
     private ?array $bloodUserIds = null;
@@ -50,6 +52,20 @@ class FamilyScopeResolver
     public function hasActiveScope(): bool
     {
         return $this->currentScope() !== null;
+    }
+
+    public function publicAccessAllowed(): bool
+    {
+        return $this->hasActiveScope() || $this->isLocalDevelopmentHost();
+    }
+
+    public function isLocalDevelopmentHost(): bool
+    {
+        if (! app()->environment(['local', 'testing'])) {
+            return false;
+        }
+
+        return in_array($this->currentHost(), self::LOCAL_DEVELOPMENT_HOSTS, true);
     }
 
     public function coreUser(): ?User

@@ -43,11 +43,12 @@ class UsersController extends Controller
      */
     public function search(Request $request)
     {
-        $q = $request->get('q');
+        $q = trim((string) $request->get('q'));
         $users = [];
+        $showSearchResults = $this->familyScopeResolver->publicAccessAllowed() && $q !== '';
         [$landingTreeRootUser, $searchExamples, $searchPlaceholder] = $this->buildLandingSearchContext();
 
-        if ($q) {
+        if ($showSearchResults) {
             $query = $this->searchUsersQuery($q);
             $users = $this->familyScopeResolver->applyToUserQuery($query)
                 ->with('father', 'mother')
@@ -63,7 +64,7 @@ class UsersController extends Controller
             );
         }
 
-        return view('users.search', compact('users', 'landingTreeRootUser', 'searchExamples', 'searchPlaceholder'));
+        return view('users.search', compact('users', 'landingTreeRootUser', 'searchExamples', 'searchPlaceholder', 'showSearchResults'));
     }
 
     /**
@@ -161,6 +162,10 @@ class UsersController extends Controller
 
     public function autocomplete(Request $request)
     {
+        if (! $this->familyScopeResolver->publicAccessAllowed()) {
+            return response()->json([]);
+        }
+
         $q = trim((string) $request->get('q'));
 
         if ($q === '') {
@@ -460,6 +465,16 @@ class UsersController extends Controller
 
     private function buildLandingSearchContext(): array
     {
+        if (! $this->familyScopeResolver->publicAccessAllowed()) {
+            $emptyExamples = collect();
+
+            return [
+                null,
+                $emptyExamples,
+                $this->buildSearchPlaceholder($emptyExamples),
+            ];
+        }
+
         $scopeRootUser = $this->familyScopeResolver->coreUser();
 
         if ($scopeRootUser) {

@@ -201,6 +201,21 @@ body {
     font-weight: 800;
 }
 
+.tree-node-box__root-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--tree-line-color-soft);
+}
+
+.tree-node-box__root-action {
+    flex: 1 1 0;
+    border-radius: 999px !important;
+    font-size: 11px;
+    font-weight: 700;
+}
+
 .tree-node-box__toggle-indicator {
     position: absolute;
     top: 10px;
@@ -245,6 +260,62 @@ body {
 
 .tree-summary-strip {
     padding-bottom: 12px;
+    color: #21415d;
+}
+
+.tree-summary-card {
+    border: 1px solid #d7e3ee;
+    border-radius: 24px;
+    padding: 18px 20px;
+    background:
+        radial-gradient(circle at top right, rgba(255, 255, 255, 0.96), transparent 35%),
+        linear-gradient(180deg, #ffffff, #f5f8fc);
+    box-shadow: 0 12px 24px rgba(27, 54, 78, 0.06);
+}
+
+.tree-summary-card__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.tree-summary-card__title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.tree-summary-card__lead {
+    margin: 2px 0 0;
+    max-width: 420px;
+    color: #53708a;
+    text-align: right;
+}
+
+.tree-summary-table {
+    margin-bottom: 0;
+}
+
+.tree-summary-table > thead > tr > th {
+    border-bottom: 0;
+    color: #53708a;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.tree-summary-table > tbody > tr > td {
+    padding-top: 14px;
+    padding-bottom: 14px;
+    border-top-color: #e5edf5;
+    vertical-align: middle;
+}
+
+.tree-summary-table > tbody > tr > td[data-generation-label] {
+    font-weight: 700;
 }
 
 .tree-connectors {
@@ -292,6 +363,15 @@ body {
     .entry {
         min-height: 64px;
     }
+
+    .tree-summary-card__header {
+        display: block;
+    }
+
+    .tree-summary-card__lead {
+        max-width: none;
+        text-align: left;
+    }
 }
 
 @media (max-width: 767px) {
@@ -304,5 +384,13 @@ body {
 
     #wrapper {
         padding-right: 22px;
+    }
+
+    .tree-node-box__root-actions {
+        flex-direction: column;
+    }
+
+    .tree-summary-card {
+        padding: 16px;
     }
 }
