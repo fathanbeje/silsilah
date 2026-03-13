@@ -26,7 +26,17 @@ class UserMarriagesController extends Controller
         }
 
         $marriages = $user->marriages()->with('husband', 'wife')
-            ->withCount('childs')->get();
+            ->withCount('childs')
+            ->get()
+            ->filter(function ($marriage) {
+                if (!$this->familyScopeResolver->hasActiveScope()) {
+                    return true;
+                }
+
+                return (!$marriage->husband || $this->familyScopeResolver->isVisibleUser($marriage->husband))
+                    && (!$marriage->wife || $this->familyScopeResolver->isVisibleUser($marriage->wife));
+            })
+            ->values();
 
         return view('users.marriages', compact('user', 'marriages'));
     }

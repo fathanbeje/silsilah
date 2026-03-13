@@ -3,10 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Couple;
+use App\Services\FamilyScopeResolver;
 use Illuminate\Http\Request;
 
 class CouplesController extends Controller
 {
+    public function __construct(private FamilyScopeResolver $familyScopeResolver)
+    {
+    }
+
     /**
      * Display the specified Couple.
      *
@@ -15,6 +20,8 @@ class CouplesController extends Controller
      */
     public function show(Couple $couple)
     {
+        $this->abortIfCoupleOutsideTenant($couple);
+
         return view('couples.show', compact('couple'));
     }
 
@@ -27,6 +34,7 @@ class CouplesController extends Controller
     public function edit(Couple $couple)
     {
         $this->authorize('edit', $couple);
+        $this->abortIfCoupleOutsideTenant($couple);
 
         return view('couples.edit', compact('couple'));
     }
@@ -40,6 +48,7 @@ class CouplesController extends Controller
     public function update(Couple $couple)
     {
         $this->authorize('edit', $couple);
+        $this->abortIfCoupleOutsideTenant($couple);
 
         $coupleData = request()->validate([
             'marriage_date' => 'nullable|date|date_format:Y-m-d',
@@ -53,5 +62,21 @@ class CouplesController extends Controller
         $couple->save();
 
         return redirect()->route('couples.show', $couple);
+    }
+
+    private function abortIfCoupleOutsideTenant(Couple $couple): void
+    {
+        if (!$this->familyScopeResolver->hasActiveScope()) {
+            return;
+        }
+
+        $couple->loadMissing(['husband', 'wife']);
+
+        if (
+            ($couple->husband && !$this->familyScopeResolver->isVisibleUser($couple->husband)) ||
+            ($couple->wife && !$this->familyScopeResolver->isVisibleUser($couple->wife))
+        ) {
+            abort(404);
+        }
     }
 }

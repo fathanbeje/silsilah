@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Couple;
+use App\Services\FamilyScopeResolver;
 use App\Services\ParentCoupleResolver;
 use App\User;
 use Illuminate\Http\Request;
@@ -10,7 +11,10 @@ use Ramsey\Uuid\Uuid;
 
 class FamilyActionsController extends Controller
 {
-    public function __construct(private ParentCoupleResolver $parentCoupleResolver)
+    public function __construct(
+        private ParentCoupleResolver $parentCoupleResolver,
+        private FamilyScopeResolver $familyScopeResolver
+    )
     {
     }
 
@@ -23,13 +27,18 @@ class FamilyActionsController extends Controller
      */
     public function setFather(Request $request, User $user)
     {
+        $this->authorize('edit', $user);
+        $this->abortIfUserOutsideTenant($user);
+
         $request->validate([
             'set_father_id' => 'nullable',
             'set_father'    => 'required_without:set_father_id|max:255',
         ]);
 
         if ($request->get('set_father_id')) {
-            $user->father_id = $request->get('set_father_id');
+            $father = User::findOrFail($request->get('set_father_id'));
+            $this->abortIfUserOutsideTenant($father);
+            $user->father_id = $father->id;
             $user->save();
         } else {
             $father = new User;
@@ -56,13 +65,18 @@ class FamilyActionsController extends Controller
      */
     public function setMother(Request $request, User $user)
     {
+        $this->authorize('edit', $user);
+        $this->abortIfUserOutsideTenant($user);
+
         $request->validate([
             'set_mother_id' => 'nullable',
             'set_mother'    => 'required_without:set_mother_id|max:255',
         ]);
 
         if ($request->get('set_mother_id')) {
-            $user->mother_id = $request->get('set_mother_id');
+            $mother = User::findOrFail($request->get('set_mother_id'));
+            $this->abortIfUserOutsideTenant($mother);
+            $user->mother_id = $mother->id;
             $user->save();
         } else {
             $mother = new User;
@@ -89,6 +103,9 @@ class FamilyActionsController extends Controller
      */
     public function addChild(Request $request, User $user)
     {
+        $this->authorize('edit', $user);
+        $this->abortIfUserOutsideTenant($user);
+
         $request->validate([
             'add_child_name'        => 'required|string|max:255',
             'add_child_gender_id'   => 'required|in:1,2',
@@ -110,6 +127,7 @@ class FamilyActionsController extends Controller
 
         if ($request->get('add_child_parent_id')) {
             $couple = Couple::find($request->get('add_child_parent_id'));
+            $this->abortIfCoupleOutsideTenant($couple);
             $this->parentCoupleResolver->assignCouple($child, $couple);
         } else {
             if ($user->gender_id == 1) {
@@ -135,6 +153,9 @@ class FamilyActionsController extends Controller
      */
     public function addWife(Request $request, User $user)
     {
+        $this->authorize('edit', $user);
+        $this->abortIfUserOutsideTenant($user);
+
         $request->validate([
             'set_wife_id'   => 'nullable',
             'set_wife'      => 'required_without:set_wife_id|max:255',
@@ -144,6 +165,7 @@ class FamilyActionsController extends Controller
 
         if ($request->get('set_wife_id')) {
             $wife = User::findOrFail($request->get('set_wife_id'));
+            $this->abortIfUserOutsideTenant($wife);
         } else {
             $wife = new User;
             $wife->id = Uuid::uuid4()->toString();
@@ -168,6 +190,9 @@ class FamilyActionsController extends Controller
      */
     public function addHusband(Request $request, User $user)
     {
+        $this->authorize('edit', $user);
+        $this->abortIfUserOutsideTenant($user);
+
         $this->validate($request, [
             'set_husband_id' => 'nullable',
             'set_husband'    => 'required_without:set_husband_id|max:255',
@@ -177,6 +202,7 @@ class FamilyActionsController extends Controller
 
         if ($request->get('set_husband_id')) {
             $husband = User::findOrFail($request->get('set_husband_id'));
+            $this->abortIfUserOutsideTenant($husband);
         } else {
             $husband = new User;
             $husband->id = Uuid::uuid4()->toString();
@@ -201,10 +227,13 @@ class FamilyActionsController extends Controller
      */
     public function setParent(Request $request, User $user)
     {
+        $this->authorize('edit', $user);
+        $this->abortIfUserOutsideTenant($user);
         $parentId = $request->get('set_parent_id');
 
         if ($parentId) {
             $couple = Couple::findOrFail($parentId);
+            $this->abortIfCoupleOutsideTenant($couple);
             $this->parentCoupleResolver->assignCouple($user, $couple);
         } else {
             $user->parent_id = null;
@@ -212,5 +241,32 @@ class FamilyActionsController extends Controller
         }
 
         return redirect()->route('users.show', $user);
+    }
+
+    private function abortIfUserOutsideTenant(?User $user): void
+    {
+        if (!$user || !$this->familyScopeResolver->hasActiveScope()) {
+            return;
+        }
+
+        if (!$this->familyScopeResolver->isVisibleUser($user)) {
+            abort(404);
+        }
+    }
+
+    private function abortIfCoupleOutsideTenant(?Couple $couple): void
+    {
+        if (!$couple || !$this->familyScopeResolver->hasActiveScope()) {
+            return;
+        }
+
+        $couple->loadMissing(['husband', 'wife']);
+
+        if (
+            ($couple->husband && !$this->familyScopeResolver->isVisibleUser($couple->husband)) ||
+            ($couple->wife && !$this->familyScopeResolver->isVisibleUser($couple->wife))
+        ) {
+            abort(404);
+        }
     }
 }

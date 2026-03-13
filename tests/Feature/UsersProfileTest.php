@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Jobs\Images\OptimizeImages;
+use App\DomainFamilyScope;
 use App\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -171,6 +172,24 @@ class UsersProfileTest extends TestCase
     }
 
     /** @test */
+    public function scoped_user_cannot_open_edit_form_for_user_outside_current_tenant()
+    {
+        $user = $this->loginAsUser();
+        $tenantRoot = factory(User::class)->states('male')->create();
+        $outsideUser = factory(User::class)->create(['manager_id' => $user->id]);
+
+        DomainFamilyScope::create([
+            'host' => 'salam.bani.my.id',
+            'core_user_id' => $tenantRoot->id,
+            'is_active' => true,
+        ]);
+
+        $response = $this->scopedCall('salam.bani.my.id', 'GET', route('users.edit', $outsideUser, false));
+
+        $this->assertSame(404, $response->getStatusCode());
+    }
+
+    /** @test */
     public function user_can_update_yob_only()
     {
         $user = $this->loginAsUser();
@@ -208,6 +227,18 @@ class UsersProfileTest extends TestCase
             'city' => 'Nama Kota',
             'phone' => '081234567890',
         ]);
+    }
+
+    private function scopedCall(string $host, string $method, string $uri, array $parameters = [], array $server = [])
+    {
+        $this->baseUrl = 'http://'.$host;
+        config(['app.url' => 'http://'.$host]);
+        url()->forceRootUrl('http://'.$host);
+
+        return $this->call($method, $uri, $parameters, [], [], array_merge([
+            'HTTP_HOST' => $host,
+            'SERVER_NAME' => $host,
+        ], $server));
     }
 
     /** @test */

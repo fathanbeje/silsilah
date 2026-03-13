@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Couple;
+use App\DomainFamilyScope;
 use App\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -430,5 +431,40 @@ class ManageUserFamiliesTest extends TestCase
             ->see(__('user.childs').' (1)');
 
         $this->assertEquals($child->id, $mother->fresh()->childs->first()->id);
+    }
+
+    /** @test */
+    public function scoped_user_cannot_assign_parent_outside_current_tenant()
+    {
+        $user = $this->loginAsUser();
+        $tenantFather = factory(User::class)->states('male')->create();
+
+        DomainFamilyScope::create([
+            'host' => 'salam.bani.my.id',
+            'core_user_id' => $tenantFather->id,
+            'is_active' => true,
+        ]);
+
+        $outsideFather = factory(User::class)->states('male')->create();
+
+        $response = $this->scopedCall('salam.bani.my.id', 'POST', route('family-actions.set-father', $user, false), [
+            'set_father' => '',
+            'set_father_id' => $outsideFather->id,
+        ]);
+
+        $this->assertSame(404, $response->getStatusCode());
+        $this->assertNull($user->fresh()->father_id);
+    }
+
+    private function scopedCall(string $host, string $method, string $uri, array $parameters = [], array $server = [])
+    {
+        $this->baseUrl = 'http://'.$host;
+        config(['app.url' => 'http://'.$host]);
+        url()->forceRootUrl('http://'.$host);
+
+        return $this->call($method, $uri, $parameters, [], [], array_merge([
+            'HTTP_HOST' => $host,
+            'SERVER_NAME' => $host,
+        ], $server));
     }
 }

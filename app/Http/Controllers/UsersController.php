@@ -145,6 +145,7 @@ class UsersController extends Controller
     public function updateQuickDeceased(Request $request, User $user)
     {
         abort_unless(auth()->check() && is_system_admin(auth()->user()), 403);
+        $this->abortIfManagedUserOutsideTenant($user);
 
         $user->is_deceased = $request->boolean('is_deceased');
 
@@ -239,6 +240,7 @@ class UsersController extends Controller
     public function edit(User $user)
     {
         $this->authorize('edit', $user);
+        $this->abortIfManagedUserOutsideTenant($user);
 
         $replacementUsers = [];
         if (request('action') == 'delete') {
@@ -278,6 +280,8 @@ class UsersController extends Controller
      */
     public function update(UpdateRequest $request, User $user)
     {
+        $this->authorize('edit', $user);
+        $this->abortIfManagedUserOutsideTenant($user);
         $userAttributes = $request->validated();
         $user->update($userAttributes);
         $this->parentCoupleResolver->syncUser($user);
@@ -298,6 +302,7 @@ class UsersController extends Controller
     public function destroy(Request $request, User $user)
     {
         $this->authorize('delete', $user);
+        $this->abortIfManagedUserOutsideTenant($user);
 
         if ($request->has('replace_delete_button')) {
             $attributes = $request->validate([
@@ -305,6 +310,9 @@ class UsersController extends Controller
             ], [
                 'replacement_user_id.required' => __('validation.user.replacement_user_id.required'),
             ]);
+
+            $replacementUser = User::findOrFail($attributes['replacement_user_id']);
+            $this->abortIfManagedUserOutsideTenant($replacementUser);
 
             $this->dispatchNow(new DeleteAndReplaceUser($user, $attributes['replacement_user_id']));
 
@@ -331,6 +339,8 @@ class UsersController extends Controller
      */
     public function photoUpload(Request $request, User $user)
     {
+        $this->authorize('edit', $user);
+        $this->abortIfManagedUserOutsideTenant($user);
         $request->validate([
             'photo' => 'required|file|mimes:jpg,jpeg,png,webp|mimetypes:image/jpeg,image/png,image/webp|max:10000|dimensions:min_width=100,min_height=100,max_width=8000,max_height=8000',
         ]);
@@ -557,6 +567,17 @@ class UsersController extends Controller
         }
 
         if (auth()->check() && is_system_admin(auth()->user())) {
+            return;
+        }
+
+        if (!$this->familyScopeResolver->isVisibleUser($user)) {
+            abort(404);
+        }
+    }
+
+    private function abortIfManagedUserOutsideTenant(User $user): void
+    {
+        if (!$this->familyScopeResolver->hasActiveScope()) {
             return;
         }
 
