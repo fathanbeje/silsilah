@@ -237,7 +237,7 @@
 
     {{ Form::open(['method' => 'get','class' => 'family-search-hero__search']) }}
     <div class="input-group">
-        {{ Form::text('q', request('q'), ['class' => 'form-control', 'placeholder' => 'Contoh: Alm. Mbah Syamsuri, Nur Ahadah, Yusrul', 'autocomplete' => 'off', 'id' => 'family-search-input']) }}
+        {{ Form::text('q', request('q'), ['class' => 'form-control', 'placeholder' => $searchPlaceholder ?? 'Contoh: ketik nama keluarga', 'autocomplete' => 'off', 'id' => 'family-search-input']) }}
         <span class="input-group-btn">
             {{ Form::submit('Cari Sekarang', ['class' => 'btn btn-primary']) }}
             <button type="button" class="btn btn-default family-search-guide__trigger" data-toggle="modal" data-target="#family-search-guide-modal">Panduan</button>
@@ -249,19 +249,19 @@
     <div id="family-search-autocomplete" class="family-search-hero__autocomplete list-group"></div>
     {{ Form::close() }}
 
+    @if (!empty($searchExamples) && $searchExamples->isNotEmpty())
     <div class="family-search-examples">
         <span class="family-search-examples__label">Cari cepat:</span>
-        <a class="family-search-examples__chip" href="{{ route('users.search', ['q' => 'Alm. Mbah Syamsuri']) }}">Alm. Mbah Syamsuri</a>
-        <a class="family-search-examples__chip" href="{{ route('users.search', ['q' => 'Nur Ahadah']) }}">Nur Ahadah</a>
-        <a class="family-search-examples__chip" href="{{ route('users.search', ['q' => 'Yusrul']) }}">Yusrul</a>
+        @foreach ($searchExamples as $searchExample)
+        <a class="family-search-examples__chip" href="{{ route('users.search', ['q' => $searchExample]) }}">{{ $searchExample }}</a>
+        @endforeach
     </div>
+    @endif
 
-    @if (!empty($featuredTreeUsers) && $featuredTreeUsers->isNotEmpty())
+    @if (!empty($landingTreeRootUser))
     <div class="family-search-examples" style="margin-top:12px;">
         <span class="family-search-examples__label">Lihat pohon:</span>
-        @foreach ($featuredTreeUsers as $featuredTreeUser)
-        <a class="family-search-examples__chip" href="{{ route('users.tree', $featuredTreeUser) }}">{{ $featuredTreeUser->display_name }}</a>
-        @endforeach
+        <a class="family-search-examples__chip" href="{{ route('users.tree', $landingTreeRootUser) }}">{{ $landingTreeRootUser->display_name }}</a>
     </div>
     @endif
 </section>
@@ -310,8 +310,8 @@
             <p>Cari nama Anda dulu. Kalau belum ketemu, cari nama ayah atau ibu.</p>
             <div class="family-search-empty__links">
                 <a href="#family-search-input" class="btn btn-primary">Cari Nama</a>
-                @if (!empty($featuredTreeUsers) && $featuredTreeUsers->first())
-                <a href="{{ route('users.tree', $featuredTreeUsers->first()) }}" class="btn btn-default">Lihat Pohon Keluarga</a>
+                @if (!empty($landingTreeRootUser))
+                <a href="{{ route('users.tree', $landingTreeRootUser) }}" class="btn btn-default">Lihat Pohon Keluarga</a>
                 @endif
                 <button type="button" class="btn btn-default" data-toggle="modal" data-target="#family-search-guide-modal">Panduan Singkat</button>
             </div>

@@ -45,16 +45,7 @@ class UsersController extends Controller
     {
         $q = $request->get('q');
         $users = [];
-        $featuredTreeUsers = User::query()
-            ->where(function ($query) {
-                $query->where('name', 'like', '%SYAMSURI%')
-                    ->orWhere('nickname', 'like', '%SYAMSURI%');
-            })
-            ->orderBy('name', 'asc')
-            ->limit(1)
-            ->get();
-
-        $featuredTreeUsers = $this->familyScopeResolver->filterUsers($featuredTreeUsers);
+        [$landingTreeRootUser, $searchExamples, $searchPlaceholder] = $this->buildLandingSearchContext();
 
         if ($q) {
             $query = $this->searchUsersQuery($q);
@@ -72,7 +63,7 @@ class UsersController extends Controller
             );
         }
 
-        return view('users.search', compact('users', 'featuredTreeUsers'));
+        return view('users.search', compact('users', 'landingTreeRootUser', 'searchExamples', 'searchPlaceholder'));
     }
 
     /**
@@ -433,6 +424,108 @@ class UsersController extends Controller
             $query->where('name', 'like', '%'.$q.'%')
                 ->orWhere('nickname', 'like', '%'.$q.'%');
         });
+    }
+
+    private function buildLandingSearchContext(): array
+    {
+        $scopeRootUser = $this->familyScopeResolver->coreUser();
+
+        if ($scopeRootUser) {
+            $searchExamples = $this->buildScopedLandingExamples($scopeRootUser);
+
+            return [
+                $scopeRootUser,
+                $searchExamples,
+                $this->buildSearchPlaceholder($searchExamples),
+            ];
+        }
+
+        $fallbackUsers = User::query()
+            ->orderByRaw('CASE WHEN is_deceased = 1 THEN 0 ELSE 1 END')
+            ->orderByRaw('COALESCE(yob, 9999), name')
+            ->orderBy('name')
+            ->limit(3)
+            ->get();
+
+        $searchExamples = $fallbackUsers
+            ->pluck('display_name')
+            ->filter()
+            ->unique()
+            ->values();
+
+        return [
+            $fallbackUsers->first(),
+            $searchExamples,
+            $this->buildSearchPlaceholder($searchExamples),
+        ];
+    }
+
+    private function buildScopedLandingExamples(User $scopeRootUser): Collection
+    {
+        $examples = collect([$scopeRootUser->display_name]);
+        $visibleIds = $this->familyScopeResolver->visibleUserIds();
+        $scopeRootMarriageIds = $scopeRootUser->marriageIds()->all();
+
+        if (!empty($visibleIds)) {
+            $examples = $examples->merge(
+                User::query()
+                    ->whereIn('id', $visibleIds)
+                    ->where('id', '!=', $scopeRootUser->id)
+                    ->where(function ($query) use ($scopeRootUser, $scopeRootMarriageIds) {
+                        $query->where('father_id', $scopeRootUser->id)
+                            ->orWhere('mother_id', $scopeRootUser->id);
+
+                        if (!empty($scopeRootMarriageIds)) {
+                            $query->orWhereIn('parent_id', $scopeRootMarriageIds);
+                        }
+                    })
+                    ->orderByRaw('COALESCE(birth_order, 999), name')
+                    ->limit(2)
+                    ->get()
+                    ->pluck('display_name')
+            );
+
+            if ($examples->filter()->unique()->count() < 3) {
+                $examples = $examples->merge(
+                    User::query()
+                        ->whereIn('id', $visibleIds)
+                        ->whereNotIn('id', collect([$scopeRootUser->id])->merge(
+                            User::query()
+                                ->whereIn('id', $visibleIds)
+                                ->where('id', '!=', $scopeRootUser->id)
+                                ->where(function ($query) use ($scopeRootUser, $scopeRootMarriageIds) {
+                                    $query->where('father_id', $scopeRootUser->id)
+                                        ->orWhere('mother_id', $scopeRootUser->id);
+
+                                    if (!empty($scopeRootMarriageIds)) {
+                                        $query->orWhereIn('parent_id', $scopeRootMarriageIds);
+                                    }
+                                })
+                                ->limit(2)
+                                ->pluck('id')
+                        )->filter()->all())
+                        ->orderBy('name')
+                        ->limit(3)
+                        ->get()
+                        ->pluck('display_name')
+                );
+            }
+        }
+
+        return $examples
+            ->filter()
+            ->unique()
+            ->values()
+            ->take(3);
+    }
+
+    private function buildSearchPlaceholder(Collection $searchExamples): string
+    {
+        if ($searchExamples->isEmpty()) {
+            return 'Contoh: ketik nama keluarga';
+        }
+
+        return 'Contoh: '.$searchExamples->implode(', ');
     }
 
     private function abortIfUserOutsideScope(User $user): void

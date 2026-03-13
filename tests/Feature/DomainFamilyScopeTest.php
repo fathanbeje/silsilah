@@ -51,6 +51,20 @@ class DomainFamilyScopeTest extends TestCase
     }
 
     /** @test */
+    public function scoped_landing_page_uses_scope_root_for_examples_and_tree_cta()
+    {
+        [$core, $descendant, $descendantSpouse, $spouseParent] = $this->createScopedFamilyGraph();
+
+        $response = $this->scopedCall('syamsuri.bani.my.id', 'GET', '/profile-search');
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertStringContainsString('Contoh: '.$core->display_name, $response->getContent());
+        $this->assertStringContainsString($descendant->display_name, $response->getContent());
+        $this->assertStringContainsString(route('users.tree', $core, false), $response->getContent());
+        $this->assertStringNotContainsString($spouseParent->display_name, $response->getContent());
+    }
+
+    /** @test */
     public function guest_cannot_open_chart_for_spouse_parent_outside_scope()
     {
         [, , , $spouseParent] = $this->createScopedFamilyGraph();
