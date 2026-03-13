@@ -24,7 +24,7 @@
                     </tr>
                     <tr>
                         <th>{{ __('user.dod') }}</th>
-                        <td>{{ $user->dod ?: $user->yod ?: __('user.is_deceased') }}</td>
+                        <td>{{ $user->dod ? $user->dod->format('Y-m-d') : ($user->yod ?: __('user.is_deceased')) }}</td>
                     </tr>
                     <tr>
                         <th>{{ __('user.age') }}</th>

@@ -34,7 +34,7 @@
             </tr>
             <tr>
                 <th>{{ trans('user.dob') }}</th>
-                <td>{{ $user->dob }}</td>
+                <td>{{ $user->dob ? $user->dob->format('Y-m-d') : null }}</td>
             </tr>
             <tr>
                 <th>{{ trans('user.birth_order') }}</th>
@@ -43,7 +43,7 @@
             @if ($user->hasDeathInfo())
             <tr>
                 <th>{{ trans('user.dod') }}</th>
-                <td>{{ $user->dod ?: $user->yod ?: __('user.is_deceased') }}</td>
+                <td>{{ $user->dod ? $user->dod->format('Y-m-d') : ($user->yod ?: __('user.is_deceased')) }}</td>
             </tr>
             @endif
             <tr>
