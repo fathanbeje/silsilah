@@ -102,8 +102,12 @@ class UsersProfileTest extends TestCase
         $this->assertResponseOk();
         $this->assertStringContainsString('Collapse Semua', $content);
         $this->assertStringContainsString('Expand Semua', $content);
-        $this->assertStringContainsString('data-tree-bulk-action="collapse"', $content);
-        $this->assertStringContainsString('data-tree-bulk-action="expand"', $content);
+        $this->assertStringContainsString('data-tree-global-toggle', $content);
+        $this->assertStringContainsString('data-tree-tools-toggle', $content);
+        $this->assertStringContainsString('Ukuran Konten', $content);
+        $this->assertStringContainsString('Reset ke 100%', $content);
+        $this->assertStringContainsString('data-tree-zoom-value', $content);
+        $this->assertStringContainsString('data-tree-zoom-preset', $content);
         $this->assertStringContainsString('Statistik Keturunan '.$core->display_name, $content);
         $this->assertStringContainsString('Rincian keturunan kandung dan mantu per generasi', $content);
         $this->assertStringNotContainsString('dari core aktif', $content);
@@ -114,8 +118,7 @@ class UsersProfileTest extends TestCase
         $this->assertStringContainsString('Total Wafat', $content);
         $this->assertStringContainsString('Jumlah Kandung + Mantu', $content);
         $this->assertStringContainsString('Total Semua', $content);
-        $this->assertStringContainsString('Kembali ke core', $content);
-        $this->assertStringContainsString('data-tree-back-to-core', $content);
+        $this->assertStringNotContainsString('Kembali ke core', $content);
         $this->assertStringContainsString('data-tree-preview-trigger', $content);
         $this->assertStringContainsString('data-tree-preview-popup', $content);
         $this->assertStringContainsString('Wafat', $content);

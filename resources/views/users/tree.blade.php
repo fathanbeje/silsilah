@@ -3,18 +3,78 @@
 @section('subtitle', trans('app.family_tree'))
 
 @section('user-content')
-<button
-    type="button"
-    class="tree-back-to-core"
-    data-tree-back-to-core
-    aria-label="Kembali ke core"
-    title="Kembali ke core"
->
-    <span aria-hidden="true">&larr;</span>
-    <span class="tree-back-to-core__label">Kembali ke core</span>
-</button>
+<div class="tree-tools" data-tree-tools>
+    <button
+        type="button"
+        class="tree-tools__fab"
+        data-tree-tools-toggle
+        aria-controls="tree-tools-panel"
+        aria-expanded="false"
+        aria-label="Buka kontrol pohon"
+        title="Kontrol pohon"
+    >
+        <span aria-hidden="true">&#9881;</span>
+    </button>
+    <button
+        type="button"
+        class="tree-tools__backdrop"
+        data-tree-tools-backdrop
+        aria-hidden="true"
+        tabindex="-1"
+        hidden
+    ></button>
+    <section
+        id="tree-tools-panel"
+        class="tree-tools__panel"
+        data-tree-tools-panel
+        aria-label="Kontrol pohon keluarga"
+        hidden
+    >
+        <div class="tree-tools__head">
+            <div class="tree-tools__head-copy">
+                <span class="tree-tools__label">Kontrol Pohon</span>
+                <span class="tree-tools__subtext">Atur cabang dan ukuran tampilan.</span>
+            </div>
+            <button
+                type="button"
+                class="tree-tools__close"
+                data-tree-tools-close
+                aria-label="Tutup kontrol pohon"
+            >&times;</button>
+        </div>
+        <button
+            type="button"
+            class="tree-tools__bulk-toggle"
+            data-tree-global-toggle
+            data-tree-label-collapse="Collapse Semua"
+            data-tree-label-expand="Expand Semua"
+            data-tree-action="collapse"
+        >Collapse Semua</button>
+        <div class="tree-tools__zoom" data-tree-zoom-controls>
+            <div class="tree-tools__zoom-head">
+                <span class="tree-tools__zoom-label">Ukuran Konten</span>
+            </div>
+            <div class="tree-tools__stepper">
+                <button type="button" class="tree-tools__step-btn" data-tree-zoom-out aria-label="Perkecil tampilan">&minus;</button>
+                <span class="tree-tools__zoom-value" data-tree-zoom-value>100%</span>
+                <button type="button" class="tree-tools__step-btn" data-tree-zoom-in aria-label="Perbesar tampilan">+</button>
+            </div>
+            <div class="tree-tools__presets">
+                @foreach ([50, 75, 80, 85, 90, 95, 100, 110, 125] as $zoomPreset)
+                <button
+                    type="button"
+                    class="tree-tools__preset {{ $zoomPreset === 100 ? 'is-active' : '' }}"
+                    data-tree-zoom-preset
+                    data-zoom="{{ $zoomPreset }}"
+                >{{ $zoomPreset }}%</button>
+                @endforeach
+            </div>
+            <button type="button" class="tree-tools__reset" data-tree-zoom-reset>Reset ke 100%</button>
+        </div>
+    </section>
+</div>
 <div class="tree-viewport">
-    <div id="wrapper" class="tree-diagram">
+    <div id="wrapper" class="tree-diagram" data-tree-root-id="{{ $user->id }}">
         @include('users.partials.tree-node', ['node' => $node, 'level' => 1, 'isRoot' => true])
     </div>
 </div>
@@ -117,8 +177,6 @@
 <script>
     (function () {
         var wrapper = document.getElementById('wrapper');
-        var treeViewport = document.querySelector('.tree-viewport');
-        var backToCoreButton = document.querySelector('[data-tree-back-to-core]');
         if (!wrapper) return;
 
         var NS = 'http://www.w3.org/2000/svg';
@@ -127,6 +185,50 @@
         var resizeObserver = null;
         var connectorPalette = ['#b7cde0', '#bed8cf', '#c8d2e8', '#d1d9c9', '#d8cde3', '#d4dde8'];
         var activePreview = null;
+        var toolsToggleButton = document.querySelector('[data-tree-tools-toggle]');
+        var toolsPanel = document.querySelector('[data-tree-tools-panel]');
+        var toolsBackdrop = document.querySelector('[data-tree-tools-backdrop]');
+        var toolsCloseButton = document.querySelector('[data-tree-tools-close]');
+        var globalToggleButton = document.querySelector('[data-tree-global-toggle]');
+        var zoomOutButton = document.querySelector('[data-tree-zoom-out]');
+        var zoomInButton = document.querySelector('[data-tree-zoom-in]');
+        var zoomValue = document.querySelector('[data-tree-zoom-value]');
+        var zoomResetButton = document.querySelector('[data-tree-zoom-reset]');
+        var zoomPresetButtons = Array.prototype.slice.call(document.querySelectorAll('[data-tree-zoom-preset]'));
+        var ZOOM_MIN = 50;
+        var ZOOM_MAX = 125;
+        var ZOOM_STEP = 5;
+        var DEFAULT_ZOOM = 100;
+        var zoomStorageKey = 'family-tree-zoom:' + (wrapper.getAttribute('data-tree-root-id') || 'default');
+        var currentZoom = DEFAULT_ZOOM;
+
+        function clampZoom(zoom) {
+            var parsedZoom = parseInt(zoom, 10);
+
+            if (isNaN(parsedZoom)) {
+                parsedZoom = DEFAULT_ZOOM;
+            }
+
+            return Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, parsedZoom));
+        }
+
+        function connectorStemOffset() {
+            return parseFloat(window.getComputedStyle(document.documentElement).getPropertyValue('--tree-stem-offset')) || 30;
+        }
+
+        function saveZoom(zoom) {
+            try {
+                window.localStorage.setItem(zoomStorageKey, String(clampZoom(zoom)));
+            } catch (error) {}
+        }
+
+        function storedZoom() {
+            try {
+                return clampZoom(window.localStorage.getItem(zoomStorageKey));
+            } catch (error) {
+                return DEFAULT_ZOOM;
+            }
+        }
 
         function ensureSvg() {
             if (svg) return svg;
@@ -192,7 +294,7 @@
 
             var spineX = Math.min.apply(null, childRects.map(function (item) {
                 return item.rect.left;
-            })) - 30;
+            })) - connectorStemOffset();
             var minY = Math.min.apply(null, childRects.map(function (item) {
                 return item.rect.centerY;
             }));
@@ -241,14 +343,16 @@
                 function (entry) {
                     var card = entry.querySelector(':scope > [data-tree-card]');
                     var baseHeight = parseInt(entry.getAttribute('data-entry-base-height') || '64', 10);
+                    var scaledBaseHeight = Math.ceil(baseHeight * (currentZoom / 100));
+                    var verticalBuffer = Math.ceil(20 * (currentZoom / 100));
 
                     if (!card) {
-                        entry.style.minHeight = baseHeight + 'px';
+                        entry.style.minHeight = scaledBaseHeight + 'px';
                         return;
                     }
 
                     var cardHeight = Math.ceil(card.offsetHeight || 0);
-                    entry.style.minHeight = Math.max(baseHeight, cardHeight + 20) + 'px';
+                    entry.style.minHeight = Math.max(scaledBaseHeight, cardHeight + verticalBuffer) + 'px';
                 }
             );
         }
@@ -261,8 +365,37 @@
                 renderQueued = false;
                 syncEntryHeights();
                 renderTreeConnectors();
-                updateBackToCoreButtonState();
+                updateGlobalToggleState();
             });
+        }
+
+        function getExpandableEntries() {
+            return Array.prototype.filter.call(
+                wrapper.querySelectorAll('[data-tree-entry][data-has-children="true"]'),
+                function (entry) {
+                    return !entry.classList.contains('entry-root');
+                }
+            );
+        }
+
+        function allEntriesExpanded() {
+            var entries = getExpandableEntries();
+
+            return entries.length > 0 && entries.every(function (entry) {
+                return entry.getAttribute('data-expanded') === 'true';
+            });
+        }
+
+        function updateGlobalToggleState() {
+            if (!globalToggleButton) return;
+
+            var entries = getExpandableEntries();
+            var nextAction = allEntriesExpanded() ? 'collapse' : 'expand';
+            var labelAttribute = nextAction === 'collapse' ? 'data-tree-label-collapse' : 'data-tree-label-expand';
+
+            globalToggleButton.textContent = globalToggleButton.getAttribute(labelAttribute) || '';
+            globalToggleButton.setAttribute('data-tree-action', nextAction);
+            globalToggleButton.disabled = entries.length === 0;
         }
 
         function setExpanded(entry, expanded) {
@@ -304,6 +437,62 @@
             if (entry.classList.contains('entry-root')) return;
 
             setExpanded(entry, entry.getAttribute('data-expanded') !== 'true');
+        }
+
+        function syncZoomUi() {
+            if (zoomValue) {
+                zoomValue.textContent = currentZoom + '%';
+            }
+
+            if (zoomOutButton) {
+                zoomOutButton.disabled = currentZoom <= ZOOM_MIN;
+            }
+
+            if (zoomInButton) {
+                zoomInButton.disabled = currentZoom >= ZOOM_MAX;
+            }
+
+            zoomPresetButtons.forEach(function (button) {
+                button.classList.toggle('is-active', Number(button.getAttribute('data-zoom')) === currentZoom);
+            });
+        }
+
+        function setZoom(zoom) {
+            currentZoom = clampZoom(zoom);
+            document.documentElement.style.setProperty('--tree-scale', String(currentZoom / 100));
+            wrapper.setAttribute('data-tree-scale', String(currentZoom));
+            syncZoomUi();
+            saveZoom(currentZoom);
+            queueRender();
+        }
+
+        function closeToolsPanel() {
+            if (!toolsPanel) return;
+
+            toolsPanel.hidden = true;
+
+            if (toolsBackdrop) {
+                toolsBackdrop.hidden = true;
+            }
+
+            if (toolsToggleButton) {
+                toolsToggleButton.setAttribute('aria-expanded', 'false');
+            }
+        }
+
+        function toggleToolsPanel() {
+            if (!toolsPanel) return;
+
+            var shouldOpen = toolsPanel.hidden;
+            toolsPanel.hidden = !shouldOpen;
+
+            if (toolsBackdrop) {
+                toolsBackdrop.hidden = !shouldOpen;
+            }
+
+            if (toolsToggleButton) {
+                toolsToggleButton.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+            }
         }
 
         function closePreview(preview) {
@@ -370,55 +559,6 @@
             activePreview = null;
         }
 
-        function updateBackToCoreButtonState() {
-            if (!backToCoreButton || !treeViewport) return;
-
-            var rootEntry = wrapper.querySelector('.entry-root');
-            var rootCard = rootEntry ? rootEntry.querySelector(':scope > [data-tree-card]') : null;
-            var horizontalDistance = treeViewport.scrollLeft;
-            var verticalDistance = Math.abs(window.scrollY - Math.max(0, (treeViewport.getBoundingClientRect().top + window.scrollY) - 96));
-
-            if (rootCard) {
-                horizontalDistance = Math.abs(
-                    treeViewport.scrollLeft - Math.max(0, rootCard.offsetLeft - ((treeViewport.clientWidth - rootCard.offsetWidth) / 2))
-                );
-            }
-
-            var isAtCore = horizontalDistance <= 8 && verticalDistance <= 12;
-            backToCoreButton.classList.toggle('is-idle', isAtCore);
-        }
-
-        function scrollToCore() {
-            if (!treeViewport) return;
-
-            var rootEntry = wrapper.querySelector('.entry-root');
-            if (!rootEntry) return;
-
-            var rootCard = rootEntry.querySelector(':scope > [data-tree-card]');
-            var viewportTargetTop = Math.max(0, (treeViewport.getBoundingClientRect().top + window.scrollY) - 96);
-
-            window.scrollTo({
-                top: viewportTargetTop,
-                behavior: 'smooth'
-            });
-
-            if (rootCard) {
-                treeViewport.scrollTo({
-                    left: Math.max(0, rootCard.offsetLeft - ((treeViewport.clientWidth - rootCard.offsetWidth) / 2)),
-                    top: Math.max(0, rootCard.offsetTop - 20),
-                    behavior: 'smooth'
-                });
-
-                return;
-            }
-
-            rootEntry.scrollIntoView({
-                block: 'nearest',
-                inline: 'start',
-                behavior: 'smooth'
-            });
-        }
-
         wrapper.addEventListener('click', function (event) {
             var previewTrigger = event.target.closest('[data-tree-preview-trigger]');
             if (previewTrigger) {
@@ -433,13 +573,6 @@
             }
 
             if (event.target.closest('[data-tree-preview]')) {
-                return;
-            }
-
-            var bulkAction = event.target.closest('[data-tree-bulk-action]');
-            if (bulkAction) {
-                event.preventDefault();
-                setAllExpanded(bulkAction.getAttribute('data-tree-bulk-action') === 'expand');
                 return;
             }
 
@@ -481,33 +614,72 @@
 
         document.addEventListener('keydown', function (event) {
             if (event.key === 'Escape') {
+                closeToolsPanel();
                 closeAllPreviews();
             }
         });
 
-        if (backToCoreButton) {
-            backToCoreButton.addEventListener('click', function () {
-                scrollToCore();
+        if (globalToggleButton) {
+            globalToggleButton.addEventListener('click', function () {
+                setAllExpanded(globalToggleButton.getAttribute('data-tree-action') !== 'collapse');
             });
         }
 
-        if (treeViewport) {
-            treeViewport.addEventListener('scroll', updateBackToCoreButtonState, { passive: true });
+        if (toolsToggleButton) {
+            toolsToggleButton.addEventListener('click', function (event) {
+                event.preventDefault();
+                toggleToolsPanel();
+            });
         }
+
+        if (toolsBackdrop) {
+            toolsBackdrop.addEventListener('click', closeToolsPanel);
+        }
+
+        if (toolsCloseButton) {
+            toolsCloseButton.addEventListener('click', closeToolsPanel);
+        }
+
+        if (toolsPanel) {
+            toolsPanel.addEventListener('click', function (event) {
+                event.stopPropagation();
+            });
+        }
+
+        if (zoomOutButton) {
+            zoomOutButton.addEventListener('click', function () {
+                setZoom(currentZoom - ZOOM_STEP);
+            });
+        }
+
+        if (zoomInButton) {
+            zoomInButton.addEventListener('click', function () {
+                setZoom(currentZoom + ZOOM_STEP);
+            });
+        }
+
+        if (zoomResetButton) {
+            zoomResetButton.addEventListener('click', function () {
+                setZoom(DEFAULT_ZOOM);
+            });
+        }
+
+        zoomPresetButtons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                setZoom(button.getAttribute('data-zoom'));
+            });
+        });
 
         window.addEventListener('load', queueRender);
         window.addEventListener('resize', queueRender);
-        window.addEventListener('resize', updateBackToCoreButtonState);
 
         if (document.fonts && document.fonts.ready) {
             document.fonts.ready.then(function () {
                 queueRender();
-                updateBackToCoreButtonState();
             });
         } else {
             setTimeout(function () {
                 queueRender();
-                updateBackToCoreButtonState();
             }, 60);
         }
 
@@ -519,8 +691,8 @@
             });
         }
 
+        setZoom(storedZoom());
         queueRender();
-        updateBackToCoreButtonState();
     })();
 </script>
 @endsection
