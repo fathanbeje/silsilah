@@ -75,6 +75,95 @@ body.tree-dragging * {
     position: relative;
 }
 
+.tree-preview-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 2400;
+    pointer-events: none;
+}
+
+.tree-preview-layer[hidden] {
+    display: none;
+}
+
+.tree-preview-layer__card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 132px;
+    padding: 10px;
+    border-radius: 18px;
+    border: 1px solid #d7e3ee;
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 16px 28px rgba(27, 54, 78, 0.18);
+}
+
+.tree-preview-layer::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    width: 14px;
+    height: 14px;
+    background: #fff;
+    transform: translateX(-50%) rotate(45deg);
+    border-right: 1px solid #d7e3ee;
+    border-bottom: 1px solid #d7e3ee;
+}
+
+.tree-preview-layer[data-placement="top"]::after {
+    bottom: -7px;
+}
+
+.tree-preview-layer[data-placement="bottom"]::after {
+    top: -7px;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 1px solid #d7e3ee;
+    border-top: 1px solid #d7e3ee;
+}
+
+.tree-preview-layer__photo {
+    width: 68px;
+    height: 68px;
+    border-radius: 18px;
+    border: 1px solid #dce8f3;
+    object-fit: cover;
+}
+
+.tree-preview-layer__name {
+    display: block;
+    color: #21415d;
+    font-size: 12px;
+    line-height: 1.4;
+    font-weight: 700;
+    text-align: center;
+}
+
+.tree-preview-layer__status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 62px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.tree-preview-layer__status.is-alive {
+    background: rgba(76, 154, 120, 0.14);
+    color: #2d7d5d;
+}
+
+.tree-preview-layer__status.is-deceased {
+    background: rgba(162, 93, 93, 0.14);
+    color: #8f4b4b;
+}
+
 .tree-hotlink {
     position: fixed;
     left: 74px;
@@ -826,6 +915,10 @@ body.tree-dragging * {
     pointer-events: none;
     transform: translate(-50%, 6px);
     transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s ease;
+}
+
+.tree-stage.is-preview-overlay-ready .tree-person-line__popup {
+    display: none !important;
 }
 
 .tree-person-line__popup::after {

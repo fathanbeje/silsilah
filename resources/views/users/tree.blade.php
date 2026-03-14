@@ -151,6 +151,13 @@
     </section>
 </div>
 @endif
+<div class="tree-preview-layer" data-tree-preview-layer hidden aria-hidden="true">
+    <div class="tree-preview-layer__card">
+        <img src="" alt="" class="tree-preview-layer__photo" data-tree-preview-layer-photo>
+        <span class="tree-preview-layer__name" data-tree-preview-layer-name></span>
+        <span class="tree-preview-layer__status" data-tree-preview-layer-status></span>
+    </div>
+</div>
 <div class="tree-stage" data-tree-stage>
     <div class="tree-viewport" data-tree-viewport data-tree-drag-surface data-drag-enabled="false">
         <div id="wrapper" class="tree-diagram" data-tree-root-id="{{ $user->id }}">
@@ -310,6 +317,11 @@
         var hotlinkInput = document.querySelector('[data-tree-hotlink-input]');
         var hotlinkOptions = Array.prototype.slice.call(document.querySelectorAll('[data-tree-hotlink-option]'));
         var hotlinkEmptyState = document.querySelector('[data-tree-hotlink-empty]');
+        var previewItems = Array.prototype.slice.call(document.querySelectorAll('[data-tree-preview]'));
+        var previewLayer = document.querySelector('[data-tree-preview-layer]');
+        var previewLayerPhoto = document.querySelector('[data-tree-preview-layer-photo]');
+        var previewLayerName = document.querySelector('[data-tree-preview-layer-name]');
+        var previewLayerStatus = document.querySelector('[data-tree-preview-layer-status]');
         var zoomOutButton = document.querySelector('[data-tree-zoom-out]');
         var zoomInButton = document.querySelector('[data-tree-zoom-in]');
         var zoomValue = document.querySelector('[data-tree-zoom-value]');
@@ -801,6 +813,82 @@
             }
         }
 
+        function isHoverPreviewEnabled() {
+            return !!(window.matchMedia && window.matchMedia('(hover: hover)').matches);
+        }
+
+        function previewPayload(preview) {
+            if (!preview) return null;
+
+            var triggerImage = preview.querySelector('[data-tree-preview-trigger] img');
+            var popupName = preview.querySelector('.tree-person-line__popup-name');
+            var popupStatus = preview.querySelector('.tree-person-line__popup-status');
+
+            if (!triggerImage || !popupName || !popupStatus) {
+                return null;
+            }
+
+            return {
+                src: triggerImage.getAttribute('src') || '',
+                alt: triggerImage.getAttribute('alt') || popupName.textContent.trim(),
+                name: popupName.textContent.trim(),
+                status: popupStatus.textContent.trim(),
+                statusClass: popupStatus.className
+            };
+        }
+
+        function hidePreviewLayer() {
+            if (!previewLayer) return;
+
+            previewLayer.hidden = true;
+            previewLayer.setAttribute('aria-hidden', 'true');
+            previewLayer.removeAttribute('data-placement');
+            previewLayer.style.left = '';
+            previewLayer.style.top = '';
+        }
+
+        function positionPreviewLayer(preview) {
+            if (!previewLayer || previewLayer.hidden || !preview) return;
+
+            var trigger = preview.querySelector('[data-tree-preview-trigger]');
+            if (!trigger) return;
+
+            var triggerRect = trigger.getBoundingClientRect();
+            var layerRect = previewLayer.getBoundingClientRect();
+            var spacing = 14;
+            var showBelow = triggerRect.top < (layerRect.height + 28);
+            var top = showBelow
+                ? triggerRect.bottom + spacing
+                : triggerRect.top - layerRect.height - spacing;
+            var left = triggerRect.left + (triggerRect.width / 2) - (layerRect.width / 2);
+
+            top = Math.max(12, Math.min(window.innerHeight - layerRect.height - 12, top));
+            left = Math.max(12, Math.min(window.innerWidth - layerRect.width - 12, left));
+
+            previewLayer.style.left = left + 'px';
+            previewLayer.style.top = top + 'px';
+            previewLayer.setAttribute('data-placement', showBelow ? 'bottom' : 'top');
+        }
+
+        function showPreviewLayer(preview) {
+            if (!previewLayer) return;
+
+            var payload = previewPayload(preview);
+            if (!payload) return;
+
+            previewLayerPhoto.setAttribute('src', payload.src);
+            previewLayerPhoto.setAttribute('alt', payload.alt);
+            previewLayerName.textContent = payload.name;
+            previewLayerStatus.textContent = payload.status;
+            previewLayerStatus.className = 'tree-preview-layer__status ' + payload.statusClass;
+            previewLayer.hidden = false;
+            previewLayer.setAttribute('aria-hidden', 'false');
+
+            window.requestAnimationFrame(function () {
+                positionPreviewLayer(preview);
+            });
+        }
+
         function closePreview(preview) {
             if (!preview) return;
 
@@ -820,6 +908,10 @@
 
             if (popup) {
                 popup.setAttribute('aria-hidden', 'true');
+            }
+
+            if (activePreview === preview) {
+                hidePreviewLayer();
             }
         }
 
@@ -848,6 +940,7 @@
             }
 
             activePreview = preview;
+            showPreviewLayer(preview);
         }
 
         function togglePreview(preview) {
@@ -873,6 +966,7 @@
             );
 
             activePreview = null;
+            hidePreviewLayer();
         }
 
         wrapper.addEventListener('click', function (event) {
@@ -1009,6 +1103,44 @@
             }
         });
 
+        previewItems.forEach(function (preview) {
+            preview.addEventListener('mouseenter', function () {
+                if (!isHoverPreviewEnabled()) return;
+                openPreview(preview);
+            });
+
+            preview.addEventListener('mouseleave', function () {
+                if (!isHoverPreviewEnabled()) return;
+                closePreview(preview);
+                if (activePreview === preview) {
+                    activePreview = null;
+                    hidePreviewLayer();
+                }
+            });
+
+            preview.addEventListener('focusin', function () {
+                openPreview(preview);
+            });
+
+            preview.addEventListener('focusout', function () {
+                window.setTimeout(function () {
+                    if (preview.contains(document.activeElement)) {
+                        return;
+                    }
+
+                    if (isHoverPreviewEnabled() && preview.matches(':hover')) {
+                        return;
+                    }
+
+                    closePreview(preview);
+                    if (activePreview === preview) {
+                        activePreview = null;
+                        hidePreviewLayer();
+                    }
+                }, 0);
+            });
+        });
+
         treeViewport.addEventListener('pointerdown', onPointerDown);
         treeViewport.addEventListener('click', function (event) {
             if (!dragState.suppressClick) return;
@@ -1020,6 +1152,16 @@
         window.addEventListener('pointermove', onPointerMove, { passive: false });
         window.addEventListener('pointerup', onPointerUp);
         window.addEventListener('pointercancel', onPointerUp);
+        window.addEventListener('scroll', function () {
+            if (activePreview) {
+                positionPreviewLayer(activePreview);
+            }
+        }, { passive: true });
+        window.addEventListener('resize', function () {
+            if (activePreview) {
+                positionPreviewLayer(activePreview);
+            }
+        });
 
         if (zoomOutButton) {
             zoomOutButton.addEventListener('click', function () {
@@ -1069,6 +1211,7 @@
 
         setZoom(storedZoom());
         filterHotlinkOptions('');
+        treeStage.classList.add('is-preview-overlay-ready');
         queueRender();
     })();
 </script>
