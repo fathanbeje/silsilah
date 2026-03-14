@@ -6,7 +6,16 @@
     $isExpanded = $node['default_expanded'];
     $entryMinHeight = max(64, 50 + ($supportRowCount * 18));
     $user = $node['user'];
-    $userStatusLabel = $user->isDeceased() ? 'Wafat' : 'Hidup';
+    $formatTreeStatus = static function ($person) {
+        if ($person->isDeceased()) {
+            $deathYear = optional($person->dod)->format('Y') ?: $person->yod;
+
+            return $deathYear ? 'Wafat - '.$deathYear : 'Wafat';
+        }
+
+        return !is_null($person->age) ? 'Hidup - '.$person->age.' Thn' : 'Hidup';
+    };
+    $userStatusLabel = $formatTreeStatus($user);
 @endphp
 
 <div
@@ -67,7 +76,7 @@
             <div class="tree-node-box__spouses">
                 @foreach ($displaySpouseLabels as $spouseLabel)
                 @php
-                    $spouseStatusLabel = $spouseLabel->isDeceased() ? 'Wafat' : 'Hidup';
+                    $spouseStatusLabel = $formatTreeStatus($spouseLabel);
                 @endphp
                 <div class="tree-node-box__spouse">
                     <span class="tree-node-box__spouse-prefix">+</span>

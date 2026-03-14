@@ -57,6 +57,7 @@ class UsersProfileTest extends TestCase
         $core = factory(User::class)->states('male')->create([
             'name' => 'CORE TREE',
             'nickname' => 'CORE TREE',
+            'dob' => '1980-01-01',
         ]);
         $rootSpouse = factory(User::class)->states('female')->create([
             'name' => 'PASANGAN CORE',
@@ -80,6 +81,7 @@ class UsersProfileTest extends TestCase
             'name' => 'MANTU TREE',
             'nickname' => 'MANTU TREE',
             'is_deceased' => true,
+            'yod' => '2024',
         ]);
         $childMarriage = factory(Couple::class)->create([
             'husband_id' => $child->id,
@@ -127,6 +129,8 @@ class UsersProfileTest extends TestCase
         $this->assertStringNotContainsString('Kembali ke core', $content);
         $this->assertStringContainsString('data-tree-preview-trigger', $content);
         $this->assertStringContainsString('data-tree-preview-popup', $content);
+        $this->assertStringContainsString('Hidup - '.$core->fresh()->age.' Thn', $content);
+        $this->assertStringContainsString('Wafat - 2024', $content);
         $this->assertStringContainsString('data-generation-kandung-alive', $content);
         $this->assertStringContainsString('data-generation-kandung-deceased', $content);
         $this->assertStringContainsString('data-generation-mantu-alive', $content);
