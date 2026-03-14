@@ -3,6 +3,21 @@
 @section('subtitle', trans('app.family_tree'))
 
 @section('user-content')
+@php
+    $hotlinkChildren = collect($node['children'] ?? [])->map(function (array $childNode) {
+        $childUser = $childNode['user'];
+        $spouseCount = collect($childNode['spouse_labels'] ?? [])->count();
+
+        return [
+            'id' => $childNode['node_id'],
+            'label' => $childUser->display_name,
+            'meta' => trim(collect([
+                $childNode['children']->count() > 0 ? $childNode['children']->count().' turunan' : null,
+                $spouseCount > 0 ? $spouseCount.' pasangan' : null,
+            ])->filter()->implode(' · ')),
+        ];
+    })->values();
+@endphp
 <div class="tree-tools" data-tree-tools>
     <button
         type="button"
@@ -53,7 +68,7 @@
             data-tree-action="collapse"
         >
             <span class="tree-tools__bulk-toggle-text">Collapse Semua</span>
-            <span class="tree-tools__bulk-toggle-meta">Tampilkan ancestor rail dan drag saat semua cabang dibuka.</span>
+            <span class="tree-tools__bulk-toggle-meta">Buka semua cabang lalu pan layar dengan drag.</span>
         </button>
         <div class="tree-tools__zoom" data-tree-zoom-controls>
             <div class="tree-tools__zoom-head">
@@ -79,7 +94,65 @@
         </div>
     </section>
 </div>
-<div class="tree-stage" data-tree-stage>
+<div class="tree-stage {{ $hotlinkChildren->isNotEmpty() ? 'tree-stage--has-hotlink' : '' }}" data-tree-stage>
+    @if ($hotlinkChildren->isNotEmpty())
+    <div class="tree-hotlink" data-tree-hotlink>
+        <button
+            type="button"
+            class="tree-hotlink__toggle"
+            data-tree-hotlink-toggle
+            aria-controls="tree-hotlink-panel"
+            aria-expanded="false"
+        >
+            <span class="tree-hotlink__toggle-icon" aria-hidden="true">&#9906;</span>
+            <span class="tree-hotlink__toggle-copy">
+                <span class="tree-hotlink__toggle-label">Loncat ke Anak Root</span>
+                <span class="tree-hotlink__toggle-value">Cari cabang {{ $user->display_name }}</span>
+            </span>
+        </button>
+        <section
+            id="tree-hotlink-panel"
+            class="tree-hotlink__panel"
+            data-tree-hotlink-panel
+            aria-label="Pilih anak dari root aktif"
+            hidden
+        >
+            <div class="tree-hotlink__panel-head">
+                <div>
+                    <div class="tree-hotlink__eyebrow">Hotlink Cabang</div>
+                    <div class="tree-hotlink__title">Pilih anak dari {{ $user->display_name }}</div>
+                </div>
+                <button type="button" class="tree-hotlink__close" data-tree-hotlink-close aria-label="Tutup hotlink">&times;</button>
+            </div>
+            <label class="sr-only" for="tree-hotlink-search">Cari anak root</label>
+            <input
+                id="tree-hotlink-search"
+                type="search"
+                class="tree-hotlink__search"
+                data-tree-hotlink-input
+                placeholder="Cari anak {{ $user->display_name }}"
+                autocomplete="off"
+            >
+            <div class="tree-hotlink__list" data-tree-hotlink-list>
+                @foreach ($hotlinkChildren as $hotlinkChild)
+                <button
+                    type="button"
+                    class="tree-hotlink__option"
+                    data-tree-hotlink-option
+                    data-target-node-id="{{ $hotlinkChild['id'] }}"
+                    data-search-label="{{ \Illuminate\Support\Str::lower($hotlinkChild['label']) }}"
+                >
+                    <span class="tree-hotlink__option-name">{{ $hotlinkChild['label'] }}</span>
+                    @if ($hotlinkChild['meta'] !== '')
+                    <span class="tree-hotlink__option-meta">{{ $hotlinkChild['meta'] }}</span>
+                    @endif
+                </button>
+                @endforeach
+            </div>
+            <div class="tree-hotlink__empty" data-tree-hotlink-empty hidden>Nama anak root tidak ditemukan.</div>
+        </section>
+    </div>
+    @endif
     <div class="tree-viewport" data-tree-viewport data-tree-drag-surface data-drag-enabled="false">
         <div id="wrapper" class="tree-diagram" data-tree-root-id="{{ $user->id }}">
             @include('users.partials.tree-node', ['node' => $node, 'level' => 1, 'isRoot' => true])
@@ -93,6 +166,10 @@
         });
     $totalKandung = $visibleGenerationStats->sum('kandung_count');
     $totalMantu = $visibleGenerationStats->sum('mantu_count');
+    $totalKandungHidup = $visibleGenerationStats->sum('kandung_alive_count');
+    $totalKandungWafat = $visibleGenerationStats->sum('kandung_deceased_count');
+    $totalMantuHidup = $visibleGenerationStats->sum('mantu_alive_count');
+    $totalMantuWafat = $visibleGenerationStats->sum('mantu_deceased_count');
     $totalHidup = $visibleGenerationStats->sum('alive_count');
     $totalWafat = $visibleGenerationStats->sum('deceased_count');
     $totalKeturunan = $totalKandung + $totalMantu;
@@ -115,8 +192,6 @@
                         <th>Generasi</th>
                         <th class="text-center">Kandung</th>
                         <th class="text-center">Mantu</th>
-                        <th class="text-center">Hidup</th>
-                        <th class="text-center">Wafat</th>
                         <th class="text-center">Total</th>
                     </tr>
                 </thead>
@@ -124,10 +199,24 @@
                     @foreach ($visibleGenerationStats as $level => $stat)
                     <tr data-generation-level="{{ $level }}">
                         <td data-generation-label>{{ $stat['label'] }}</td>
-                        <td class="text-center" data-generation-kandung>{{ $stat['kandung_count'] }}</td>
-                        <td class="text-center" data-generation-mantu>{{ $stat['mantu_count'] }}</td>
-                        <td class="text-center" data-generation-alive>{{ $stat['alive_count'] }}</td>
-                        <td class="text-center" data-generation-deceased>{{ $stat['deceased_count'] }}</td>
+                        <td class="text-center" data-generation-kandung>
+                            <span class="tree-summary-stat">
+                                <span class="tree-summary-stat__total">{{ $stat['kandung_count'] }}</span>
+                                <span class="tree-summary-stat__breakdown">
+                                    <span class="tree-summary-stat__chip tree-summary-stat__chip--alive" data-generation-kandung-alive>H {{ $stat['kandung_alive_count'] }}</span>
+                                    <span class="tree-summary-stat__chip tree-summary-stat__chip--deceased" data-generation-kandung-deceased>W {{ $stat['kandung_deceased_count'] }}</span>
+                                </span>
+                            </span>
+                        </td>
+                        <td class="text-center" data-generation-mantu>
+                            <span class="tree-summary-stat">
+                                <span class="tree-summary-stat__total">{{ $stat['mantu_count'] }}</span>
+                                <span class="tree-summary-stat__breakdown">
+                                    <span class="tree-summary-stat__chip tree-summary-stat__chip--alive" data-generation-mantu-alive>H {{ $stat['mantu_alive_count'] }}</span>
+                                    <span class="tree-summary-stat__chip tree-summary-stat__chip--deceased" data-generation-mantu-deceased>W {{ $stat['mantu_deceased_count'] }}</span>
+                                </span>
+                            </span>
+                        </td>
                         <td class="text-center" data-generation-total>{{ $stat['member_total_count'] }}</td>
                     </tr>
                     @endforeach
@@ -135,10 +224,24 @@
                 <tfoot>
                     <tr data-generation-total-row>
                         <th>Total Semua</th>
-                        <th class="text-center" data-total-kandung-row>{{ $totalKandung }}</th>
-                        <th class="text-center" data-total-mantu-row>{{ $totalMantu }}</th>
-                        <th class="text-center" data-total-hidup-row>{{ $totalHidup }}</th>
-                        <th class="text-center" data-total-wafat-row>{{ $totalWafat }}</th>
+                        <th class="text-center" data-total-kandung-row>
+                            <span class="tree-summary-stat tree-summary-stat--footer">
+                                <span class="tree-summary-stat__total">{{ $totalKandung }}</span>
+                                <span class="tree-summary-stat__breakdown">
+                                    <span class="tree-summary-stat__chip tree-summary-stat__chip--alive" data-total-kandung-alive-row>H {{ $totalKandungHidup }}</span>
+                                    <span class="tree-summary-stat__chip tree-summary-stat__chip--deceased" data-total-kandung-deceased-row>W {{ $totalKandungWafat }}</span>
+                                </span>
+                            </span>
+                        </th>
+                        <th class="text-center" data-total-mantu-row>
+                            <span class="tree-summary-stat tree-summary-stat--footer">
+                                <span class="tree-summary-stat__total">{{ $totalMantu }}</span>
+                                <span class="tree-summary-stat__breakdown">
+                                    <span class="tree-summary-stat__chip tree-summary-stat__chip--alive" data-total-mantu-alive-row>H {{ $totalMantuHidup }}</span>
+                                    <span class="tree-summary-stat__chip tree-summary-stat__chip--deceased" data-total-mantu-deceased-row>W {{ $totalMantuWafat }}</span>
+                                </span>
+                            </span>
+                        </th>
                         <th class="text-center" data-total-keturunan-row>{{ $totalKeturunan }}</th>
                     </tr>
                 </tfoot>
@@ -148,22 +251,22 @@
             <div class="tree-summary-total-card tree-summary-total-card--kandung">
                 <div class="tree-summary-total-card__label">Total Kandung</div>
                 <div class="tree-summary-total-card__value" data-total-kandung>{{ $totalKandung }}</div>
-                <div class="tree-summary-total-card__meta">Akumulasi seluruh generasi kandung</div>
+                <div class="tree-summary-total-card__meta">H {{ $totalKandungHidup }} · W {{ $totalKandungWafat }}</div>
             </div>
             <div class="tree-summary-total-card tree-summary-total-card--mantu">
                 <div class="tree-summary-total-card__label">Total Mantu</div>
                 <div class="tree-summary-total-card__value" data-total-mantu>{{ $totalMantu }}</div>
-                <div class="tree-summary-total-card__meta">Pasangan unik yang tercatat per generasi</div>
+                <div class="tree-summary-total-card__meta">H {{ $totalMantuHidup }} · W {{ $totalMantuWafat }}</div>
             </div>
             <div class="tree-summary-total-card tree-summary-total-card--hidup">
                 <div class="tree-summary-total-card__label">Total Hidup</div>
                 <div class="tree-summary-total-card__value" data-total-hidup>{{ $totalHidup }}</div>
-                <div class="tree-summary-total-card__meta">Anggota generasi yang masih hidup</div>
+                <div class="tree-summary-total-card__meta">Akumulasi kandung dan mantu yang masih hidup</div>
             </div>
             <div class="tree-summary-total-card tree-summary-total-card--wafat">
                 <div class="tree-summary-total-card__label">Total Wafat</div>
                 <div class="tree-summary-total-card__value" data-total-wafat>{{ $totalWafat }}</div>
-                <div class="tree-summary-total-card__meta">Anggota generasi yang sudah wafat</div>
+                <div class="tree-summary-total-card__meta">Akumulasi kandung dan mantu yang sudah wafat</div>
             </div>
             <div class="tree-summary-total-card tree-summary-total-card--grand">
                 <div class="tree-summary-total-card__label">Jumlah Kandung + Mantu</div>
@@ -201,6 +304,13 @@
         var toolsCloseButton = document.querySelector('[data-tree-tools-close]');
         var globalToggleButton = document.querySelector('[data-tree-global-toggle]');
         var globalToggleText = globalToggleButton ? globalToggleButton.querySelector('.tree-tools__bulk-toggle-text') : null;
+        var hotlink = document.querySelector('[data-tree-hotlink]');
+        var hotlinkToggleButton = document.querySelector('[data-tree-hotlink-toggle]');
+        var hotlinkPanel = document.querySelector('[data-tree-hotlink-panel]');
+        var hotlinkCloseButton = document.querySelector('[data-tree-hotlink-close]');
+        var hotlinkInput = document.querySelector('[data-tree-hotlink-input]');
+        var hotlinkOptions = Array.prototype.slice.call(document.querySelectorAll('[data-tree-hotlink-option]'));
+        var hotlinkEmptyState = document.querySelector('[data-tree-hotlink-empty]');
         var zoomOutButton = document.querySelector('[data-tree-zoom-out]');
         var zoomInButton = document.querySelector('[data-tree-zoom-in]');
         var zoomValue = document.querySelector('[data-tree-zoom-value]');
@@ -253,7 +363,7 @@
         }
 
         function isDragTargetInteractive(target) {
-            return !!target.closest('a, button, [data-tree-card], [data-tree-preview], [data-tree-tools]');
+            return !!target.closest('a, button, input, [data-tree-card], [data-tree-preview], [data-tree-tools], [data-tree-hotlink]');
         }
 
         function releaseDragState() {
@@ -582,6 +692,95 @@
             }
         }
 
+        function setHotlinkPanelState(shouldOpen) {
+            if (!hotlinkPanel || !hotlinkToggleButton) return;
+
+            hotlinkPanel.hidden = !shouldOpen;
+            hotlinkToggleButton.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+
+            if (!shouldOpen && hotlinkInput) {
+                hotlinkInput.value = '';
+                filterHotlinkOptions('');
+            }
+        }
+
+        function closeHotlinkPanel() {
+            setHotlinkPanelState(false);
+        }
+
+        function toggleHotlinkPanel() {
+            if (!hotlinkPanel) return;
+
+            var shouldOpen = hotlinkPanel.hidden;
+            setHotlinkPanelState(shouldOpen);
+
+            if (shouldOpen && hotlinkInput) {
+                window.requestAnimationFrame(function () {
+                    hotlinkInput.focus();
+                    hotlinkInput.select();
+                });
+            }
+        }
+
+        function filterHotlinkOptions(query) {
+            var normalizedQuery = (query || '').toLowerCase().trim();
+            var visibleCount = 0;
+
+            hotlinkOptions.forEach(function (option) {
+                var label = (option.getAttribute('data-search-label') || '').toLowerCase();
+                var matches = normalizedQuery === '' || label.indexOf(normalizedQuery) !== -1;
+                option.hidden = !matches;
+
+                if (matches) {
+                    visibleCount += 1;
+                }
+            });
+
+            if (hotlinkEmptyState) {
+                hotlinkEmptyState.hidden = visibleCount > 0;
+            }
+        }
+
+        function pulseTarget(entry) {
+            if (!entry) return;
+
+            entry.classList.remove('is-hotlink-target');
+            window.requestAnimationFrame(function () {
+                entry.classList.add('is-hotlink-target');
+                window.setTimeout(function () {
+                    entry.classList.remove('is-hotlink-target');
+                }, 1800);
+            });
+        }
+
+        function focusNodeById(nodeId) {
+            if (!nodeId) return;
+
+            var entry = wrapper.querySelector('[data-tree-entry][data-node-id="' + nodeId + '"]');
+            if (!entry) return;
+
+            var card = entry.querySelector(':scope > [data-tree-card] [data-tree-box]');
+            if (!card) return;
+
+            var cardRect = card.getBoundingClientRect();
+            var viewportRect = treeViewport.getBoundingClientRect();
+            var targetLeft = treeViewport.scrollLeft + (cardRect.left - viewportRect.left) - Math.max(18, ((treeViewport.clientWidth - cardRect.width) / 2));
+            var targetTop = window.scrollY + cardRect.top - Math.max(110, (window.innerHeight * 0.24));
+
+            treeViewport.scrollTo({
+                left: Math.max(0, targetLeft),
+                behavior: 'smooth'
+            });
+            window.scrollTo({
+                top: Math.max(0, targetTop),
+                behavior: 'smooth'
+            });
+
+            pulseTarget(entry);
+            closeHotlinkPanel();
+            closeAllPreviews();
+        }
+
         function toggleToolsPanel() {
             if (!toolsPanel) return;
 
@@ -724,6 +923,7 @@
         document.addEventListener('keydown', function (event) {
             if (event.key === 'Escape') {
                 closeToolsPanel();
+                closeHotlinkPanel();
                 closeAllPreviews();
             }
         });
@@ -754,6 +954,45 @@
                 event.stopPropagation();
             });
         }
+
+        if (hotlinkToggleButton) {
+            hotlinkToggleButton.addEventListener('click', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                toggleHotlinkPanel();
+            });
+        }
+
+        if (hotlinkCloseButton) {
+            hotlinkCloseButton.addEventListener('click', function (event) {
+                event.preventDefault();
+                closeHotlinkPanel();
+            });
+        }
+
+        if (hotlinkPanel) {
+            hotlinkPanel.addEventListener('click', function (event) {
+                event.stopPropagation();
+            });
+        }
+
+        if (hotlinkInput) {
+            hotlinkInput.addEventListener('input', function () {
+                filterHotlinkOptions(hotlinkInput.value);
+            });
+        }
+
+        hotlinkOptions.forEach(function (option) {
+            option.addEventListener('click', function () {
+                focusNodeById(option.getAttribute('data-target-node-id'));
+            });
+        });
+
+        document.addEventListener('click', function (event) {
+            if (hotlink && !event.target.closest('[data-tree-hotlink]')) {
+                closeHotlinkPanel();
+            }
+        });
 
         treeViewport.addEventListener('pointerdown', onPointerDown);
         treeViewport.addEventListener('click', function (event) {
@@ -814,6 +1053,7 @@
         }
 
         setZoom(storedZoom());
+        filterHotlinkOptions('');
         queueRender();
     })();
 </script>

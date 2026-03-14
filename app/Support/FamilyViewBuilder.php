@@ -94,7 +94,7 @@ class FamilyViewBuilder
             foreach ($this->sortedChildren($user) as $child) {
                 $generationCounts[$depth] = ($generationCounts[$depth] ?? 0) + 1;
                 $generationStats[$depth]['kandung_count'] = ($generationStats[$depth]['kandung_count'] ?? 0) + 1;
-                $this->accumulateGenerationMember($child, $depth, $generationStats);
+                $this->accumulateGenerationMember($child, $depth, $generationStats, 'kandung');
                 $this->accumulateGenerationSpouses($child, $depth, $generationStats, $generationSpouseIds);
                 $children->push(
                     $this->buildTreeNode($child, $depth + 1, $maxDepth, $generationCounts, $generationStats, $generationSpouseIds)
@@ -333,7 +333,11 @@ class FamilyViewBuilder
             $stats[$generation] = [
                 'label' => $this->generationLabel($generation),
                 'kandung_count' => 0,
+                'kandung_alive_count' => 0,
+                'kandung_deceased_count' => 0,
                 'mantu_count' => 0,
+                'mantu_alive_count' => 0,
+                'mantu_deceased_count' => 0,
                 'alive_count' => 0,
                 'deceased_count' => 0,
                 'member_total_count' => 0,
@@ -361,19 +365,24 @@ class FamilyViewBuilder
 
             $generationSpouseIds[$generation][$spouse->id] = true;
             $generationStats[$generation]['mantu_count'] = ($generationStats[$generation]['mantu_count'] ?? 0) + 1;
-            $this->accumulateGenerationMember($spouse, $generation, $generationStats);
+            $this->accumulateGenerationMember($spouse, $generation, $generationStats, 'mantu');
         }
     }
 
-    private function accumulateGenerationMember(User $user, int $generation, array &$generationStats): void
+    private function accumulateGenerationMember(User $user, int $generation, array &$generationStats, string $type): void
     {
         if (! isset($generationStats[$generation])) {
             return;
         }
 
+        $aliveKey = $type.'_alive_count';
+        $deceasedKey = $type.'_deceased_count';
+
         if ($user->isDeceased()) {
+            $generationStats[$generation][$deceasedKey] = ($generationStats[$generation][$deceasedKey] ?? 0) + 1;
             $generationStats[$generation]['deceased_count'] = ($generationStats[$generation]['deceased_count'] ?? 0) + 1;
         } else {
+            $generationStats[$generation][$aliveKey] = ($generationStats[$generation][$aliveKey] ?? 0) + 1;
             $generationStats[$generation]['alive_count'] = ($generationStats[$generation]['alive_count'] ?? 0) + 1;
         }
 

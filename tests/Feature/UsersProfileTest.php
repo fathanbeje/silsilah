@@ -110,6 +110,10 @@ class UsersProfileTest extends TestCase
         $this->assertStringContainsString('data-tree-zoom-preset', $content);
         $this->assertStringContainsString('data-tree-drag-surface', $content);
         $this->assertStringContainsString('data-drag-enabled="false"', $content);
+        $this->assertStringContainsString('data-tree-hotlink', $content);
+        $this->assertStringContainsString('data-tree-hotlink-toggle', $content);
+        $this->assertStringContainsString('data-tree-hotlink-option', $content);
+        $this->assertStringContainsString('Loncat ke Anak Root', $content);
         $this->assertStringContainsString('Statistik Keturunan '.$core->display_name, $content);
         $this->assertStringContainsString('Rincian keturunan kandung dan mantu per generasi', $content);
         $this->assertStringNotContainsString('dari core aktif', $content);
@@ -123,6 +127,10 @@ class UsersProfileTest extends TestCase
         $this->assertStringNotContainsString('Kembali ke core', $content);
         $this->assertStringContainsString('data-tree-preview-trigger', $content);
         $this->assertStringContainsString('data-tree-preview-popup', $content);
+        $this->assertStringContainsString('data-generation-kandung-alive', $content);
+        $this->assertStringContainsString('data-generation-kandung-deceased', $content);
+        $this->assertStringContainsString('data-generation-mantu-alive', $content);
+        $this->assertStringContainsString('data-generation-mantu-deceased', $content);
         $this->assertStringContainsString('Wafat', $content);
         $this->assertStringContainsString('Hidup', $content);
         $this->assertMatchesRegularExpression('/data-total-kandung[^>]*>2</', $content);
@@ -130,16 +138,18 @@ class UsersProfileTest extends TestCase
         $this->assertMatchesRegularExpression('/data-total-hidup[^>]*>1</', $content);
         $this->assertMatchesRegularExpression('/data-total-wafat[^>]*>2</', $content);
         $this->assertMatchesRegularExpression('/data-total-keturunan[^>]*>3</', $content);
-        $this->assertMatchesRegularExpression('/data-total-hidup-row[^>]*>1</', $content);
-        $this->assertMatchesRegularExpression('/data-total-wafat-row[^>]*>2</', $content);
         $this->assertMatchesRegularExpression(
-            '/data-generation-level="1"[\s\S]*data-generation-label>\\s*Anak\\s*<[\s\S]*data-generation-kandung>1<[\s\S]*data-generation-mantu>1<[\s\S]*data-generation-alive>1<[\s\S]*data-generation-deceased>1<[\s\S]*data-generation-total>2</',
+            '/data-generation-level="1"[\s\S]*data-generation-label>\\s*Anak\\s*<[\s\S]*data-generation-kandung[^>]*>[\s\S]*tree-summary-stat__total">1<[\s\S]*data-generation-kandung-alive>H 1<[\s\S]*data-generation-kandung-deceased>W 0<[\s\S]*data-generation-mantu[^>]*>[\s\S]*tree-summary-stat__total">1<[\s\S]*data-generation-mantu-alive>H 0<[\s\S]*data-generation-mantu-deceased>W 1<[\s\S]*data-generation-total>2</',
             $content
         );
         $this->assertMatchesRegularExpression(
-            '/data-generation-level="2"[\s\S]*data-generation-label>\\s*Cucu\\s*<[\s\S]*data-generation-kandung>1<[\s\S]*data-generation-mantu>0<[\s\S]*data-generation-alive>0<[\s\S]*data-generation-deceased>1<[\s\S]*data-generation-total>1</',
+            '/data-generation-level="2"[\s\S]*data-generation-label>\\s*Cucu\\s*<[\s\S]*data-generation-kandung[^>]*>[\s\S]*tree-summary-stat__total">1<[\s\S]*data-generation-kandung-alive>H 0<[\s\S]*data-generation-kandung-deceased>W 1<[\s\S]*data-generation-mantu[^>]*>[\s\S]*tree-summary-stat__total">0<[\s\S]*data-generation-mantu-alive>H 0<[\s\S]*data-generation-mantu-deceased>W 0<[\s\S]*data-generation-total>1</',
             $content
         );
+        $this->assertMatchesRegularExpression('/data-total-kandung-alive-row>H 1</', $content);
+        $this->assertMatchesRegularExpression('/data-total-kandung-deceased-row>W 1</', $content);
+        $this->assertMatchesRegularExpression('/data-total-mantu-alive-row>H 0</', $content);
+        $this->assertMatchesRegularExpression('/data-total-mantu-deceased-row>W 1</', $content);
     }
 
     /** @test */
