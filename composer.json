@@ -19,7 +19,8 @@
         "laravel/legacy-factories": "^1.0",
         "laravel/tinker": "^2.0",
         "laravel/ui": "^3.0",
-        "luthfi/formfield": "^1.0"
+        "luthfi/formfield": "^1.0",
+        "phpoffice/phpspreadsheet": "1.29"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.1",

@@ -20,40 +20,13 @@ class ApplyUserEditRequest
                 ->lockForUpdate()
                 ->findOrFail($editRequest->target_user_id);
 
-            $proposedProfile = $editRequest->proposed_profile ?? [];
-            if (!empty($proposedProfile['email']) && User::query()->where('email', $proposedProfile['email'])->where('id', '!=', $targetUser->id)->exists()) {
-                throw new \RuntimeException('Email usulan sudah dipakai oleh anggota lain.');
-            }
-
-            if (!empty($proposedProfile)) {
-                $targetUser->fill($proposedProfile);
-            }
-
-            if ($editRequest->proposed_photo_path && Storage::disk('public')->exists($editRequest->proposed_photo_path)) {
-                if ($targetUser->photo_path && Storage::disk('public')->exists($targetUser->photo_path)) {
-                    Storage::disk('public')->delete($targetUser->photo_path);
-                }
-
-                $targetUser->photo_path = $this->moveStagedPhoto($editRequest->proposed_photo_path);
-            }
-
-            $targetUser->save();
-
-            foreach (($editRequest->proposed_metadata ?? []) as $key => $value) {
-                $this->saveMetadata($targetUser, $key, $value);
-            }
-
-            $newCouplesByRequestKey = [];
-
-            foreach (($editRequest->proposed_new_spouses ?? []) as $spouseData) {
-                $spouse = $this->createSpouse($targetUser, $spouseData, $reviewer);
-                $couple = $this->createCouple($targetUser, $spouse, $spouseData['marriage_date'] ?? null, $reviewer);
-                $newCouplesByRequestKey[$spouseData['request_key']] = $couple;
-            }
-
-            foreach (($editRequest->proposed_new_children ?? []) as $childData) {
-                $this->createChild($targetUser, $childData, $newCouplesByRequestKey, $reviewer);
-            }
+            $this->applyPayload($targetUser, [
+                'proposed_profile' => $editRequest->proposed_profile ?? [],
+                'proposed_metadata' => $editRequest->proposed_metadata ?? [],
+                'proposed_new_spouses' => $editRequest->proposed_new_spouses ?? [],
+                'proposed_new_children' => $editRequest->proposed_new_children ?? [],
+                'proposed_photo_path' => $editRequest->proposed_photo_path,
+            ], $reviewer, $reviewNotes);
 
             $editRequest->update([
                 'status' => UserEditRequest::STATUS_APPROVED,
@@ -62,6 +35,55 @@ class ApplyUserEditRequest
                 'review_notes' => $reviewNotes,
             ]);
         });
+    }
+
+    public function applyPayload(User $targetUser, array $payload, User $reviewer, ?string $reviewNotes = null): array
+    {
+        $createdUserIds = [];
+        $createdCoupleIds = [];
+
+        $proposedProfile = $payload['proposed_profile'] ?? [];
+        if (!empty($proposedProfile['email']) && User::query()->where('email', $proposedProfile['email'])->where('id', '!=', $targetUser->id)->exists()) {
+            throw new \RuntimeException('Email usulan sudah dipakai oleh anggota lain.');
+        }
+
+        if (!empty($proposedProfile)) {
+            $targetUser->fill($proposedProfile);
+        }
+
+        if (!empty($payload['proposed_photo_path']) && Storage::disk('public')->exists($payload['proposed_photo_path'])) {
+            if ($targetUser->photo_path && Storage::disk('public')->exists($targetUser->photo_path)) {
+                Storage::disk('public')->delete($targetUser->photo_path);
+            }
+
+            $targetUser->photo_path = $this->moveStagedPhoto($payload['proposed_photo_path']);
+        }
+
+        $targetUser->save();
+
+        foreach (($payload['proposed_metadata'] ?? []) as $key => $value) {
+            $this->saveMetadata($targetUser, $key, $value);
+        }
+
+        $newCouplesByRequestKey = [];
+
+        foreach (($payload['proposed_new_spouses'] ?? []) as $spouseData) {
+            $spouse = $this->createSpouse($targetUser, $spouseData, $reviewer);
+            $couple = $this->createCouple($targetUser, $spouse, $spouseData['marriage_date'] ?? null, $reviewer);
+            $newCouplesByRequestKey[$spouseData['request_key']] = $couple;
+            $createdUserIds[] = $spouse->id;
+            $createdCoupleIds[] = $couple->id;
+        }
+
+        foreach (($payload['proposed_new_children'] ?? []) as $childData) {
+            $child = $this->createChild($targetUser, $childData, $newCouplesByRequestKey, $reviewer);
+            $createdUserIds[] = $child->id;
+        }
+
+        return [
+            'created_user_ids' => array_values(array_filter($createdUserIds)),
+            'created_couple_ids' => array_values(array_filter($createdCoupleIds)),
+        ];
     }
 
     private function moveStagedPhoto(string $stagedPath): string
@@ -96,8 +118,17 @@ class ApplyUserEditRequest
         $spouse->gender_id = $targetUser->gender_id == 1 ? 2 : 1;
         $spouse->dob = $spouseData['dob'] ?? null;
         $spouse->yob = $spouseData['yob'] ?? null;
+        $spouse->phone = $spouseData['phone'] ?? null;
+        $spouse->address = $spouseData['address'] ?? null;
+        $spouse->city = $spouseData['city'] ?? null;
+        $spouse->dod = $spouseData['dod'] ?? null;
+        $spouse->yod = $spouseData['yod'] ?? null;
+        $spouse->is_deceased = !empty($spouseData['is_deceased']);
         $spouse->manager_id = $reviewer->id;
         $spouse->save();
+        foreach (($spouseData['metadata'] ?? []) as $key => $value) {
+            $this->saveMetadata($spouse, $key, $value);
+        }
 
         return $spouse;
     }
@@ -116,7 +147,7 @@ class ApplyUserEditRequest
         return $couple;
     }
 
-    private function createChild(User $targetUser, array $childData, array $newCouplesByRequestKey, User $reviewer): void
+    private function createChild(User $targetUser, array $childData, array $newCouplesByRequestKey, User $reviewer): User
     {
         $child = new User();
         $child->id = Uuid::uuid4()->toString();
@@ -126,6 +157,12 @@ class ApplyUserEditRequest
         $child->birth_order = $childData['birth_order'] ?: null;
         $child->dob = $childData['dob'] ?? null;
         $child->yob = $childData['yob'] ?? null;
+        $child->phone = $childData['phone'] ?? null;
+        $child->address = $childData['address'] ?? null;
+        $child->city = $childData['city'] ?? null;
+        $child->dod = $childData['dod'] ?? null;
+        $child->yod = $childData['yod'] ?? null;
+        $child->is_deceased = !empty($childData['is_deceased']);
         $child->manager_id = $reviewer->id;
 
         $context = $childData['spouse_context'] ?? 'none';
@@ -155,5 +192,11 @@ class ApplyUserEditRequest
         }
 
         $child->save();
+
+        foreach (($childData['metadata'] ?? []) as $key => $value) {
+            $this->saveMetadata($child, $key, $value);
+        }
+
+        return $child;
     }
 }

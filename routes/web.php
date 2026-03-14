@@ -5,6 +5,7 @@ use App\Http\Controllers\AppSettingsController;
 use App\Http\Controllers\BackupsController;
 use App\Http\Controllers\BirthOrderController;
 use App\Http\Controllers\BirthdayController;
+use App\Http\Controllers\BulkEditImportsController;
 use App\Http\Controllers\ClaimRegistrationController;
 use App\Http\Controllers\CouplesController;
 use App\Http\Controllers\FamilyActionsController;
@@ -112,6 +113,17 @@ Route::group(['middleware' => ['auth', 'admin']], function () {
     Route::controller(DeploySyncController::class)->group(function () {
         Route::get('deploy-sync', 'index')->name('deploy-sync.index');
         Route::post('deploy-sync/run', 'run')->name('deploy-sync.run');
+    });
+
+    Route::controller(BulkEditImportsController::class)->group(function () {
+        Route::get('bulk-edit-imports', 'index')->name('bulk-edit-imports.index');
+        Route::get('bulk-edit-imports/template', 'template')->name('bulk-edit-imports.template');
+        Route::post('bulk-edit-imports', 'store')->name('bulk-edit-imports.store');
+        Route::get('bulk-edit-imports/{bulkEditImport}', 'show')->name('bulk-edit-imports.show');
+        Route::patch('bulk-edit-imports/{bulkEditImport}/rows/{bulkEditImportRow}', 'updateRow')->name('bulk-edit-imports.rows.update');
+        Route::post('bulk-edit-imports/{bulkEditImport}/rows/{bulkEditImportRow}/approve', 'approveRow')->name('bulk-edit-imports.rows.approve');
+        Route::post('bulk-edit-imports/{bulkEditImport}/rows/{bulkEditImportRow}/reject', 'rejectRow')->name('bulk-edit-imports.rows.reject');
+        Route::post('bulk-edit-imports/{bulkEditImport}/approve-ready', 'approveReady')->name('bulk-edit-imports.approve-ready');
     });
 
     Route::controller(AppSettingsController::class)->group(function () {
