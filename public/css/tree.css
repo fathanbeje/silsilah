@@ -348,6 +348,7 @@ body.tree-dragging * {
 .entry {
     position: relative;
     min-height: 64px;
+    z-index: 1;
 }
 
 .entry:before {
@@ -430,8 +431,12 @@ body.tree-dragging * {
     z-index: 2;
 }
 
+.entry.is-preview-active {
+    z-index: 48;
+}
+
 .entry.is-preview-active > .tree-node-card {
-    z-index: 42;
+    z-index: 52;
 }
 
 .tree-node-box {
@@ -770,6 +775,10 @@ body.tree-dragging * {
     flex: 0 0 auto;
 }
 
+.entry.is-preview-active .tree-person-line__preview {
+    z-index: 58;
+}
+
 .tree-person-line__avatar {
     display: inline-flex;
     align-items: center;
@@ -801,7 +810,7 @@ body.tree-dragging * {
     position: absolute;
     left: 50%;
     bottom: calc(100% + 10px);
-    z-index: 12;
+    z-index: 64;
     display: flex;
     flex-direction: column;
     align-items: center;
