@@ -430,6 +430,10 @@ body.tree-dragging * {
     z-index: 2;
 }
 
+.entry.is-preview-active > .tree-node-card {
+    z-index: 42;
+}
+
 .tree-node-box {
     width: 100%;
     position: relative;

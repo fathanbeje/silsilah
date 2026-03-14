@@ -805,6 +805,11 @@
             if (!preview) return;
 
             preview.classList.remove('is-open');
+            var previewEntry = preview.closest('[data-tree-entry]');
+
+            if (previewEntry) {
+                previewEntry.classList.remove('is-preview-active');
+            }
 
             var trigger = preview.querySelector('[data-tree-preview-trigger]');
             var popup = preview.querySelector('[data-tree-preview-popup]');
@@ -825,6 +830,11 @@
             }
 
             preview.classList.add('is-open');
+            var previewEntry = preview.closest('[data-tree-entry]');
+
+            if (previewEntry) {
+                previewEntry.classList.add('is-preview-active');
+            }
 
             var trigger = preview.querySelector('[data-tree-preview-trigger]');
             var popup = preview.querySelector('[data-tree-preview-popup]');
