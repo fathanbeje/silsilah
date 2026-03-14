@@ -94,65 +94,64 @@
         </div>
     </section>
 </div>
-<div class="tree-stage {{ $hotlinkChildren->isNotEmpty() ? 'tree-stage--has-hotlink' : '' }}" data-tree-stage>
-    @if ($hotlinkChildren->isNotEmpty())
-    <div class="tree-hotlink" data-tree-hotlink>
-        <button
-            type="button"
-            class="tree-hotlink__toggle"
-            data-tree-hotlink-toggle
-            aria-controls="tree-hotlink-panel"
-            aria-expanded="false"
-        >
-            <span class="tree-hotlink__toggle-icon" aria-hidden="true">&#9906;</span>
-            <span class="tree-hotlink__toggle-copy">
-                <span class="tree-hotlink__toggle-label">Loncat ke Anak Root</span>
-                <span class="tree-hotlink__toggle-value">Cari cabang {{ $user->display_name }}</span>
-            </span>
-        </button>
-        <section
-            id="tree-hotlink-panel"
-            class="tree-hotlink__panel"
-            data-tree-hotlink-panel
-            aria-label="Pilih anak dari root aktif"
-            hidden
-        >
-            <div class="tree-hotlink__panel-head">
-                <div>
-                    <div class="tree-hotlink__eyebrow">Hotlink Cabang</div>
-                    <div class="tree-hotlink__title">Pilih anak dari {{ $user->display_name }}</div>
-                </div>
-                <button type="button" class="tree-hotlink__close" data-tree-hotlink-close aria-label="Tutup hotlink">&times;</button>
+@if ($hotlinkChildren->isNotEmpty())
+<div class="tree-hotlink" data-tree-hotlink>
+    <button
+        type="button"
+        class="tree-hotlink__fab"
+        data-tree-hotlink-toggle
+        aria-controls="tree-hotlink-panel"
+        aria-expanded="false"
+        aria-label="Loncat ke anak root"
+        title="Loncat ke anak root"
+    >
+        <span class="tree-hotlink__fab-icon" aria-hidden="true">&#9906;</span>
+        <span class="tree-hotlink__fab-tooltip" data-tree-hotlink-tooltip>Loncat ke anak root</span>
+    </button>
+    <section
+        id="tree-hotlink-panel"
+        class="tree-hotlink__panel"
+        data-tree-hotlink-panel
+        aria-label="Pilih anak dari root aktif"
+        hidden
+    >
+        <div class="tree-hotlink__panel-head">
+            <div>
+                <div class="tree-hotlink__eyebrow">Hotlink Cabang</div>
+                <div class="tree-hotlink__title">Pilih anak dari {{ $user->display_name }}</div>
             </div>
-            <label class="sr-only" for="tree-hotlink-search">Cari anak root</label>
-            <input
-                id="tree-hotlink-search"
-                type="search"
-                class="tree-hotlink__search"
-                data-tree-hotlink-input
-                placeholder="Cari anak {{ $user->display_name }}"
-                autocomplete="off"
+            <button type="button" class="tree-hotlink__close" data-tree-hotlink-close aria-label="Tutup hotlink">&times;</button>
+        </div>
+        <label class="sr-only" for="tree-hotlink-search">Cari anak root</label>
+        <input
+            id="tree-hotlink-search"
+            type="search"
+            class="tree-hotlink__search"
+            data-tree-hotlink-input
+            placeholder="Cari anak {{ $user->display_name }}"
+            autocomplete="off"
+        >
+        <div class="tree-hotlink__list" data-tree-hotlink-list>
+            @foreach ($hotlinkChildren as $hotlinkChild)
+            <button
+                type="button"
+                class="tree-hotlink__option"
+                data-tree-hotlink-option
+                data-target-node-id="{{ $hotlinkChild['id'] }}"
+                data-search-label="{{ \Illuminate\Support\Str::lower($hotlinkChild['label']) }}"
             >
-            <div class="tree-hotlink__list" data-tree-hotlink-list>
-                @foreach ($hotlinkChildren as $hotlinkChild)
-                <button
-                    type="button"
-                    class="tree-hotlink__option"
-                    data-tree-hotlink-option
-                    data-target-node-id="{{ $hotlinkChild['id'] }}"
-                    data-search-label="{{ \Illuminate\Support\Str::lower($hotlinkChild['label']) }}"
-                >
-                    <span class="tree-hotlink__option-name">{{ $hotlinkChild['label'] }}</span>
-                    @if ($hotlinkChild['meta'] !== '')
-                    <span class="tree-hotlink__option-meta">{{ $hotlinkChild['meta'] }}</span>
-                    @endif
-                </button>
-                @endforeach
-            </div>
-            <div class="tree-hotlink__empty" data-tree-hotlink-empty hidden>Nama anak root tidak ditemukan.</div>
-        </section>
-    </div>
-    @endif
+                <span class="tree-hotlink__option-name">{{ $hotlinkChild['label'] }}</span>
+                @if ($hotlinkChild['meta'] !== '')
+                <span class="tree-hotlink__option-meta">{{ $hotlinkChild['meta'] }}</span>
+                @endif
+            </button>
+            @endforeach
+        </div>
+        <div class="tree-hotlink__empty" data-tree-hotlink-empty hidden>Nama anak root tidak ditemukan.</div>
+    </section>
+</div>
+@endif
+<div class="tree-stage" data-tree-stage>
     <div class="tree-viewport" data-tree-viewport data-tree-drag-surface data-drag-enabled="false">
         <div id="wrapper" class="tree-diagram" data-tree-root-id="{{ $user->id }}">
             @include('users.partials.tree-node', ['node' => $node, 'level' => 1, 'isRoot' => true])
@@ -712,6 +711,9 @@
             if (!hotlinkPanel) return;
 
             var shouldOpen = hotlinkPanel.hidden;
+            if (shouldOpen) {
+                closeToolsPanel();
+            }
             setHotlinkPanelState(shouldOpen);
 
             if (shouldOpen && hotlinkInput) {
@@ -785,6 +787,9 @@
             if (!toolsPanel) return;
 
             var shouldOpen = toolsPanel.hidden;
+            if (shouldOpen) {
+                closeHotlinkPanel();
+            }
             toolsPanel.hidden = !shouldOpen;
 
             if (toolsBackdrop) {

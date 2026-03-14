@@ -113,7 +113,7 @@ class UsersProfileTest extends TestCase
         $this->assertStringContainsString('data-tree-hotlink', $content);
         $this->assertStringContainsString('data-tree-hotlink-toggle', $content);
         $this->assertStringContainsString('data-tree-hotlink-option', $content);
-        $this->assertStringContainsString('Loncat ke Anak Root', $content);
+        $this->assertStringContainsString('data-tree-hotlink-tooltip', $content);
         $this->assertStringContainsString('Statistik Keturunan '.$core->display_name, $content);
         $this->assertStringContainsString('Rincian keturunan kandung dan mantu per generasi', $content);
         $this->assertStringNotContainsString('dari core aktif', $content);
