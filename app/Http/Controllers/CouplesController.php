@@ -21,6 +21,7 @@ class CouplesController extends Controller
     public function show(Couple $couple)
     {
         $this->abortIfCoupleOutsideTenant($couple);
+        $couple->loadCount('childs');
 
         return view('couples.show', compact('couple'));
     }
@@ -35,6 +36,7 @@ class CouplesController extends Controller
     {
         $this->authorize('edit', $couple);
         $this->abortIfCoupleOutsideTenant($couple);
+        $couple->loadCount('childs');
 
         return view('couples.edit', compact('couple'));
     }
@@ -62,6 +64,36 @@ class CouplesController extends Controller
         $couple->save();
 
         return redirect()->route('couples.show', $couple);
+    }
+
+    /**
+     * Remove the specified Couple from storage.
+     *
+     * @param  \App\Couple  $couple
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function destroy(Couple $couple)
+    {
+        $this->authorize('delete', $couple);
+        $this->abortIfCoupleOutsideTenant($couple);
+        $couple->loadCount('childs');
+
+        if ($couple->childs_count > 0) {
+            return back()->withErrors([
+                'couple' => __('couple.delete_blocked_childs'),
+            ]);
+        }
+
+        $redirectUser = $couple->husband ?: $couple->wife;
+        $couple->delete();
+
+        if ($redirectUser) {
+            return redirect()->route('users.marriages', $redirectUser)
+                ->with('status', __('couple.deleted'));
+        }
+
+        return redirect()->route('users.search')
+            ->with('status', __('couple.deleted'));
     }
 
     private function abortIfCoupleOutsideTenant(Couple $couple): void

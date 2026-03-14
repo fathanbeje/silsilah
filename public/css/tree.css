@@ -79,8 +79,9 @@ body.tree-dragging * {
     position: fixed;
     top: 0;
     left: 0;
-    z-index: 2400;
+    z-index: 2147483000;
     pointer-events: none;
+    isolation: isolate;
 }
 
 .tree-preview-layer[hidden] {

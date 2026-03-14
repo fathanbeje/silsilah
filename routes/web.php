@@ -81,6 +81,7 @@ Route::middleware('auth')->group(function () {
         Route::get('couples/{couple}', 'show')->name('couples.show');
         Route::get('couples/{couple}/edit', 'edit')->name('couples.edit');
         Route::patch('couples/{couple}', 'update')->name('couples.update');
+        Route::delete('couples/{couple}', 'destroy')->name('couples.destroy');
     });
 
     Route::controller(ChangePasswordController::class)->group(function () {

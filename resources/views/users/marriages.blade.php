@@ -4,6 +4,14 @@
 
 @section('user-content')
 
+@if (session('status'))
+    <div class="alert alert-success">{{ session('status') }}</div>
+@endif
+
+@if ($errors->has('couple'))
+    <div class="alert alert-danger">{{ $errors->first('couple') }}</div>
+@endif
+
 <div class="row">
     @foreach ($marriages as $marriage)
     <div class="col-md-4">
@@ -21,6 +29,19 @@
             </table>
             <div class="panel-footer">
                 {{ link_to_route('couples.show', trans('couple.show'), [$marriage->id], ['class' => 'btn btn-default btn-xs']) }}
+                @can('delete', $marriage)
+                    @if ($marriage->childs_count === 0)
+                        {{ Form::open(['route' => ['couples.destroy', $marriage], 'method' => 'delete', 'style' => 'display:inline']) }}
+                            <button
+                                type="submit"
+                                class="btn btn-danger btn-xs"
+                                onclick="return confirm('{{ trans('couple.delete_confirm') }}')"
+                            >{{ trans('app.delete') }}</button>
+                        {{ Form::close() }}
+                    @else
+                        <span class="btn btn-default btn-xs disabled" title="{{ trans('couple.delete_blocked_childs') }}">{{ trans('app.delete') }}</span>
+                    @endif
+                @endcan
             </div>
         </div>
     </div>

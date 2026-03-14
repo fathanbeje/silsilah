@@ -5,6 +5,14 @@
         {{ $couple->husband->display_name }} &amp; {{ $couple->wife->display_name }} <small>{{ trans('couple.edit') }}</small>
 </h2>
 
+@if (session('status'))
+    <div class="alert alert-success">{{ session('status') }}</div>
+@endif
+
+@if ($errors->has('couple'))
+    <div class="alert alert-danger">{{ $errors->first('couple') }}</div>
+@endif
+
 @include('couples.partials.stat')
 
 <div class="row">
@@ -34,6 +42,21 @@
             </div>
             {!! Form::close() !!}
         </div>
+        @can('delete', $couple)
+            <div class="text-right" style="margin-top:12px;">
+                {{ Form::open(['route' => ['couples.destroy', $couple], 'method' => 'delete', 'style' => 'display:inline']) }}
+                    <button
+                        type="submit"
+                        class="btn btn-danger"
+                        onclick="return confirm('{{ trans('couple.delete_confirm') }}')"
+                        {{ $couple->childs_count > 0 ? 'disabled' : '' }}
+                    >{{ trans('app.delete') }}</button>
+                {{ Form::close() }}
+            </div>
+        @endcan
+        @if ($couple->childs_count > 0)
+            <p class="help-block text-danger" style="margin-top:8px;">{{ trans('couple.delete_blocked_childs') }}</p>
+        @endif
     </div>
 </div>
 

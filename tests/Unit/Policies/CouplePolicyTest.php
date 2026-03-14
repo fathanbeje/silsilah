@@ -22,6 +22,8 @@ class CouplePolicyTest extends TestCase
 
         $this->assertTrue($manager->can('edit', $couple));
         $this->assertFalse($manager->can('edit', $otherCouple));
+        $this->assertTrue($manager->can('delete', $couple));
+        $this->assertFalse($manager->can('delete', $otherCouple));
     }
 
     /** @test */
@@ -38,9 +40,13 @@ class CouplePolicyTest extends TestCase
 
         $this->assertTrue($admin->can('edit', $couple));
         $this->assertTrue($admin->can('edit', $otherCouple));
+        $this->assertTrue($admin->can('delete', $couple));
+        $this->assertTrue($admin->can('delete', $otherCouple));
 
         $this->assertTrue($manager->can('edit', $couple));
         $this->assertFalse($manager->can('edit', $otherCouple));
+        $this->assertTrue($manager->can('delete', $couple));
+        $this->assertFalse($manager->can('delete', $otherCouple));
     }
 
     /** @test */
@@ -51,6 +57,8 @@ class CouplePolicyTest extends TestCase
 
         $this->assertTrue($couple->husband->can('edit', $couple));
         $this->assertFalse($anotherCouple->husband->can('edit', $couple));
+        $this->assertTrue($couple->husband->can('delete', $couple));
+        $this->assertFalse($anotherCouple->husband->can('delete', $couple));
     }
 
     /** @test */
@@ -61,5 +69,7 @@ class CouplePolicyTest extends TestCase
 
         $this->assertTrue($couple->wife->can('edit', $couple));
         $this->assertFalse($anotherCouple->wife->can('edit', $couple));
+        $this->assertTrue($couple->wife->can('delete', $couple));
+        $this->assertFalse($anotherCouple->wife->can('delete', $couple));
     }
 }

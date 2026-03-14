@@ -355,6 +355,10 @@
             return Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, parsedZoom));
         }
 
+        if (previewLayer && previewLayer.parentNode !== document.body) {
+            document.body.appendChild(previewLayer);
+        }
+
         function connectorStemOffset() {
             return parseFloat(window.getComputedStyle(document.documentElement).getPropertyValue('--tree-stem-offset')) || 30;
         }

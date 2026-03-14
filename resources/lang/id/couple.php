@@ -10,6 +10,7 @@ return [
     // Actions
     'edit'               => 'Edit Pernikahan',
     'update'             => 'Update Pernikahan',
+    'deleted'            => 'Relasi pernikahan berhasil dihapus.',
 
     // Attributes
     'husband'            => 'Kepala Keluarga',
@@ -17,4 +18,6 @@ return [
     'marriage_date'      => 'Tanggal Pernikahan',
     'divorce_date'       => 'Tanggal Perceraian',
     'spouse_order'       => 'Urutan Pasangan',
+    'delete_confirm'     => 'Hapus relasi pernikahan ini?',
+    'delete_blocked_childs' => 'Relasi pernikahan ini tidak bisa dihapus karena masih dipakai sebagai orang tua pada data anak.',
 ];

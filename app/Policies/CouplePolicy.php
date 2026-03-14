@@ -24,4 +24,16 @@ class CouplePolicy
         || $couple->wife_id == $user->id
         || is_system_admin($user);
     }
+
+    /**
+     * Determine whether the user can delete the couple.
+     *
+     * @param  \App\User  $user
+     * @param  \App\Couple  $couple
+     * @return mixed
+     */
+    public function delete(User $user, Couple $couple)
+    {
+        return $this->edit($user, $couple);
+    }
 }
