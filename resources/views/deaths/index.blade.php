@@ -7,6 +7,9 @@
     }
 
     .death-index-hero {
+        position: sticky;
+        top: 8px;
+        z-index: 30;
         margin-bottom: 24px;
         padding: 24px 24px 18px;
         border-radius: 28px;
@@ -15,6 +18,15 @@
             linear-gradient(135deg, #f9f5ea 0%, #eef4f6 54%, #f7f9fb 100%);
         border: 1px solid #e5e2d8;
         box-shadow: 0 18px 38px rgba(31, 42, 42, 0.08);
+        backdrop-filter: blur(14px);
+        transition: padding 0.2s ease, box-shadow 0.2s ease, border-radius 0.2s ease, transform 0.2s ease;
+    }
+
+    .death-index-hero.is-compact {
+        padding-top: 16px;
+        padding-bottom: 14px;
+        border-radius: 22px;
+        box-shadow: 0 14px 28px rgba(31, 42, 42, 0.12);
     }
 
     .death-index-hero__top {
@@ -23,6 +35,12 @@
         justify-content: space-between;
         gap: 16px;
         margin-bottom: 14px;
+        transition: margin-bottom 0.2s ease, gap 0.2s ease;
+    }
+
+    .death-index-hero.is-compact .death-index-hero__top {
+        margin-bottom: 10px;
+        gap: 12px;
     }
 
     .death-index-hero__title {
@@ -30,6 +48,11 @@
         font-size: 30px;
         line-height: 1.15;
         color: #1f2a2a;
+        transition: font-size 0.2s ease;
+    }
+
+    .death-index-hero.is-compact .death-index-hero__title {
+        font-size: 26px;
     }
 
     .death-index-hero__lead {
@@ -38,6 +61,12 @@
         font-size: 15px;
         line-height: 1.7;
         color: #5c6969;
+        transition: font-size 0.2s ease, line-height 0.2s ease;
+    }
+
+    .death-index-hero.is-compact .death-index-hero__lead {
+        font-size: 14px;
+        line-height: 1.55;
     }
 
     .death-index-hero__badge {
@@ -50,6 +79,13 @@
         font-weight: 700;
         box-shadow: 0 14px 26px rgba(31, 68, 98, 0.18);
         white-space: nowrap;
+        transition: transform 0.2s ease, padding 0.2s ease, font-size 0.2s ease;
+    }
+
+    .death-index-hero.is-compact .death-index-hero__badge {
+        padding: 8px 12px;
+        font-size: 12px;
+        transform: translateY(-1px);
     }
 
     .death-index-tabs {
@@ -57,6 +93,12 @@
         gap: 10px;
         margin-top: 18px;
         flex-wrap: wrap;
+        transition: margin-top 0.2s ease, gap 0.2s ease;
+    }
+
+    .death-index-hero.is-compact .death-index-tabs {
+        margin-top: 12px;
+        gap: 8px;
     }
 
     .death-index-tabs__link {
@@ -70,7 +112,12 @@
         color: #244152;
         text-decoration: none;
         font-weight: 700;
-        transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+        transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, padding 0.2s ease, font-size 0.2s ease;
+    }
+
+    .death-index-hero.is-compact .death-index-tabs__link {
+        padding: 9px 14px;
+        font-size: 13px;
     }
 
     .death-index-tabs__link:hover,
@@ -153,6 +200,10 @@
         white-space: nowrap;
     }
 
+    .death-index-table td::before {
+        content: none;
+    }
+
     .death-index-table tbody tr:nth-child(even) td {
         background: #fcfdfe;
     }
@@ -221,25 +272,198 @@
     }
 
     @media (max-width: 767px) {
+        .death-index-shell {
+            margin-left: -4px;
+            margin-right: -4px;
+        }
+
         .death-index-hero {
-            padding: 20px 16px 16px;
-            border-radius: 22px;
+            top: 6px;
+            margin-bottom: 18px;
+            padding: 16px 14px 14px;
+            border-radius: 20px;
+        }
+
+        .death-index-hero.is-compact {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            border-radius: 18px;
         }
 
         .death-index-hero__top {
             display: block;
+            margin-bottom: 10px;
         }
 
         .death-index-hero__badge {
-            margin-top: 14px;
+            margin-top: 12px;
+            padding: 8px 12px;
+            font-size: 12px;
         }
 
         .death-index-hero__title {
-            font-size: 24px;
+            font-size: 22px;
+        }
+
+        .death-index-hero.is-compact .death-index-hero__title {
+            font-size: 19px;
+        }
+
+        .death-index-hero__lead {
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .death-index-hero.is-compact .death-index-hero__lead {
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        .death-index-tabs {
+            display: flex;
+            gap: 8px;
+            margin-top: 14px;
+            margin-right: -2px;
+            padding-bottom: 4px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            flex-wrap: nowrap;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .death-index-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .death-index-tabs__link {
+            flex: 0 0 auto;
+            padding: 10px 14px;
+            font-size: 13px;
+        }
+
+        .death-index-hero.is-compact .death-index-tabs__link {
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .death-index-card {
+            border-radius: 20px;
         }
 
         .death-index-card__head {
-            padding: 16px;
+            align-items: flex-start;
+            padding: 14px;
+            flex-direction: column;
+        }
+
+        .death-index-card__title {
+            font-size: 18px;
+        }
+
+        .death-index-card__count {
+            padding: 7px 10px;
+        }
+
+        .death-index-table-wrap {
+            overflow: visible;
+        }
+
+        .death-index-table,
+        .death-index-table thead,
+        .death-index-table tbody,
+        .death-index-table tr,
+        .death-index-table th,
+        .death-index-table td {
+            display: block;
+            width: 100%;
+        }
+
+        .death-index-table {
+            min-width: 0;
+        }
+
+        .death-index-table thead {
+            display: none;
+        }
+
+        .death-index-table tbody {
+            padding: 10px;
+        }
+
+        .death-index-table tbody tr {
+            margin-bottom: 12px;
+        }
+
+        .death-index-table tbody tr:last-child {
+            margin-bottom: 0;
+        }
+
+        .death-index-table tbody tr[data-death-row] {
+            overflow: hidden;
+            border: 1px solid #e8edf1;
+            border-radius: 18px;
+            background: #fff;
+            box-shadow: 0 10px 24px rgba(31, 42, 42, 0.05);
+        }
+
+        .death-index-table tbody tr[data-death-row] td {
+            display: flex;
+            gap: 12px;
+            justify-content: space-between;
+            padding: 11px 12px;
+            border-bottom: 1px solid #eef2f4;
+            background: transparent !important;
+            text-align: right;
+        }
+
+        .death-index-table tbody tr[data-death-row] td:last-child {
+            border-bottom: 0;
+        }
+
+        .death-index-table td::before {
+            content: attr(data-label);
+            flex: 0 0 42%;
+            min-width: 0;
+            color: #6a7c8a;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            line-height: 1.45;
+            text-transform: uppercase;
+            text-align: left;
+        }
+
+        .death-index-name {
+            font-size: 15px;
+            line-height: 1.45;
+        }
+
+        .death-index-table__group td {
+            padding: 4px 2px 8px;
+            border: 0;
+            background: transparent !important;
+        }
+
+        .death-index-table__group-label,
+        .death-index-table__group-count {
+            display: block;
+        }
+
+        .death-index-table__group-count {
+            margin-top: 4px;
+            margin-left: 0;
+        }
+
+        .death-index-empty {
+            padding: 26px 18px;
+        }
+
+        .death-index-chip {
+            max-width: 100%;
+            white-space: normal;
+            justify-content: flex-end;
+            text-align: right;
         }
     }
 </style>
@@ -247,7 +471,7 @@
 
 @section('content')
 <div class="death-index-shell">
-    <section class="death-index-hero">
+    <section class="death-index-hero" data-death-sticky-hero>
         <div class="death-index-hero__top">
             <div>
                 <h1 class="death-index-hero__title">Database Wafat {{ optional($coreUser)->display_name }}</h1>
@@ -308,17 +532,17 @@
                     <tbody>
                         @foreach ($haulRows as $row)
                         <tr data-death-row="{{ $row['id'] }}">
-                            <td class="death-index-name">{{ $row['name'] }}</td>
-                            <td>{{ $row['generation_label'] }}</td>
-                            <td>
+                            <td class="death-index-name" data-label="Nama lengkap">{{ $row['name'] }}</td>
+                            <td data-label="Level">{{ $row['generation_label'] }}</td>
+                            <td data-label="Hubungan">
                                 <span class="death-index-chip {{ $row['relationship_type'] === 'Kandung' ? 'death-index-chip--blood' : 'death-index-chip--spouse' }}">
                                     {{ $row['relationship_type'] }}
                                 </span>
                             </td>
-                            <td>{{ $row['hijri_haul_label'] }}</td>
-                            <td>{{ $row['death_date_label'] }}</td>
-                            <td>{{ $row['haul_countdown_label'] }}</td>
-                            <td>{{ $row['cemetery_location_label'] }}</td>
+                            <td data-label="Tanggal haul Hijriyah">{{ $row['hijri_haul_label'] }}</td>
+                            <td data-label="Tanggal wafat">{{ $row['death_date_label'] }}</td>
+                            <td data-label="Countdown haul">{{ $row['haul_countdown_label'] }}</td>
+                            <td data-label="Lokasi makam">{{ $row['cemetery_location_label'] }}</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -365,22 +589,22 @@
                         </tr>
                         @foreach ($group['rows'] as $row)
                         <tr data-death-row="{{ $row['id'] }}">
-                            <td class="death-index-name">{{ $row['name'] }}</td>
-                            <td>{{ $row['gender_code'] }}</td>
-                            <td>{{ $row['parent_label'] }}</td>
-                            <td>{{ $row['generation_label'] }}</td>
-                            <td>
+                            <td class="death-index-name" data-label="Nama lengkap">{{ $row['name'] }}</td>
+                            <td data-label="L/P">{{ $row['gender_code'] }}</td>
+                            <td data-label="Orang tua">{{ $row['parent_label'] }}</td>
+                            <td data-label="Level">{{ $row['generation_label'] }}</td>
+                            <td data-label="Nasab">
                                 <span class="death-index-chip death-index-chip--muted">{{ $row['nasab_label'] }}</span>
                             </td>
-                            <td>
+                            <td data-label="Hubungan">
                                 <span class="death-index-chip {{ $row['relationship_type'] === 'Kandung' ? 'death-index-chip--blood' : 'death-index-chip--spouse' }}">
                                     {{ $row['relationship_type'] }}
                                 </span>
                             </td>
-                            <td>{{ $row['death_date_label'] }}</td>
-                            <td>{{ $row['hijri_haul_label'] }}</td>
-                            <td>{{ $row['haul_countdown_label'] }}</td>
-                            <td>{{ $row['cemetery_location_label'] }}</td>
+                            <td data-label="Tanggal wafat">{{ $row['death_date_label'] }}</td>
+                            <td data-label="Tanggal haul Hijriyah">{{ $row['hijri_haul_label'] }}</td>
+                            <td data-label="Countdown haul">{{ $row['haul_countdown_label'] }}</td>
+                            <td data-label="Lokasi makam">{{ $row['cemetery_location_label'] }}</td>
                         </tr>
                         @endforeach
                         @endforeach
@@ -391,4 +615,37 @@
         </section>
     @endif
 </div>
+@endsection
+
+@section('ext_js')
+<script>
+    (function () {
+        var hero = document.querySelector('[data-death-sticky-hero]');
+
+        if (!hero) {
+            return;
+        }
+
+        var ticking = false;
+
+        function syncHeroState() {
+            var shouldCompact = window.scrollY > 48;
+            hero.classList.toggle('is-compact', shouldCompact);
+            ticking = false;
+        }
+
+        function onScroll() {
+            if (ticking) {
+                return;
+            }
+
+            ticking = true;
+            window.requestAnimationFrame(syncHeroState);
+        }
+
+        syncHeroState();
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', onScroll);
+    })();
+</script>
 @endsection
