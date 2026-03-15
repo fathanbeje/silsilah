@@ -142,7 +142,7 @@
 
     .death-index-card {
         margin-bottom: 16px;
-        overflow: hidden;
+        overflow: visible;
         border-radius: 22px;
         border: 1px solid #e1e8ed;
         background: #fff;
@@ -185,12 +185,15 @@
 
     .death-index-table-wrap {
         overflow-x: auto;
+        overflow-y: visible;
+        border-radius: 0 0 22px 22px;
     }
 
     .death-index-table {
         width: 100%;
         min-width: 1060px;
-        border-collapse: collapse;
+        border-collapse: separate;
+        border-spacing: 0;
     }
 
     .death-index-table th,
@@ -203,7 +206,7 @@
     .death-index-table thead th {
         position: sticky;
         top: 0;
-        z-index: 6;
+        z-index: 12;
         background: rgba(248, 250, 252, 0.96);
         backdrop-filter: blur(10px);
         color: #375064;
@@ -213,6 +216,14 @@
         text-transform: uppercase;
         white-space: nowrap;
         box-shadow: inset 0 -1px 0 #dde7ee, 0 8px 18px rgba(31, 42, 42, 0.05);
+    }
+
+    .death-index-table thead th:first-child {
+        border-top-left-radius: 12px;
+    }
+
+    .death-index-table thead th:last-child {
+        border-top-right-radius: 12px;
     }
 
     .death-index-table td::before {
@@ -366,6 +377,7 @@
 
         .death-index-table-wrap {
             overflow: visible;
+            border-radius: 0;
         }
 
         .death-index-table,
