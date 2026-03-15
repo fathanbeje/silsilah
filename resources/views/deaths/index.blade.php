@@ -184,6 +184,7 @@
     }
 
     .death-index-table-wrap {
+        position: relative;
         overflow-x: auto;
         overflow-y: visible;
         border-radius: 0 0 22px 22px;
@@ -204,9 +205,6 @@
     }
 
     .death-index-table thead th {
-        position: sticky;
-        top: 0;
-        z-index: 12;
         background: rgba(248, 250, 252, 0.96);
         backdrop-filter: blur(10px);
         color: #375064;
@@ -223,6 +221,54 @@
     }
 
     .death-index-table thead th:last-child {
+        border-top-right-radius: 12px;
+    }
+
+    .death-index-floating-head {
+        position: fixed;
+        left: 0;
+        top: 0;
+        z-index: 1100;
+        display: none;
+        pointer-events: none;
+    }
+
+    .death-index-floating-head.is-visible {
+        display: block;
+    }
+
+    .death-index-floating-head__viewport {
+        overflow: hidden;
+        border: 1px solid #dfe8ee;
+        border-radius: 12px 12px 0 0;
+        background: rgba(248, 250, 252, 0.98);
+        box-shadow: 0 12px 24px rgba(31, 42, 42, 0.1);
+        backdrop-filter: blur(12px);
+    }
+
+    .death-index-floating-head table {
+        margin: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .death-index-floating-head th {
+        padding: 11px 14px;
+        color: #375064;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        white-space: nowrap;
+        background: rgba(248, 250, 252, 0.98);
+        box-shadow: inset 0 -1px 0 #dde7ee;
+    }
+
+    .death-index-floating-head th:first-child {
+        border-top-left-radius: 12px;
+    }
+
+    .death-index-floating-head th:last-child {
         border-top-right-radius: 12px;
     }
 
@@ -378,6 +424,10 @@
         .death-index-table-wrap {
             overflow: visible;
             border-radius: 0;
+        }
+
+        .death-index-floating-head {
+            display: none !important;
         }
 
         .death-index-table,
@@ -633,4 +683,115 @@
         </section>
     @endif
 </div>
+@endsection
+
+@section('ext_js')
+<script>
+    (function () {
+        var desktopBreakpoint = 767;
+        var wrappers = Array.prototype.slice.call(document.querySelectorAll('.death-index-table-wrap'));
+
+        if (!wrappers.length) {
+            return;
+        }
+
+        var instances = wrappers.map(function (wrapper) {
+            var table = wrapper.querySelector('.death-index-table');
+            var thead = table ? table.querySelector('thead') : null;
+
+            if (!table || !thead) {
+                return null;
+            }
+
+            var floating = document.createElement('div');
+            floating.className = 'death-index-floating-head';
+            floating.innerHTML = '<div class="death-index-floating-head__viewport"><table aria-hidden="true"><thead>' + thead.innerHTML + '</thead></table></div>';
+            document.body.appendChild(floating);
+
+            var floatingTable = floating.querySelector('table');
+            var sourceThs = Array.prototype.slice.call(thead.querySelectorAll('th'));
+            var floatingThs = Array.prototype.slice.call(floating.querySelectorAll('th'));
+
+            function syncWidths() {
+                floatingTable.style.width = table.offsetWidth + 'px';
+
+                sourceThs.forEach(function (th, index) {
+                    var width = th.getBoundingClientRect().width;
+                    var floatingTh = floatingThs[index];
+
+                    if (!floatingTh) {
+                        return;
+                    }
+
+                    floatingTh.style.width = width + 'px';
+                    floatingTh.style.minWidth = width + 'px';
+                    floatingTh.style.maxWidth = width + 'px';
+                });
+            }
+
+            function hide() {
+                floating.classList.remove('is-visible');
+            }
+
+            function update() {
+                if (window.innerWidth <= desktopBreakpoint) {
+                    hide();
+                    return;
+                }
+
+                syncWidths();
+
+                var wrapperRect = wrapper.getBoundingClientRect();
+                var headerHeight = thead.getBoundingClientRect().height;
+                var topOffset = 0;
+                var shouldShow = wrapperRect.top <= topOffset && wrapperRect.bottom - headerHeight > topOffset;
+
+                if (!shouldShow) {
+                    hide();
+                    return;
+                }
+
+                floating.classList.add('is-visible');
+                floating.style.top = topOffset + 'px';
+                floating.style.left = wrapperRect.left + 'px';
+                floating.style.width = wrapper.clientWidth + 'px';
+                floatingTable.style.transform = 'translateX(' + (-wrapper.scrollLeft) + 'px)';
+            }
+
+            wrapper.addEventListener('scroll', update, { passive: true });
+
+            return {
+                update: update,
+                hide: hide
+            };
+        }).filter(Boolean);
+
+        if (!instances.length) {
+            return;
+        }
+
+        var ticking = false;
+
+        function refresh() {
+            instances.forEach(function (instance) {
+                instance.update();
+            });
+            ticking = false;
+        }
+
+        function requestRefresh() {
+            if (ticking) {
+                return;
+            }
+
+            ticking = true;
+            window.requestAnimationFrame(refresh);
+        }
+
+        window.addEventListener('scroll', requestRefresh, { passive: true });
+        window.addEventListener('resize', requestRefresh);
+        window.addEventListener('orientationchange', requestRefresh);
+        requestRefresh();
+    })();
+</script>
 @endsection
