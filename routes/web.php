@@ -16,6 +16,7 @@ use App\Http\Controllers\UserEditRequestsController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\GedcomController;
 use App\Http\Controllers\DeploySyncController;
+use App\Http\Controllers\DeathsController;
 use App\Http\Controllers\DomainFamilyScopesController;
 use App\Http\Controllers\RegistrationRequestsController;
 use Illuminate\Support\Facades\Auth;
@@ -41,6 +42,7 @@ Route::controller(UsersController::class)->group(function () {
     Route::get('users/{user}/chart', 'chart')->middleware('family.scope')->name('users.chart');
     Route::get('users/{user}/tree', 'tree')->middleware('family.scope')->name('users.tree');
 });
+Route::get('wafat', [DeathsController::class, 'index'])->name('deaths.index');
 
 Route::post('users/{user}/claim-registration', [ClaimRegistrationController::class, 'store'])->middleware('family.scope')->name('claim-registration.store');
 Route::post('users/{user}/registration-requests', [RegistrationRequestsController::class, 'store'])->middleware('family.scope')->name('registration-requests.store');

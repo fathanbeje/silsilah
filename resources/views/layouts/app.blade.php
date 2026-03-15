@@ -78,6 +78,7 @@
             'users.chart',
             'users.show',
             'users.tree',
+            'deaths.index',
             'users.marriages',
             'users.death',
             'profile',

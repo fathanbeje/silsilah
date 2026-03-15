@@ -225,6 +225,7 @@
 @endsection
 
 @section('content')
+@php($hasPublicFamilyScope = app(\App\Services\FamilyScopeResolver::class)->hasActiveScope())
 @if (session('status'))
 <div class="alert alert-success">{{ session('status') }}</div>
 @endif
@@ -262,6 +263,9 @@
     <div class="family-search-examples" style="margin-top:12px;">
         <span class="family-search-examples__label">Lihat pohon:</span>
         <a class="family-search-examples__chip" href="{{ route('users.tree', $landingTreeRootUser) }}">{{ $landingTreeRootUser->name ?: $landingTreeRootUser->display_name }}</a>
+        @if ($hasPublicFamilyScope)
+        <a class="family-search-examples__chip" href="{{ route('deaths.index') }}">Database Wafat</a>
+        @endif
     </div>
     @endif
 </section>
@@ -312,6 +316,9 @@
                 <a href="#family-search-input" class="btn btn-primary">Cari Nama</a>
                 @if (!empty($landingTreeRootUser))
                 <a href="{{ route('users.tree', $landingTreeRootUser) }}" class="btn btn-default">Lihat Pohon Keluarga</a>
+                @endif
+                @if ($hasPublicFamilyScope)
+                <a href="{{ route('deaths.index') }}" class="btn btn-default">Database Wafat</a>
                 @endif
                 <button type="button" class="btn btn-default" data-toggle="modal" data-target="#family-search-guide-modal">Panduan Singkat</button>
             </div>

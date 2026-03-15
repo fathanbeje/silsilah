@@ -9,9 +9,15 @@
 @endsection
 
 @section('content')
+@php($hasPublicFamilyScope = app(\App\Services\FamilyScopeResolver::class)->hasActiveScope())
 <h2 class="page-header">
     {{ $user->display_name }} <small>{{ trans('app.family_chart') }}</small>
     <span class="pull-right">
+        @if ($hasPublicFamilyScope)
+        <a href="{{ route('deaths.index') }}" class="btn btn-default">
+            Database Wafat
+        </a>
+        @endif
         <a href="{{ route('users.tree', $user) }}" class="btn btn-default">
             {{ trans('app.show_family_tree') }}
         </a>

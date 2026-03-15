@@ -3,6 +3,7 @@
     $canEditMobileContextUser = auth()->check() && $mobileContextUser && auth()->user()->can('edit', $mobileContextUser);
     $profileUrl = null;
     $isSearchLanding = in_array(Route::currentRouteName(), ['users.search', 'users.search.page'], true);
+    $hasPublicFamilyScope = app(\App\Services\FamilyScopeResolver::class)->hasActiveScope();
 
     if (auth()->check() && $mobileContextUser) {
         $profileUrl = Route::currentRouteName() === 'profile' && auth()->id() === $mobileContextUser->id
@@ -588,6 +589,13 @@
             </a>
             @endif
 
+            @if ($hasPublicFamilyScope)
+            <a class="family-mobile-sheet__link" href="{{ route('deaths.index') }}">
+                <strong>Database Wafat</strong>
+                <span>Lihat daftar wafat dan haul bulan ini</span>
+            </a>
+            @endif
+
             @if ($profileUrl)
             <a class="family-mobile-sheet__link" href="{{ $profileUrl }}#family-panel">
                 <strong>Keluarga Inti</strong>
@@ -660,6 +668,10 @@
 
             @if ($mobileContextUser)
             <a class="family-desktop-dock__link" href="{{ route('users.tree', $mobileContextUser) }}"><strong>{{ __('app.family_tree') }}</strong></a>
+            @endif
+
+            @if ($hasPublicFamilyScope)
+            <a class="family-desktop-dock__link" href="{{ route('deaths.index') }}"><strong>Database Wafat</strong></a>
             @endif
 
             @if ($profileUrl)
