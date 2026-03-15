@@ -7,9 +7,6 @@
     }
 
     .death-index-hero {
-        position: sticky;
-        top: 8px;
-        z-index: 30;
         margin-bottom: 24px;
         padding: 24px 24px 18px;
         border-radius: 28px;
@@ -18,15 +15,6 @@
             linear-gradient(135deg, #f9f5ea 0%, #eef4f6 54%, #f7f9fb 100%);
         border: 1px solid #e5e2d8;
         box-shadow: 0 18px 38px rgba(31, 42, 42, 0.08);
-        backdrop-filter: blur(14px);
-        transition: padding 0.2s ease, box-shadow 0.2s ease, border-radius 0.2s ease, transform 0.2s ease;
-    }
-
-    .death-index-hero.is-compact {
-        padding-top: 16px;
-        padding-bottom: 14px;
-        border-radius: 22px;
-        box-shadow: 0 14px 28px rgba(31, 42, 42, 0.12);
     }
 
     .death-index-hero__top {
@@ -35,12 +23,6 @@
         justify-content: space-between;
         gap: 16px;
         margin-bottom: 14px;
-        transition: margin-bottom 0.2s ease, gap 0.2s ease;
-    }
-
-    .death-index-hero.is-compact .death-index-hero__top {
-        margin-bottom: 10px;
-        gap: 12px;
     }
 
     .death-index-hero__title {
@@ -48,11 +30,6 @@
         font-size: 30px;
         line-height: 1.15;
         color: #1f2a2a;
-        transition: font-size 0.2s ease;
-    }
-
-    .death-index-hero.is-compact .death-index-hero__title {
-        font-size: 26px;
     }
 
     .death-index-hero__lead {
@@ -61,12 +38,6 @@
         font-size: 15px;
         line-height: 1.7;
         color: #5c6969;
-        transition: font-size 0.2s ease, line-height 0.2s ease;
-    }
-
-    .death-index-hero.is-compact .death-index-hero__lead {
-        font-size: 14px;
-        line-height: 1.55;
     }
 
     .death-index-hero__badge {
@@ -79,45 +50,63 @@
         font-weight: 700;
         box-shadow: 0 14px 26px rgba(31, 68, 98, 0.18);
         white-space: nowrap;
-        transition: transform 0.2s ease, padding 0.2s ease, font-size 0.2s ease;
-    }
-
-    .death-index-hero.is-compact .death-index-hero__badge {
-        padding: 8px 12px;
-        font-size: 12px;
-        transform: translateY(-1px);
     }
 
     .death-index-tabs {
         display: inline-flex;
-        gap: 10px;
+        gap: 8px;
         margin-top: 18px;
         flex-wrap: wrap;
-        transition: margin-top 0.2s ease, gap 0.2s ease;
-    }
-
-    .death-index-hero.is-compact .death-index-tabs {
-        margin-top: 12px;
-        gap: 8px;
+        padding: 6px;
+        border-radius: 22px;
+        border: 1px solid rgba(217, 224, 228, 0.9);
+        background: rgba(255, 255, 255, 0.62);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
     }
 
     .death-index-tabs__link {
+        position: relative;
         display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 11px 16px;
-        border-radius: 999px;
-        border: 1px solid #d9e0e4;
-        background: rgba(255, 255, 255, 0.86);
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 3px;
+        min-width: 170px;
+        padding: 12px 16px 11px;
+        border-radius: 16px;
+        border: 1px solid transparent;
+        background: rgba(255, 255, 255, 0.72);
         color: #244152;
         text-decoration: none;
         font-weight: 700;
-        transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, padding 0.2s ease, font-size 0.2s ease;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+        transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, border-color 0.18s ease;
     }
 
-    .death-index-hero.is-compact .death-index-tabs__link {
-        padding: 9px 14px;
-        font-size: 13px;
+    .death-index-tabs__label {
+        display: block;
+        font-size: 14px;
+        line-height: 1.2;
+    }
+
+    .death-index-tabs__meta {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #6d7f8d;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        line-height: 1.2;
+        text-transform: uppercase;
+    }
+
+    .death-index-tabs__meta::before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: currentColor;
+        opacity: 0.55;
     }
 
     .death-index-tabs__link:hover,
@@ -125,23 +114,39 @@
         color: #244152;
         text-decoration: none;
         transform: translateY(-1px);
-        box-shadow: 0 12px 24px rgba(36, 65, 82, 0.08);
+        border-color: #d6e1e8;
+        box-shadow: 0 10px 20px rgba(36, 65, 82, 0.08);
     }
 
     .death-index-tabs__link.is-active {
-        background: #244152;
+        background: linear-gradient(135deg, #244152 0%, #30586d 100%);
         border-color: #244152;
         color: #fff;
-        box-shadow: 0 14px 28px rgba(36, 65, 82, 0.18);
+        box-shadow: 0 14px 28px rgba(36, 65, 82, 0.2);
+    }
+
+    .death-index-tabs__link.is-active::after {
+        content: '';
+        position: absolute;
+        left: 16px;
+        right: 16px;
+        bottom: 6px;
+        height: 3px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.72);
+    }
+
+    .death-index-tabs__link.is-active .death-index-tabs__meta {
+        color: rgba(255, 255, 255, 0.82);
     }
 
     .death-index-card {
-        margin-bottom: 18px;
+        margin-bottom: 16px;
         overflow: hidden;
-        border-radius: 26px;
-        border: 1px solid #e6eaed;
+        border-radius: 22px;
+        border: 1px solid #e1e8ed;
         background: #fff;
-        box-shadow: 0 16px 34px rgba(31, 42, 42, 0.06);
+        box-shadow: 0 14px 30px rgba(31, 42, 42, 0.05);
     }
 
     .death-index-card__head {
@@ -149,28 +154,33 @@
         align-items: center;
         justify-content: space-between;
         gap: 12px;
-        padding: 18px 22px;
-        background: linear-gradient(180deg, #fbfcfd 0%, #f2f7fb 100%);
-        border-bottom: 1px solid #e3ebf1;
+        padding: 15px 18px;
+        background: linear-gradient(180deg, #fcfdfe 0%, #f4f8fb 100%);
+        border-bottom: 1px solid #e6edf2;
     }
 
     .death-index-card__title {
         margin: 0;
-        font-size: 20px;
+        font-size: 18px;
+        letter-spacing: 0.01em;
         color: #223444;
     }
 
     .death-index-card__count {
         display: inline-flex;
         align-items: center;
-        padding: 8px 12px;
+        padding: 7px 11px;
         border-radius: 999px;
         background: #edf4f9;
         color: #35556d;
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 700;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.06em;
         text-transform: uppercase;
+    }
+
+    .death-index-results {
+        scroll-margin-top: 16px;
     }
 
     .death-index-table-wrap {
@@ -185,19 +195,24 @@
 
     .death-index-table th,
     .death-index-table td {
-        padding: 14px 16px;
+        padding: 11px 14px;
         border-bottom: 1px solid #ebeff2;
         vertical-align: top;
     }
 
     .death-index-table thead th {
-        background: #f8fafc;
+        position: sticky;
+        top: 0;
+        z-index: 6;
+        background: rgba(248, 250, 252, 0.96);
+        backdrop-filter: blur(10px);
         color: #375064;
         font-size: 12px;
         font-weight: 700;
         letter-spacing: 0.06em;
         text-transform: uppercase;
         white-space: nowrap;
+        box-shadow: inset 0 -1px 0 #dde7ee, 0 8px 18px rgba(31, 42, 42, 0.05);
     }
 
     .death-index-table td::before {
@@ -208,8 +223,12 @@
         background: #fcfdfe;
     }
 
+    .death-index-table tbody tr[data-death-row]:hover td {
+        background: #f7fbfd;
+    }
+
     .death-index-table__group td {
-        padding: 14px 16px;
+        padding: 12px 14px;
         background: #eef5fa !important;
         border-bottom-color: #dbe5ee;
     }
@@ -231,6 +250,7 @@
 
     .death-index-name {
         font-weight: 700;
+        letter-spacing: 0.01em;
         color: #213a4e;
     }
 
@@ -278,16 +298,9 @@
         }
 
         .death-index-hero {
-            top: 6px;
             margin-bottom: 18px;
             padding: 16px 14px 14px;
             border-radius: 20px;
-        }
-
-        .death-index-hero.is-compact {
-            padding-top: 12px;
-            padding-bottom: 12px;
-            border-radius: 18px;
         }
 
         .death-index-hero__top {
@@ -305,18 +318,9 @@
             font-size: 22px;
         }
 
-        .death-index-hero.is-compact .death-index-hero__title {
-            font-size: 19px;
-        }
-
         .death-index-hero__lead {
             font-size: 13px;
             line-height: 1.6;
-        }
-
-        .death-index-hero.is-compact .death-index-hero__lead {
-            font-size: 12px;
-            line-height: 1.45;
         }
 
         .death-index-tabs {
@@ -338,13 +342,8 @@
 
         .death-index-tabs__link {
             flex: 0 0 auto;
+            min-width: 156px;
             padding: 10px 14px;
-            font-size: 13px;
-        }
-
-        .death-index-hero.is-compact .death-index-tabs__link {
-            padding: 8px 12px;
-            font-size: 12px;
         }
 
         .death-index-card {
@@ -471,7 +470,7 @@
 
 @section('content')
 <div class="death-index-shell">
-    <section class="death-index-hero" data-death-sticky-hero>
+    <section class="death-index-hero">
         <div class="death-index-hero__top">
             <div>
                 <h1 class="death-index-hero__title">Database Wafat {{ optional($coreUser)->display_name }}</h1>
@@ -486,25 +485,32 @@
 
         <div class="death-index-tabs">
             <a
-                href="{{ route('deaths.index', ['tab' => 'all']) }}"
+                href="{{ route('deaths.index', ['tab' => 'all']) }}#death-index-results"
                 class="death-index-tabs__link{{ $activeTab === 'all' ? ' is-active' : '' }}"
+                @if ($activeTab === 'all') aria-current="page" @endif
             >
-                Semua Wafat
+                <span class="death-index-tabs__label">Semua Wafat</span>
+                <span class="death-index-tabs__meta">{{ $allRows->count() }} data @if ($activeTab === 'all') aktif @endif</span>
             </a>
             <a
-                href="{{ route('deaths.index', ['tab' => 'haul-bulan-ini']) }}"
+                href="{{ route('deaths.index', ['tab' => 'haul-bulan-ini']) }}#death-index-results"
                 class="death-index-tabs__link{{ $activeTab === 'haul-bulan-ini' ? ' is-active' : '' }}"
+                @if ($activeTab === 'haul-bulan-ini') aria-current="page" @endif
             >
-                Haul Bulan Ini
-                @if ($currentHijriMonthBadge)
-                <span>{{ $currentHijriMonthBadge }}</span>
-                @endif
+                <span class="death-index-tabs__label">Haul Bulan Ini</span>
+                <span class="death-index-tabs__meta">
+                    {{ $haulRows->count() }} data
+                    @if ($currentHijriMonthBadge)
+                        - {{ $currentHijriMonthBadge }}
+                    @endif
+                    @if ($activeTab === 'haul-bulan-ini') aktif @endif
+                </span>
             </a>
         </div>
     </section>
 
     @if ($activeTab === 'haul-bulan-ini')
-        <section class="death-index-card">
+        <section class="death-index-card death-index-results" id="death-index-results">
             <div class="death-index-card__head">
                 <h2 class="death-index-card__title">Haul Bulan Ini</h2>
                 <span class="death-index-card__count">{{ $haulRows->count() }} data</span>
@@ -551,7 +557,7 @@
             @endif
         </section>
     @else
-        <section class="death-index-card">
+        <section class="death-index-card death-index-results" id="death-index-results">
             <div class="death-index-card__head">
                 <h2 class="death-index-card__title">Semua Wafat</h2>
                 <span class="death-index-card__count">{{ $allRows->count() }} data</span>
@@ -615,37 +621,4 @@
         </section>
     @endif
 </div>
-@endsection
-
-@section('ext_js')
-<script>
-    (function () {
-        var hero = document.querySelector('[data-death-sticky-hero]');
-
-        if (!hero) {
-            return;
-        }
-
-        var ticking = false;
-
-        function syncHeroState() {
-            var shouldCompact = window.scrollY > 48;
-            hero.classList.toggle('is-compact', shouldCompact);
-            ticking = false;
-        }
-
-        function onScroll() {
-            if (ticking) {
-                return;
-            }
-
-            ticking = true;
-            window.requestAnimationFrame(syncHeroState);
-        }
-
-        syncHeroState();
-        window.addEventListener('scroll', onScroll, { passive: true });
-        window.addEventListener('resize', onScroll);
-    })();
-</script>
 @endsection
