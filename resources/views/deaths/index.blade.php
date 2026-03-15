@@ -188,6 +188,17 @@
         overflow-x: auto;
         overflow-y: visible;
         border-radius: 0 0 22px 22px;
+        cursor: grab;
+    }
+
+    .death-index-table-wrap.is-drag-armed,
+    .death-index-table-wrap.is-dragging {
+        cursor: grabbing;
+    }
+
+    .death-index-table-wrap.is-dragging,
+    .death-index-table-wrap.is-dragging * {
+        user-select: none;
     }
 
     .death-index-table {
@@ -482,6 +493,10 @@
             border-bottom: 0;
         }
 
+        .death-index-table tbody tr[data-death-row] td[data-empty="1"] {
+            display: none;
+        }
+
         .death-index-table td::before {
             content: attr(data-label);
             flex: 0 0 42%;
@@ -607,10 +622,10 @@
                                     {{ $row['relationship_type'] }}
                                 </span>
                             </td>
-                            <td data-label="Tanggal haul Hijriyah">{{ $row['hijri_haul_label'] }}</td>
+                            <td data-label="Tanggal haul Hijriyah" data-empty="{{ $row['hijri_haul_label'] === 'Tidak tersedia' ? '1' : '0' }}">{{ $row['hijri_haul_label'] }}</td>
                             <td data-label="Tanggal wafat">{{ $row['death_date_label'] }}</td>
-                            <td data-label="Countdown haul">{{ $row['haul_countdown_label'] }}</td>
-                            <td data-label="Lokasi makam">{{ $row['cemetery_location_label'] }}</td>
+                            <td data-label="Countdown haul" data-empty="{{ $row['haul_countdown_label'] === 'Tidak tersedia' ? '1' : '0' }}">{{ $row['haul_countdown_label'] }}</td>
+                            <td data-label="Lokasi makam" data-empty="{{ $row['cemetery_location_label'] === 'Tidak tersedia' ? '1' : '0' }}">{{ $row['cemetery_location_label'] }}</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -659,9 +674,9 @@
                         <tr data-death-row="{{ $row['id'] }}">
                             <td class="death-index-name" data-label="Nama lengkap">{{ $row['name'] }}</td>
                             <td data-label="L/P">{{ $row['gender_code'] }}</td>
-                            <td data-label="Orang tua">{{ $row['parent_label'] }}</td>
+                            <td data-label="Orang tua" data-empty="{{ $row['parent_label'] === 'Tidak tersedia' ? '1' : '0' }}">{{ $row['parent_label'] }}</td>
                             <td data-label="Level">{{ $row['generation_label'] }}</td>
-                            <td data-label="Nasab">
+                            <td data-label="Nasab" data-empty="{{ $row['nasab_label'] === 'Tidak tersedia' ? '1' : '0' }}">
                                 <span class="death-index-chip death-index-chip--muted">{{ $row['nasab_label'] }}</span>
                             </td>
                             <td data-label="Hubungan">
@@ -670,9 +685,9 @@
                                 </span>
                             </td>
                             <td data-label="Tanggal wafat">{{ $row['death_date_label'] }}</td>
-                            <td data-label="Tanggal haul Hijriyah">{{ $row['hijri_haul_label'] }}</td>
-                            <td data-label="Countdown haul">{{ $row['haul_countdown_label'] }}</td>
-                            <td data-label="Lokasi makam">{{ $row['cemetery_location_label'] }}</td>
+                            <td data-label="Tanggal haul Hijriyah" data-empty="{{ $row['hijri_haul_label'] === 'Tidak tersedia' ? '1' : '0' }}">{{ $row['hijri_haul_label'] }}</td>
+                            <td data-label="Countdown haul" data-empty="{{ $row['haul_countdown_label'] === 'Tidak tersedia' ? '1' : '0' }}">{{ $row['haul_countdown_label'] }}</td>
+                            <td data-label="Lokasi makam" data-empty="{{ $row['cemetery_location_label'] === 'Tidak tersedia' ? '1' : '0' }}">{{ $row['cemetery_location_label'] }}</td>
                         </tr>
                         @endforeach
                         @endforeach
@@ -711,6 +726,17 @@
             var floatingTable = floating.querySelector('table');
             var sourceThs = Array.prototype.slice.call(thead.querySelectorAll('th'));
             var floatingThs = Array.prototype.slice.call(floating.querySelectorAll('th'));
+            var dragState = {
+                active: false,
+                pointerId: null,
+                startX: 0,
+                startY: 0,
+                startScrollLeft: 0,
+                startWindowY: 0,
+                didDrag: false,
+                suppressClick: false
+            };
+            var dragThreshold = 6;
 
             function syncWidths() {
                 floatingTable.style.width = table.offsetWidth + 'px';
@@ -731,6 +757,80 @@
 
             function hide() {
                 floating.classList.remove('is-visible');
+            }
+
+            function releaseDragState() {
+                if (dragState.active && dragState.pointerId !== null && wrapper.releasePointerCapture) {
+                    try {
+                        wrapper.releasePointerCapture(dragState.pointerId);
+                    } catch (error) {}
+                }
+
+                dragState.active = false;
+                dragState.pointerId = null;
+                wrapper.classList.remove('is-drag-armed', 'is-dragging');
+            }
+
+            function onPointerDown(event) {
+                if (window.innerWidth <= desktopBreakpoint || event.button !== 0 || event.pointerType === 'touch') {
+                    return;
+                }
+
+                if (event.target.closest('a, button, input, textarea, select, label')) {
+                    return;
+                }
+
+                dragState.active = true;
+                dragState.pointerId = event.pointerId;
+                dragState.startX = event.clientX;
+                dragState.startY = event.clientY;
+                dragState.startScrollLeft = wrapper.scrollLeft;
+                dragState.startWindowY = window.scrollY;
+                dragState.didDrag = false;
+                dragState.suppressClick = false;
+
+                wrapper.classList.add('is-drag-armed');
+
+                if (wrapper.setPointerCapture) {
+                    try {
+                        wrapper.setPointerCapture(event.pointerId);
+                    } catch (error) {}
+                }
+            }
+
+            function onPointerMove(event) {
+                if (!dragState.active || dragState.pointerId !== event.pointerId) {
+                    return;
+                }
+
+                var deltaX = event.clientX - dragState.startX;
+                var deltaY = event.clientY - dragState.startY;
+
+                if (!dragState.didDrag && Math.max(Math.abs(deltaX), Math.abs(deltaY)) < dragThreshold) {
+                    return;
+                }
+
+                if (!dragState.didDrag) {
+                    dragState.didDrag = true;
+                    wrapper.classList.add('is-dragging');
+                }
+
+                event.preventDefault();
+
+                wrapper.scrollLeft = dragState.startScrollLeft - deltaX;
+                window.scrollTo({
+                    top: Math.max(0, dragState.startWindowY - deltaY),
+                    behavior: 'auto'
+                });
+            }
+
+            function onPointerUp(event) {
+                if (!dragState.active || dragState.pointerId !== event.pointerId) {
+                    return;
+                }
+
+                dragState.suppressClick = dragState.didDrag;
+                releaseDragState();
             }
 
             function update() {
@@ -759,10 +859,25 @@
             }
 
             wrapper.addEventListener('scroll', update, { passive: true });
+            wrapper.addEventListener('pointerdown', onPointerDown);
+            wrapper.addEventListener('pointermove', onPointerMove);
+            wrapper.addEventListener('pointerup', onPointerUp);
+            wrapper.addEventListener('pointercancel', onPointerUp);
+            wrapper.addEventListener('lostpointercapture', releaseDragState);
+            wrapper.addEventListener('click', function (event) {
+                if (!dragState.suppressClick) {
+                    return;
+                }
+
+                event.preventDefault();
+                event.stopPropagation();
+                dragState.suppressClick = false;
+            }, true);
 
             return {
                 update: update,
-                hide: hide
+                hide: hide,
+                release: releaseDragState
             };
         }).filter(Boolean);
 
@@ -791,6 +906,7 @@
         window.addEventListener('scroll', requestRefresh, { passive: true });
         window.addEventListener('resize', requestRefresh);
         window.addEventListener('orientationchange', requestRefresh);
+        document.addEventListener('visibilitychange', requestRefresh);
         requestRefresh();
     })();
 </script>

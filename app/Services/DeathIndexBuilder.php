@@ -128,10 +128,13 @@ class DeathIndexBuilder
 
     private function makeRow(User $user, int $generationDepth, string $relationshipType, ?User $branchRootUser): array
     {
+        $today = CarbonImmutable::today(config('app.timezone'));
+        $todayHijri = $this->toHijri($today);
         $deathDate = $user->dod ? CarbonImmutable::instance($user->dod)->startOfDay() : null;
         $hijriDate = $deathDate ? $this->toHijri($deathDate) : null;
-        $nextHaulGregorian = $hijriDate ? $this->nextHaulGregorian($hijriDate) : null;
-        $countdownDays = $nextHaulGregorian ? CarbonImmutable::today(config('app.timezone'))->diffInDays($nextHaulGregorian, false) : null;
+        $currentHaulGregorian = $hijriDate ? $this->haulGregorianForYear($hijriDate, $todayHijri->getYear()) : null;
+        $nextHaulGregorian = $hijriDate ? $this->nextHaulGregorian($hijriDate, $today, $todayHijri, $currentHaulGregorian) : null;
+        $countdownDays = $this->countdownDays($today, $todayHijri, $hijriDate, $currentHaulGregorian, $nextHaulGregorian);
 
         return [
             'id' => $user->id,
@@ -218,7 +221,33 @@ class DeathIndexBuilder
             return 'Hari ini';
         }
 
+        if ($days < 0) {
+            return abs($days).' hari yang lalu';
+        }
+
         return $days.' hari lagi';
+    }
+
+    private function countdownDays(
+        CarbonImmutable $today,
+        $todayHijri,
+        $hijriDate,
+        ?CarbonImmutable $currentHaulGregorian,
+        ?CarbonImmutable $nextHaulGregorian
+    ): ?int {
+        if (! $hijriDate) {
+            return null;
+        }
+
+        if (
+            $currentHaulGregorian
+            && $hijriDate->getMonth() === $todayHijri->getMonth()
+            && $currentHaulGregorian->lt($today)
+        ) {
+            return -1 * $currentHaulGregorian->diffInDays($today);
+        }
+
+        return $nextHaulGregorian ? $today->diffInDays($nextHaulGregorian, false) : null;
     }
 
     private function toHijri(CarbonImmutable $gregorianDate)
@@ -234,29 +263,28 @@ class DeathIndexBuilder
         );
     }
 
-    private function nextHaulGregorian($hijriDate): CarbonImmutable
+    private function nextHaulGregorian($hijriDate, CarbonImmutable $today, $todayHijri, ?CarbonImmutable $currentHaulGregorian = null): CarbonImmutable
     {
-        $todayHijri = $this->toHijri(CarbonImmutable::today(config('app.timezone')));
         $candidateYear = $todayHijri->getYear();
 
-        $candidateHijri = $this->hijriAlgorithm->constructDateValue(
-            $hijriDate->getMonthDay(),
-            $hijriDate->getMonth(),
-            $candidateYear
-        );
+        $candidateGregorian = $currentHaulGregorian ?: $this->haulGregorianForYear($hijriDate, $candidateYear);
 
-        $candidateGregorian = $this->toGregorian($candidateHijri);
-
-        if ($candidateGregorian->lt(CarbonImmutable::today(config('app.timezone')))) {
-            $candidateHijri = $this->hijriAlgorithm->constructDateValue(
-                $hijriDate->getMonthDay(),
-                $hijriDate->getMonth(),
-                $candidateYear + 1
-            );
-            $candidateGregorian = $this->toGregorian($candidateHijri);
+        if ($candidateGregorian->lt($today)) {
+            $candidateGregorian = $this->haulGregorianForYear($hijriDate, $candidateYear + 1);
         }
 
         return $candidateGregorian;
+    }
+
+    private function haulGregorianForYear($hijriDate, int $hijriYear): CarbonImmutable
+    {
+        $candidateHijri = $this->hijriAlgorithm->constructDateValue(
+            $hijriDate->getMonthDay(),
+            $hijriDate->getMonth(),
+            $hijriYear
+        );
+
+        return $this->toGregorian($candidateHijri);
     }
 
     private function toGregorian($hijriDate): CarbonImmutable

@@ -69,6 +69,8 @@ class DeathIndexTest extends TestCase
         $this->assertStringNotContainsString('Tidak tersedia', $content);
         $this->assertStringContainsString('3 Ramadan 1445 H', $content);
         $this->assertStringContainsString('13 Ramadan 1445 H', $content);
+        $this->assertStringContainsString('hari yang lalu', $content);
+        $this->assertStringNotContainsString('330 hari lagi', $content);
     }
 
     /** @test */

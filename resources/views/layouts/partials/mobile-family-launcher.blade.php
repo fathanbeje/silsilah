@@ -528,11 +528,11 @@
 }
 </style>
 
-<button type="button" class="family-mobile-toggle" data-family-mobile-toggle aria-label="Tampilkan atau sembunyikan dock mobile">
-    <span data-family-mobile-toggle-icon>&lsaquo;</span>
+<button type="button" class="family-mobile-toggle is-visible" data-family-mobile-toggle aria-label="Tampilkan atau sembunyikan dock mobile">
+    <span data-family-mobile-toggle-icon>&rsaquo;</span>
 </button>
 
-<div class="family-mobile-launcher" data-family-mobile-launcher>
+<div class="family-mobile-launcher" data-family-mobile-launcher style="display:none;">
     <div class="family-mobile-launcher__copy">
         <div class="family-mobile-launcher__title">Navigasi Keluarga</div>
         <div class="family-mobile-launcher__hint">Cari anggota, buka bagan, dan aksi cepat</div>
@@ -636,7 +636,7 @@
     <span data-family-desktop-toggle-icon>&lsaquo;</span>
 </button>
 
-<div class="family-desktop-dock" data-family-desktop-dock>
+<div class="family-desktop-dock" data-family-desktop-dock style="display:none;">
     <div class="family-desktop-dock__row">
         <div class="family-desktop-dock__eyebrow">Family Dock</div>
 
@@ -925,12 +925,7 @@
             });
         }
 
-        try {
-            setMobileDockCollapsed(window.sessionStorage.getItem(mobileDockStorageKey) === '1');
-            setDesktopDockCollapsed(window.sessionStorage.getItem(desktopDockStorageKey) === '1');
-        } catch (error) {
-            setMobileDockCollapsed(false);
-            setDesktopDockCollapsed(false);
-        }
+        setMobileDockCollapsed(true);
+        setDesktopDockCollapsed(true);
     })();
 </script>
