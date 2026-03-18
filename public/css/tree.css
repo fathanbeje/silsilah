@@ -7,6 +7,12 @@
 
 :root {
     --tree-scale: 1;
+    --tree-type-display: clamp(1.7rem, 1.25rem + 1vw, 2.35rem);
+    --tree-type-heading: 1.5rem;
+    --tree-type-body: 1rem;
+    --tree-type-body-sm: 0.9375rem;
+    --tree-type-label: 0.8125rem;
+    --tree-type-caption: 0.75rem;
     --tree-space-2xs: 0.375rem;
     --tree-space-xs: 0.625rem;
     --tree-space-sm: 0.9rem;
@@ -22,8 +28,8 @@
     --tree-node-padding-right-base: 10px;
     --tree-node-padding-bottom-base: 9px;
     --tree-node-padding-left-base: 7px;
-    --tree-node-font-size-base: 12px;
-    --tree-node-spouse-font-size-base: 10px;
+    --tree-node-font-size-base: 13px;
+    --tree-node-spouse-font-size-base: 11px;
     --tree-avatar-size-base: 18px;
     --tree-person-gap-base: 6px;
     --tree-person-spouse-gap-base: 7px;
@@ -93,6 +99,8 @@ body.tree-dragging * {
     gap: var(--tree-space-xl);
     padding-bottom: var(--tree-space-sm);
     color: #21415d;
+    font-kerning: normal;
+    text-rendering: optimizeLegibility;
 }
 
 .tree-overview,
@@ -134,9 +142,9 @@ body.tree-dragging * {
     border-radius: 999px;
     background: #eaf2f8;
     color: #486b88;
-    font-size: 0.72rem;
+    font-size: var(--tree-type-caption);
     font-weight: 800;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
 }
 
@@ -144,17 +152,20 @@ body.tree-dragging * {
 .tree-board__title {
     margin: 0;
     color: #19354d;
-    font-size: clamp(1.6rem, 1.2rem + 1vw, 2.25rem);
-    line-height: 1.15;
+    font-size: var(--tree-type-display);
+    line-height: 1.08;
     font-weight: 800;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
 }
 
 .tree-overview__lead,
 .tree-board__lead {
     margin: 0;
     color: #5c768d;
-    font-size: 0.98rem;
-    line-height: 1.7;
+    max-width: 62ch;
+    font-size: var(--tree-type-body);
+    line-height: 1.72;
 }
 
 .tree-overview__metrics {
@@ -180,23 +191,26 @@ body.tree-dragging * {
 
 .tree-overview__metric-label {
     color: #5d7890;
-    font-size: 0.76rem;
+    font-size: var(--tree-type-caption);
     font-weight: 800;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
 }
 
 .tree-overview__metric-value {
     color: #16354f;
-    font-size: clamp(1.7rem, 1.35rem + 0.8vw, 2.3rem);
+    font-size: clamp(1.8rem, 1.45rem + 0.8vw, 2.4rem);
     line-height: 1;
     font-weight: 800;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
 }
 
 .tree-overview__metric-meta {
     color: #6b8398;
-    font-size: 0.84rem;
-    line-height: 1.55;
+    max-width: 30ch;
+    font-size: var(--tree-type-body-sm);
+    line-height: 1.6;
 }
 
 .tree-overview__guide {
@@ -220,16 +234,18 @@ body.tree-dragging * {
 
 .tree-overview__guide-title {
     color: #234865;
-    font-size: 0.88rem;
+    font-size: var(--tree-type-body-sm);
     font-weight: 800;
+    letter-spacing: -0.01em;
 }
 
 .tree-overview__guide-text,
 .tree-overview__legend-note {
     margin: 0;
     color: #647d92;
-    font-size: 0.9rem;
-    line-height: 1.6;
+    max-width: 40ch;
+    font-size: var(--tree-type-body-sm);
+    line-height: 1.68;
 }
 
 .tree-overview__legend {
@@ -246,9 +262,9 @@ body.tree-dragging * {
     min-width: 74px;
     padding: 0.38rem 0.72rem;
     border-radius: 999px;
-    font-size: 0.74rem;
+    font-size: var(--tree-type-caption);
     font-weight: 800;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
 }
 
@@ -299,9 +315,9 @@ body.tree-dragging * {
     border-radius: 999px;
     background: #f9fbfd;
     color: #516d84;
-    font-size: 0.8rem;
+    font-size: var(--tree-type-label);
     font-weight: 700;
-    line-height: 1.25;
+    line-height: 1.35;
 }
 
 .tree-preview-layer {
@@ -365,9 +381,10 @@ body.tree-dragging * {
 .tree-preview-layer__name {
     display: block;
     color: #21415d;
-    font-size: 12px;
-    line-height: 1.4;
+    font-size: var(--tree-type-label);
+    line-height: 1.45;
     font-weight: 700;
+    letter-spacing: -0.01em;
     text-align: center;
 }
 
@@ -378,9 +395,9 @@ body.tree-dragging * {
     min-width: 62px;
     padding: 4px 8px;
     border-radius: 999px;
-    font-size: 10px;
+    font-size: 0.6875rem;
     font-weight: 700;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
 }
 
@@ -501,7 +518,7 @@ body.tree-dragging * {
 
 .tree-hotlink__eyebrow {
     color: #61809a;
-    font-size: 10px;
+    font-size: var(--tree-type-caption);
     font-weight: 800;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -510,9 +527,10 @@ body.tree-dragging * {
 .tree-hotlink__title {
     margin-top: 3px;
     color: #21415d;
-    font-size: 14px;
+    font-size: var(--tree-type-body);
     font-weight: 800;
-    line-height: 1.35;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
 }
 
 .tree-hotlink__close {
@@ -538,7 +556,8 @@ body.tree-dragging * {
     border-radius: 14px;
     background: rgba(255, 255, 255, 0.96);
     color: #21415d;
-    font-size: 13px;
+    font-size: var(--tree-type-body-sm);
+    line-height: 1.4;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.96);
 }
 
@@ -580,16 +599,17 @@ body.tree-dragging * {
 }
 
 .tree-hotlink__option-name {
-    font-size: 13px;
+    font-size: 0.875rem;
     font-weight: 700;
-    line-height: 1.35;
+    line-height: 1.45;
+    letter-spacing: -0.01em;
 }
 
 .tree-hotlink__option-meta,
 .tree-hotlink__empty {
     color: #637f97;
-    font-size: 11px;
-    line-height: 1.45;
+    font-size: var(--tree-type-label);
+    line-height: 1.55;
 }
 
 .tree-hotlink__empty {
@@ -872,23 +892,24 @@ body.tree-dragging * {
 .tree-tools__label,
 .tree-tools__zoom-label {
     color: #334e68;
-    font-size: 13px;
+    font-size: 0.875rem;
     font-weight: 800;
-    letter-spacing: 0.02em;
+    letter-spacing: -0.01em;
 }
 
 .tree-tools__eyebrow {
     color: #5f7d95;
-    font-size: 10px;
+    font-size: var(--tree-type-caption);
     font-weight: 800;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
 }
 
 .tree-tools__subtext {
     color: #617d98;
-    font-size: 12px;
-    line-height: 1.4;
+    max-width: 28ch;
+    font-size: var(--tree-type-label);
+    line-height: 1.55;
 }
 
 .tree-tools__close,
@@ -922,7 +943,7 @@ body.tree-dragging * {
     border-radius: 16px;
     background: linear-gradient(180deg, #315f84, #244966);
     color: #fff;
-    font-size: 12px;
+    font-size: var(--tree-type-label);
     font-weight: 800;
     letter-spacing: 0.02em;
     cursor: pointer;
@@ -935,15 +956,17 @@ body.tree-dragging * {
 }
 
 .tree-tools__bulk-toggle-text {
-    font-size: 13px;
+    font-size: 0.875rem;
     font-weight: 800;
     line-height: 1.2;
+    letter-spacing: -0.01em;
 }
 
 .tree-tools__bulk-toggle-meta {
     color: rgba(239, 247, 252, 0.88);
-    font-size: 10px;
-    line-height: 1.45;
+    max-width: 27ch;
+    font-size: 0.75rem;
+    line-height: 1.55;
     text-align: left;
 }
 
@@ -965,8 +988,9 @@ body.tree-dragging * {
 
 .tree-tools__zoom-hint {
     color: #7890a5;
-    font-size: 11px;
-    line-height: 1.35;
+    max-width: 28ch;
+    font-size: var(--tree-type-label);
+    line-height: 1.5;
 }
 
 .tree-tools__stepper {
@@ -997,6 +1021,8 @@ body.tree-dragging * {
     font-size: 1.2rem;
     font-weight: 800;
     line-height: 1;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
 }
 
 .tree-tools__presets {
@@ -1019,7 +1045,7 @@ body.tree-dragging * {
 .tree-tools__preset {
     min-height: 32px;
     padding: 0 4px;
-    font-size: 12px;
+    font-size: var(--tree-type-label);
     cursor: pointer;
     transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
 }
@@ -1040,7 +1066,7 @@ body.tree-dragging * {
 .tree-tools__reset {
     width: 100%;
     padding: 8px 10px;
-    font-size: 12px;
+    font-size: var(--tree-type-label);
     cursor: pointer;
 }
 
@@ -1055,8 +1081,8 @@ body.tree-dragging * {
     min-width: 0;
     color: #21415d;
     font-weight: 700;
-    line-height: 1.35;
-    letter-spacing: 0.01em;
+    line-height: 1.42;
+    letter-spacing: -0.005em;
 }
 
 .tree-person-line--spouse {
@@ -1181,10 +1207,12 @@ body.tree-dragging * {
 .tree-person-line__popup-name {
     display: block;
     color: #21415d;
-    font-size: 12px;
-    line-height: 1.4;
+    font-size: 0.875rem;
+    line-height: 1.45;
     font-weight: 700;
+    letter-spacing: -0.01em;
     text-align: center;
+    text-wrap: balance;
 }
 
 .tree-person-line__popup-status {
@@ -1194,9 +1222,9 @@ body.tree-dragging * {
     min-width: 62px;
     padding: 4px 8px;
     border-radius: 999px;
-    font-size: 10px;
+    font-size: 0.6875rem;
     font-weight: 700;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
 }
 
@@ -1213,12 +1241,16 @@ body.tree-dragging * {
 .tree-person-line__name {
     min-width: 0;
     flex: 1 1 auto;
+    font-size: 0.875rem;
+    line-height: 1.45;
+    text-wrap: pretty;
 }
 
 .tree-person-line__name a {
     color: inherit;
     position: relative;
     z-index: 2;
+    font-weight: inherit;
 }
 
 .tree-node-box__spouses {
@@ -1237,7 +1269,7 @@ body.tree-dragging * {
     gap: var(--tree-person-gap);
     color: #176087;
     font-size: var(--tree-node-spouse-font-size);
-    line-height: 1.35;
+    line-height: 1.45;
     font-weight: 600;
     text-align: left;
 }
@@ -1315,8 +1347,11 @@ body.tree-dragging * {
 
 .tree-summary-card__title {
     margin: 0;
-    font-size: 20px;
-    font-weight: 700;
+    font-size: var(--tree-type-heading);
+    font-weight: 800;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
 }
 
 .tree-summary-card__headline {
@@ -1325,9 +1360,10 @@ body.tree-dragging * {
 
 .tree-summary-card__lead {
     margin: 0;
-    max-width: 520px;
+    max-width: 60ch;
     color: #53708a;
     text-align: left;
+    font-size: var(--tree-type-body);
     line-height: 1.65;
 }
 
@@ -1338,9 +1374,9 @@ body.tree-dragging * {
     border-radius: 999px;
     background: linear-gradient(135deg, #21415d, #3f6f94);
     color: #fff;
-    font-size: 12px;
+    font-size: var(--tree-type-label);
     font-weight: 700;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.08em;
     box-shadow: 0 10px 18px rgba(33, 65, 93, 0.16);
 }
 
@@ -1354,9 +1390,9 @@ body.tree-dragging * {
     padding: 12px 14px;
     border-bottom: 1px solid #d7e3ee;
     color: #385974;
-    font-size: 12px;
+    font-size: var(--tree-type-caption);
     font-weight: 700;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     background: #eef4f9;
 }
@@ -1374,6 +1410,8 @@ body.tree-dragging * {
 
 .tree-summary-table > tbody > tr > td[data-generation-label] {
     font-weight: 700;
+    font-size: var(--tree-type-body-sm);
+    letter-spacing: -0.01em;
 }
 
 .tree-summary-stat {
@@ -1392,6 +1430,8 @@ body.tree-dragging * {
     font-size: 21px;
     font-weight: 800;
     line-height: 1;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
 }
 
 .tree-summary-stat__breakdown {
@@ -1408,10 +1448,11 @@ body.tree-dragging * {
     min-width: 52px;
     padding: 4px 8px;
     border-radius: 999px;
-    font-size: 10px;
+    font-size: 0.6875rem;
     font-weight: 800;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
 }
 
 .tree-summary-stat__chip--alive {
@@ -1428,8 +1469,9 @@ body.tree-dragging * {
     color: #21415d;
     background: #f0f5fa;
     border-top: 1px solid #cfdeeb;
-    font-size: 12px;
+    font-size: var(--tree-type-caption);
     font-weight: 800;
+    letter-spacing: 0.08em;
 }
 
 .tree-summary-totals {
@@ -1485,9 +1527,9 @@ body.tree-dragging * {
     z-index: 1;
     margin-bottom: 8px;
     color: #53708a;
-    font-size: 12px;
+    font-size: var(--tree-type-caption);
     font-weight: 700;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
 }
 
@@ -1498,6 +1540,8 @@ body.tree-dragging * {
     line-height: 1;
     font-weight: 800;
     color: #21415d;
+    letter-spacing: -0.035em;
+    font-variant-numeric: tabular-nums;
 }
 
 .tree-summary-total-card__meta {
@@ -1505,8 +1549,9 @@ body.tree-dragging * {
     z-index: 1;
     margin-top: 8px;
     color: #5f7890;
-    font-size: 12px;
-    line-height: 1.5;
+    max-width: 28ch;
+    font-size: var(--tree-type-label);
+    line-height: 1.6;
 }
 
 .tree-connectors {
