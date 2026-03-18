@@ -17,7 +17,69 @@
             ])->filter()->implode(' · ')),
         ];
     })->values();
+    $visibleGenerationStats = collect($generationStats ?? [])
+        ->filter(function (array $stat) {
+            return !empty($stat['kandung_count']) || !empty($stat['mantu_count']);
+        });
+    $totalKandung = $visibleGenerationStats->sum('kandung_count');
+    $totalMantu = $visibleGenerationStats->sum('mantu_count');
+    $totalKandungHidup = $visibleGenerationStats->sum('kandung_alive_count');
+    $totalKandungWafat = $visibleGenerationStats->sum('kandung_deceased_count');
+    $totalMantuHidup = $visibleGenerationStats->sum('mantu_alive_count');
+    $totalMantuWafat = $visibleGenerationStats->sum('mantu_deceased_count');
+    $totalHidup = $visibleGenerationStats->sum('alive_count');
+    $totalWafat = $visibleGenerationStats->sum('deceased_count');
+    $totalKeturunan = $totalKandung + $totalMantu;
+    $directChildrenCount = collect($node['children'] ?? [])->count();
+    $visibleGenerationCount = $visibleGenerationStats->count();
+    $deepestGenerationLabel = $visibleGenerationStats->pluck('label')->last();
 @endphp
+<div class="tree-page">
+    <section class="tree-overview">
+        <div class="tree-overview__hero">
+            <div class="tree-overview__copy">
+                <span class="tree-overview__eyebrow">Peta Keturunan</span>
+                <h3 class="tree-overview__title">Struktur keluarga {{ $user->display_name }} dibuat agar cepat terbaca.</h3>
+                <p class="tree-overview__lead">
+                    Pohon ini menempatkan {{ $user->display_name }} sebagai titik pusat, lalu menurunkan cabang keluarga per generasi
+                    supaya anggota keluarga lebih mudah mengikuti urutan anak, pasangan, dan turunan berikutnya.
+                </p>
+            </div>
+            <div class="tree-overview__metrics" aria-label="Ringkasan pohon keluarga">
+                <article class="tree-overview__metric">
+                    <span class="tree-overview__metric-label">Anak Langsung</span>
+                    <strong class="tree-overview__metric-value">{{ $directChildrenCount }}</strong>
+                    <span class="tree-overview__metric-meta">Cabang pertama dari {{ $user->display_name }}</span>
+                </article>
+                <article class="tree-overview__metric">
+                    <span class="tree-overview__metric-label">Generasi Terlihat</span>
+                    <strong class="tree-overview__metric-value">{{ $visibleGenerationCount }}</strong>
+                    <span class="tree-overview__metric-meta">{{ $deepestGenerationLabel ? 'Sampai '.$deepestGenerationLabel : 'Belum ada turunan tampil' }}</span>
+                </article>
+                <article class="tree-overview__metric tree-overview__metric--accent">
+                    <span class="tree-overview__metric-label">Total Keturunan Tampil</span>
+                    <strong class="tree-overview__metric-value">{{ $totalKeturunan }}</strong>
+                    <span class="tree-overview__metric-meta">Gabungan keturunan kandung dan mantu yang muncul di pohon</span>
+                </article>
+            </div>
+        </div>
+        <div class="tree-overview__guide" aria-label="Panduan membaca pohon keluarga">
+            <div class="tree-overview__guide-block">
+                <span class="tree-overview__guide-title">Cara membaca</span>
+                <p class="tree-overview__guide-text">Mulai dari kartu utama di kiri, lalu ikuti cabang ke kanan untuk melihat turunan per generasi.</p>
+            </div>
+            <div class="tree-overview__guide-block">
+                <span class="tree-overview__guide-title">Interaksi</span>
+                <p class="tree-overview__guide-text">Ketuk kartu bercabang untuk buka-tutup turunan. Gunakan tombol kontrol untuk zoom, expand semua, dan pan layar.</p>
+            </div>
+            <div class="tree-overview__legend" aria-label="Legenda status keluarga">
+                <span class="tree-overview__legend-chip tree-overview__legend-chip--alive">Hidup</span>
+                <span class="tree-overview__legend-chip tree-overview__legend-chip--deceased">Wafat</span>
+                <span class="tree-overview__legend-note">Foto dapat diketuk untuk melihat ringkasan singkat anggota keluarga.</span>
+            </div>
+        </div>
+    </section>
+
 <div class="tree-tools" data-tree-tools>
     <button
         type="button"
@@ -158,129 +220,131 @@
         <span class="tree-preview-layer__status" data-tree-preview-layer-status></span>
     </div>
 </div>
-<div class="tree-stage" data-tree-stage>
-    <div class="tree-viewport" data-tree-viewport data-tree-drag-surface data-drag-enabled="false">
-        <div id="wrapper" class="tree-diagram" data-tree-root-id="{{ $user->id }}">
-            @include('users.partials.tree-node', ['node' => $node, 'level' => 1, 'isRoot' => true])
+    <section class="tree-board">
+        <div class="tree-board__header">
+            <div class="tree-board__header-copy">
+                <span class="tree-board__eyebrow">Kanvas Pohon</span>
+                <h3 class="tree-board__title">Pohon keluarga {{ $user->display_name }}</h3>
+                <p class="tree-board__lead">Cabang keluarga disusun horizontal agar nama anggota dan pasangan tetap mudah dibaca pada layar lebar maupun HP Android.</p>
+            </div>
+            <div class="tree-board__badges" aria-label="Status tampilan pohon">
+                <span class="tree-board__badge">{{ $directChildrenCount }} anak langsung</span>
+                @if ($visibleGenerationCount > 0)
+                <span class="tree-board__badge">{{ $visibleGenerationCount }} generasi tampil</span>
+                @endif
+                <span class="tree-board__badge">Drag saat expand penuh</span>
+            </div>
         </div>
-    </div>
-</div>
-@php
-    $visibleGenerationStats = collect($generationStats ?? [])
-        ->filter(function (array $stat) {
-            return !empty($stat['kandung_count']) || !empty($stat['mantu_count']);
-        });
-    $totalKandung = $visibleGenerationStats->sum('kandung_count');
-    $totalMantu = $visibleGenerationStats->sum('mantu_count');
-    $totalKandungHidup = $visibleGenerationStats->sum('kandung_alive_count');
-    $totalKandungWafat = $visibleGenerationStats->sum('kandung_deceased_count');
-    $totalMantuHidup = $visibleGenerationStats->sum('mantu_alive_count');
-    $totalMantuWafat = $visibleGenerationStats->sum('mantu_deceased_count');
-    $totalHidup = $visibleGenerationStats->sum('alive_count');
-    $totalWafat = $visibleGenerationStats->sum('deceased_count');
-    $totalKeturunan = $totalKandung + $totalMantu;
-@endphp
-<div class="container tree-summary-strip">
-    <hr>
+        <div class="tree-stage" data-tree-stage>
+            <div class="tree-viewport" data-tree-viewport data-tree-drag-surface data-drag-enabled="false">
+                <div id="wrapper" class="tree-diagram" data-tree-root-id="{{ $user->id }}">
+                    @include('users.partials.tree-node', ['node' => $node, 'level' => 1, 'isRoot' => true])
+                </div>
+            </div>
+        </div>
+    </section>
+
     @if ($visibleGenerationStats->isNotEmpty())
-    <div class="tree-summary-card">
-        <div class="tree-summary-card__header">
-            <div class="tree-summary-card__headline">
-                <h3 class="tree-summary-card__title">Statistik Keturunan {{ $user->display_name }}</h3>
-                <p class="tree-summary-card__lead">Rincian keturunan kandung dan mantu per generasi</p>
+    <section class="tree-summary-strip">
+        <div class="tree-summary-card">
+            <div class="tree-summary-card__header">
+                <div class="tree-summary-card__headline">
+                    <h3 class="tree-summary-card__title">Statistik keturunan {{ $user->display_name }}</h3>
+                    <p class="tree-summary-card__lead">Rincian jumlah keturunan kandung dan mantu per generasi untuk membantu membaca kepadatan tiap cabang keluarga.</p>
+                </div>
+                <div class="tree-summary-card__core-badge" data-tree-summary-core>{{ $user->display_name }}</div>
             </div>
-            <div class="tree-summary-card__core-badge" data-tree-summary-core>{{ $user->display_name }}</div>
+            <div class="table-responsive">
+                <table class="table tree-summary-table">
+                    <thead>
+                        <tr>
+                            <th>Generasi</th>
+                            <th class="text-center">Kandung</th>
+                            <th class="text-center">Mantu</th>
+                            <th class="text-center">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($visibleGenerationStats as $level => $stat)
+                        <tr data-generation-level="{{ $level }}">
+                            <td data-generation-label>{{ $stat['label'] }}</td>
+                            <td class="text-center" data-generation-kandung>
+                                <span class="tree-summary-stat">
+                                    <span class="tree-summary-stat__total">{{ $stat['kandung_count'] }}</span>
+                                    <span class="tree-summary-stat__breakdown">
+                                        <span class="tree-summary-stat__chip tree-summary-stat__chip--alive" data-generation-kandung-alive>H {{ $stat['kandung_alive_count'] }}</span>
+                                        <span class="tree-summary-stat__chip tree-summary-stat__chip--deceased" data-generation-kandung-deceased>W {{ $stat['kandung_deceased_count'] }}</span>
+                                    </span>
+                                </span>
+                            </td>
+                            <td class="text-center" data-generation-mantu>
+                                <span class="tree-summary-stat">
+                                    <span class="tree-summary-stat__total">{{ $stat['mantu_count'] }}</span>
+                                    <span class="tree-summary-stat__breakdown">
+                                        <span class="tree-summary-stat__chip tree-summary-stat__chip--alive" data-generation-mantu-alive>H {{ $stat['mantu_alive_count'] }}</span>
+                                        <span class="tree-summary-stat__chip tree-summary-stat__chip--deceased" data-generation-mantu-deceased>W {{ $stat['mantu_deceased_count'] }}</span>
+                                    </span>
+                                </span>
+                            </td>
+                            <td class="text-center" data-generation-total>{{ $stat['member_total_count'] }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                    <tfoot>
+                        <tr data-generation-total-row>
+                            <th>Total Semua</th>
+                            <th class="text-center" data-total-kandung-row>
+                                <span class="tree-summary-stat tree-summary-stat--footer">
+                                    <span class="tree-summary-stat__total">{{ $totalKandung }}</span>
+                                    <span class="tree-summary-stat__breakdown">
+                                        <span class="tree-summary-stat__chip tree-summary-stat__chip--alive" data-total-kandung-alive-row>H {{ $totalKandungHidup }}</span>
+                                        <span class="tree-summary-stat__chip tree-summary-stat__chip--deceased" data-total-kandung-deceased-row>W {{ $totalKandungWafat }}</span>
+                                    </span>
+                                </span>
+                            </th>
+                            <th class="text-center" data-total-mantu-row>
+                                <span class="tree-summary-stat tree-summary-stat--footer">
+                                    <span class="tree-summary-stat__total">{{ $totalMantu }}</span>
+                                    <span class="tree-summary-stat__breakdown">
+                                        <span class="tree-summary-stat__chip tree-summary-stat__chip--alive" data-total-mantu-alive-row>H {{ $totalMantuHidup }}</span>
+                                        <span class="tree-summary-stat__chip tree-summary-stat__chip--deceased" data-total-mantu-deceased-row>W {{ $totalMantuWafat }}</span>
+                                    </span>
+                                </span>
+                            </th>
+                            <th class="text-center" data-total-keturunan-row>{{ $totalKeturunan }}</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            <div class="tree-summary-totals" data-tree-summary-totals>
+                <div class="tree-summary-total-card tree-summary-total-card--kandung">
+                    <div class="tree-summary-total-card__label">Total Kandung</div>
+                    <div class="tree-summary-total-card__value" data-total-kandung>{{ $totalKandung }}</div>
+                    <div class="tree-summary-total-card__meta">H {{ $totalKandungHidup }} · W {{ $totalKandungWafat }}</div>
+                </div>
+                <div class="tree-summary-total-card tree-summary-total-card--mantu">
+                    <div class="tree-summary-total-card__label">Total Mantu</div>
+                    <div class="tree-summary-total-card__value" data-total-mantu>{{ $totalMantu }}</div>
+                    <div class="tree-summary-total-card__meta">H {{ $totalMantuHidup }} · W {{ $totalMantuWafat }}</div>
+                </div>
+                <div class="tree-summary-total-card tree-summary-total-card--hidup">
+                    <div class="tree-summary-total-card__label">Total Hidup</div>
+                    <div class="tree-summary-total-card__value" data-total-hidup>{{ $totalHidup }}</div>
+                    <div class="tree-summary-total-card__meta">Akumulasi kandung dan mantu yang masih hidup</div>
+                </div>
+                <div class="tree-summary-total-card tree-summary-total-card--wafat">
+                    <div class="tree-summary-total-card__label">Total Wafat</div>
+                    <div class="tree-summary-total-card__value" data-total-wafat>{{ $totalWafat }}</div>
+                    <div class="tree-summary-total-card__meta">Akumulasi kandung dan mantu yang sudah wafat</div>
+                </div>
+                <div class="tree-summary-total-card tree-summary-total-card--grand">
+                    <div class="tree-summary-total-card__label">Jumlah Kandung + Mantu</div>
+                    <div class="tree-summary-total-card__value" data-total-keturunan>{{ $totalKeturunan }}</div>
+                    <div class="tree-summary-total-card__meta">Ringkasan total seluruh statistik keturunan yang tampil pada pohon.</div>
+                </div>
+            </div>
         </div>
-        <div class="table-responsive">
-            <table class="table tree-summary-table">
-                <thead>
-                    <tr>
-                        <th>Generasi</th>
-                        <th class="text-center">Kandung</th>
-                        <th class="text-center">Mantu</th>
-                        <th class="text-center">Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($visibleGenerationStats as $level => $stat)
-                    <tr data-generation-level="{{ $level }}">
-                        <td data-generation-label>{{ $stat['label'] }}</td>
-                        <td class="text-center" data-generation-kandung>
-                            <span class="tree-summary-stat">
-                                <span class="tree-summary-stat__total">{{ $stat['kandung_count'] }}</span>
-                                <span class="tree-summary-stat__breakdown">
-                                    <span class="tree-summary-stat__chip tree-summary-stat__chip--alive" data-generation-kandung-alive>H {{ $stat['kandung_alive_count'] }}</span>
-                                    <span class="tree-summary-stat__chip tree-summary-stat__chip--deceased" data-generation-kandung-deceased>W {{ $stat['kandung_deceased_count'] }}</span>
-                                </span>
-                            </span>
-                        </td>
-                        <td class="text-center" data-generation-mantu>
-                            <span class="tree-summary-stat">
-                                <span class="tree-summary-stat__total">{{ $stat['mantu_count'] }}</span>
-                                <span class="tree-summary-stat__breakdown">
-                                    <span class="tree-summary-stat__chip tree-summary-stat__chip--alive" data-generation-mantu-alive>H {{ $stat['mantu_alive_count'] }}</span>
-                                    <span class="tree-summary-stat__chip tree-summary-stat__chip--deceased" data-generation-mantu-deceased>W {{ $stat['mantu_deceased_count'] }}</span>
-                                </span>
-                            </span>
-                        </td>
-                        <td class="text-center" data-generation-total>{{ $stat['member_total_count'] }}</td>
-                    </tr>
-                    @endforeach
-                </tbody>
-                <tfoot>
-                    <tr data-generation-total-row>
-                        <th>Total Semua</th>
-                        <th class="text-center" data-total-kandung-row>
-                            <span class="tree-summary-stat tree-summary-stat--footer">
-                                <span class="tree-summary-stat__total">{{ $totalKandung }}</span>
-                                <span class="tree-summary-stat__breakdown">
-                                    <span class="tree-summary-stat__chip tree-summary-stat__chip--alive" data-total-kandung-alive-row>H {{ $totalKandungHidup }}</span>
-                                    <span class="tree-summary-stat__chip tree-summary-stat__chip--deceased" data-total-kandung-deceased-row>W {{ $totalKandungWafat }}</span>
-                                </span>
-                            </span>
-                        </th>
-                        <th class="text-center" data-total-mantu-row>
-                            <span class="tree-summary-stat tree-summary-stat--footer">
-                                <span class="tree-summary-stat__total">{{ $totalMantu }}</span>
-                                <span class="tree-summary-stat__breakdown">
-                                    <span class="tree-summary-stat__chip tree-summary-stat__chip--alive" data-total-mantu-alive-row>H {{ $totalMantuHidup }}</span>
-                                    <span class="tree-summary-stat__chip tree-summary-stat__chip--deceased" data-total-mantu-deceased-row>W {{ $totalMantuWafat }}</span>
-                                </span>
-                            </span>
-                        </th>
-                        <th class="text-center" data-total-keturunan-row>{{ $totalKeturunan }}</th>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-        <div class="tree-summary-totals" data-tree-summary-totals>
-            <div class="tree-summary-total-card tree-summary-total-card--kandung">
-                <div class="tree-summary-total-card__label">Total Kandung</div>
-                <div class="tree-summary-total-card__value" data-total-kandung>{{ $totalKandung }}</div>
-                <div class="tree-summary-total-card__meta">H {{ $totalKandungHidup }} · W {{ $totalKandungWafat }}</div>
-            </div>
-            <div class="tree-summary-total-card tree-summary-total-card--mantu">
-                <div class="tree-summary-total-card__label">Total Mantu</div>
-                <div class="tree-summary-total-card__value" data-total-mantu>{{ $totalMantu }}</div>
-                <div class="tree-summary-total-card__meta">H {{ $totalMantuHidup }} · W {{ $totalMantuWafat }}</div>
-            </div>
-            <div class="tree-summary-total-card tree-summary-total-card--hidup">
-                <div class="tree-summary-total-card__label">Total Hidup</div>
-                <div class="tree-summary-total-card__value" data-total-hidup>{{ $totalHidup }}</div>
-                <div class="tree-summary-total-card__meta">Akumulasi kandung dan mantu yang masih hidup</div>
-            </div>
-            <div class="tree-summary-total-card tree-summary-total-card--wafat">
-                <div class="tree-summary-total-card__label">Total Wafat</div>
-                <div class="tree-summary-total-card__value" data-total-wafat>{{ $totalWafat }}</div>
-                <div class="tree-summary-total-card__meta">Akumulasi kandung dan mantu yang sudah wafat</div>
-            </div>
-            <div class="tree-summary-total-card tree-summary-total-card--grand">
-                <div class="tree-summary-total-card__label">Jumlah Kandung + Mantu</div>
-                <div class="tree-summary-total-card__value" data-total-keturunan>{{ $totalKeturunan }}</div>
-                <div class="tree-summary-total-card__meta">Ringkasan total seluruh statistik keturunan</div>
-            </div>
-        </div>
-    </div>
+    </section>
     @endif
 </div>
 @endsection
