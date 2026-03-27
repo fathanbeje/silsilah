@@ -2,6 +2,13 @@
 
 Dokumen ini adalah workflow kerja yang harus dipakai saat mengubah aplikasi `silsilah`, termasuk login VPS, commit Git, push GitHub, dan sync ke dua tenant live.
 
+## Peran Dokumen
+
+- `AGENTS.md` di root repo adalah ringkasan wajib yang harus dipatuhi agent baru pada chat baru.
+- `kerja.md` ini adalah runbook detail dan sumber command operasional yang lebih lengkap.
+- Skill global `silsilah-deploy` dipakai saat user secara eksplisit meminta workflow deploy, sync VPS, commit, push, atau dua subdomain.
+- Jangan mengandalkan `kerja.md` saja untuk chat baru, karena file repo tidak selalu otomatis dimuat. Gunakan `AGENTS.md` untuk aturan singkat yang harus selalu terlihat lebih dulu.
+
 ## 1. Lokasi Kerja
 
 - Repo lokal: `C:\xampp\htdocs\vite\silsilah`
