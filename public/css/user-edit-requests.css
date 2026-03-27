@@ -800,14 +800,24 @@
         height: 100dvh;
         border-radius: 0;
         border-width: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
     }
 
     .public-edit-request-modal .modal-header {
         padding: 12px 14px;
     }
 
+    .public-edit-request-modal .modal-body {
+        overflow-x: auto;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
     .public-edit-request-form {
         max-height: none;
+        min-width: 420px;
     }
 
     .public-edit-request-form__header,
