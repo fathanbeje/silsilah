@@ -570,11 +570,54 @@
     gap: 10px;
 }
 
-.public-edit-request-form__footer-actions .btn {
-    min-height: 44px;
-    padding: 0 18px;
+.public-edit-request-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    min-width: 48px;
+    width: 48px;
+    height: 48px;
+    padding: 0;
     border-radius: 999px;
     font-weight: 700;
+    overflow: hidden;
+    transition: width 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.public-edit-request-action:hover,
+.public-edit-request-action:focus {
+    width: 118px;
+    gap: 8px;
+    box-shadow: 0 10px 24px rgba(31, 86, 119, 0.14);
+    outline: 0;
+}
+
+.public-edit-request-action__icon {
+    flex: 0 0 48px;
+    width: 48px;
+    text-align: center;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.public-edit-request-action__label {
+    max-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    opacity: 0;
+    transition: max-width 0.18s ease, opacity 0.18s ease;
+}
+
+.public-edit-request-action:hover .public-edit-request-action__label,
+.public-edit-request-action:focus .public-edit-request-action__label {
+    max-width: 70px;
+    opacity: 1;
+}
+
+.public-edit-request-action--success:hover,
+.public-edit-request-action--success:focus {
+    width: 126px;
 }
 
 .public-edit-request-success {
@@ -962,10 +1005,29 @@
 
     .public-edit-request-form__footer-actions {
         width: 100%;
+        justify-content: space-between;
     }
 
-    .public-edit-request-form__footer-actions .btn {
-        flex: 1 1 100%;
+    .public-edit-request-action,
+    .public-edit-request-action:hover,
+    .public-edit-request-action:focus,
+    .public-edit-request-action--success:hover,
+    .public-edit-request-action--success:focus {
+        width: 44px;
+        min-width: 44px;
+        height: 44px;
+        gap: 0;
+        box-shadow: none;
+    }
+
+    .public-edit-request-action__icon {
+        flex-basis: 44px;
+        width: 44px;
+        font-size: 17px;
+    }
+
+    .public-edit-request-action__label {
+        display: none;
     }
 
     .public-chart-hero {

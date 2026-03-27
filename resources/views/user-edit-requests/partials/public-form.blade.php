@@ -348,10 +348,22 @@
                 Geser ke bawah untuk melihat seluruh isi langkah ini.
             </div>
             <div class="public-edit-request-form__footer-actions">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Tutup</button>
-                <button type="button" class="btn btn-default" data-step-back style="display:none;">Kembali</button>
-                <button type="button" class="btn btn-primary" data-step-next>Lanjut</button>
-                <button type="submit" class="btn btn-success" data-step-submit style="display:none;">Kirim untuk Ditinjau Admin</button>
+                <button type="button" class="btn btn-default public-edit-request-action public-edit-request-action--neutral" data-dismiss="modal" title="Tutup">
+                    <span class="public-edit-request-action__icon" aria-hidden="true">×</span>
+                    <span class="public-edit-request-action__label">Tutup</span>
+                </button>
+                <button type="button" class="btn btn-default public-edit-request-action public-edit-request-action--neutral" data-step-back style="display:none;" title="Kembali">
+                    <span class="public-edit-request-action__icon" aria-hidden="true">←</span>
+                    <span class="public-edit-request-action__label">Kembali</span>
+                </button>
+                <button type="button" class="btn btn-primary public-edit-request-action public-edit-request-action--primary" data-step-next title="Lanjut">
+                    <span class="public-edit-request-action__icon" aria-hidden="true">→</span>
+                    <span class="public-edit-request-action__label">Lanjut</span>
+                </button>
+                <button type="submit" class="btn btn-success public-edit-request-action public-edit-request-action--success" data-step-submit style="display:none;" title="Kirim untuk Ditinjau Admin">
+                    <span class="public-edit-request-action__icon" aria-hidden="true">✓</span>
+                    <span class="public-edit-request-action__label">Kirim</span>
+                </button>
             </div>
         </div>
     </div>
