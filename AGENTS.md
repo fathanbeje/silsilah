@@ -8,4 +8,5 @@
 - Default live sync is manual file copy of the changed files. Do not rely on `git pull` in live tenant worktrees.
 - After live sync, run `composer install` on both tenants if `composer.json` or `composer.lock` changed. Always run `php artisan optimize:clear`, restart both frankenphp services, and smoke-test both live domains.
 - Use the exact host, paths, service names, and command patterns from `kerja.md`.
+- The portable source for the Codex workflow skill lives at `.codex/skills/silsilah-deploy`. If the global skill is not installed on the current machine, use the repo copy as the source of truth and install it with `.codex/install-skills.ps1`.
 - For docs-only changes or local AI configuration changes, git commit and push still apply, but VPS sync is not required unless the user explicitly asks for it.

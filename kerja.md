@@ -6,8 +6,23 @@ Dokumen ini adalah workflow kerja yang harus dipakai saat mengubah aplikasi `sil
 
 - `AGENTS.md` di root repo adalah ringkasan wajib yang harus dipatuhi agent baru pada chat baru.
 - `kerja.md` ini adalah runbook detail dan sumber command operasional yang lebih lengkap.
+- Source skill yang portable disimpan di `.codex/skills/silsilah-deploy`.
 - Skill global `silsilah-deploy` dipakai saat user secara eksplisit meminta workflow deploy, sync VPS, commit, push, atau dua subdomain.
 - Jangan mengandalkan `kerja.md` saja untuk chat baru, karena file repo tidak selalu otomatis dimuat. Gunakan `AGENTS.md` untuk aturan singkat yang harus selalu terlihat lebih dulu.
+
+## Install Skill di Komputer Baru
+
+Setelah clone repo di komputer lain, install skill repo ini ke direktori Codex lokal:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\.codex\install-skills.ps1
+```
+
+Setelah itu skill bisa dipanggil dengan:
+
+```text
+$silsilah-deploy
+```
 
 ## 1. Lokasi Kerja
 

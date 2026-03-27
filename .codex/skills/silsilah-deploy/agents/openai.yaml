@@ -1,0 +1,8 @@
+interface:
+  display_name: "Silsilah Deploy"
+  short_description: "Git to VPS sync for two silsilah tenants"
+  brand_color: "#1F6F4A"
+  default_prompt: "Use $silsilah-deploy to follow kerja.md and deploy the latest silsilah changes to both live tenants."
+
+policy:
+  allow_implicit_invocation: false
