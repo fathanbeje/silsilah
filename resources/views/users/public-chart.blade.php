@@ -92,7 +92,10 @@
             allowClose: false,
             saveDraftTimer: null,
             currentStep: 1,
-            initialSnapshot: ''
+            initialSnapshot: '',
+            photoPreviewUrl: null,
+            photoCropObjectUrl: null,
+            photoCrop: null
         };
 
         if (!modal || !modalBody) {
@@ -223,6 +226,13 @@
             try {
                 window.localStorage.removeItem(createDraftKey(form));
             } catch (error) {}
+        }
+
+        function revokeObjectUrl(key) {
+            if (modalState[key]) {
+                window.URL.revokeObjectURL(modalState[key]);
+                modalState[key] = null;
+            }
         }
 
         function loadDraft(form) {
@@ -465,14 +475,21 @@
             });
         }
 
-        function buildSpouseOptions(form, selectedValue) {
-            var existing = [];
+        function readExistingSpouseOptions(form) {
+            var jsonNode = form.querySelector('[data-existing-spouses-json]');
+            if (!jsonNode) {
+                return [];
+            }
 
             try {
-                existing = JSON.parse(form.getAttribute('data-existing-spouses') || '[]');
+                return JSON.parse(jsonNode.textContent || '[]');
             } catch (error) {
-                existing = [];
+                return [];
             }
+        }
+
+        function buildSpouseOptions(form, selectedValue) {
+            var existing = readExistingSpouseOptions(form);
 
             var options = ['<option value="none">Belum / tanpa pasangan tercatat</option>'];
             existing.concat(currentNewSpouses(form)).forEach(function (item) {
@@ -542,6 +559,192 @@
             fields.address && (fields.address.value = payload && payload.address ? payload.address : '');
             fields.latitude && (fields.latitude.value = payload && payload.latitude ? payload.latitude : '');
             fields.longitude && (fields.longitude.value = payload && payload.longitude ? payload.longitude : '');
+        }
+
+        function formatFileSize(size) {
+            if (size < 1024) return size + ' B';
+            if (size < 1024 * 1024) return Math.round(size / 1024) + ' KB';
+            return (size / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        function dataURLToBlob(dataUrl) {
+            var parts = dataUrl.split(',');
+            var mime = parts[0].match(/:(.*?);/)[1];
+            var binary = atob(parts[1]);
+            var length = binary.length;
+            var bytes = new Uint8Array(length);
+
+            for (var i = 0; i < length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+
+            return new Blob([bytes], { type: mime });
+        }
+
+        function showPhotoPreview(form, file) {
+            var preview = form.querySelector('[data-photo-preview]');
+            var image = form.querySelector('[data-photo-preview-image]');
+            var meta = form.querySelector('[data-photo-preview-meta]');
+            if (!preview || !image || !meta || !file) {
+                return;
+            }
+
+            revokeObjectUrl('photoPreviewUrl');
+            modalState.photoPreviewUrl = window.URL.createObjectURL(file);
+            image.src = modalState.photoPreviewUrl;
+            meta.innerHTML = '<strong>' + escapeHtml(file.name) + '</strong><br>Ukuran siap kirim: ' + escapeHtml(formatFileSize(file.size));
+            preview.style.display = 'flex';
+        }
+
+        function hidePhotoPreview(form) {
+            var preview = form.querySelector('[data-photo-preview]');
+            var image = form.querySelector('[data-photo-preview-image]');
+            if (preview) {
+                preview.style.display = 'none';
+            }
+            if (image) {
+                image.removeAttribute('src');
+            }
+            revokeObjectUrl('photoPreviewUrl');
+        }
+
+        function renderPhotoCropCanvas(form) {
+            var cropper = form.querySelector('[data-photo-cropper]');
+            var canvas = form.querySelector('[data-photo-crop-canvas]');
+            if (!cropper || !canvas || !modalState.photoCrop || !modalState.photoCrop.image) {
+                return;
+            }
+
+            var context = canvas.getContext('2d');
+            var state = modalState.photoCrop;
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.fillStyle = '#eaf1f6';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            context.drawImage(
+                state.image,
+                state.offsetX,
+                state.offsetY,
+                state.image.width * state.scale,
+                state.image.height * state.scale
+            );
+        }
+
+        function resetPhotoCropper(form, clearInput) {
+            var cropper = form.querySelector('[data-photo-cropper]');
+            var input = form.querySelector('[data-photo-input]');
+            var zoom = form.querySelector('[data-photo-crop-zoom]');
+            var canvas = form.querySelector('[data-photo-crop-canvas]');
+
+            if (cropper) {
+                cropper.style.display = 'none';
+            }
+            if (zoom) {
+                zoom.value = 100;
+            }
+            if (canvas) {
+                canvas.classList.remove('is-dragging');
+            }
+            modalState.photoCrop = null;
+            revokeObjectUrl('photoCropObjectUrl');
+
+            if (clearInput && input) {
+                input.value = '';
+                hidePhotoPreview(form);
+            }
+        }
+
+        function openPhotoCropper(form, file) {
+            var cropper = form.querySelector('[data-photo-cropper]');
+            var canvas = form.querySelector('[data-photo-crop-canvas]');
+            var zoom = form.querySelector('[data-photo-crop-zoom]');
+            if (!cropper || !canvas || !zoom || !file) {
+                return;
+            }
+
+            revokeObjectUrl('photoCropObjectUrl');
+            modalState.photoCropObjectUrl = window.URL.createObjectURL(file);
+
+            var image = new Image();
+            image.onload = function () {
+                var baseScale = Math.max(canvas.width / image.width, canvas.height / image.height);
+
+                modalState.photoCrop = {
+                    fileName: file.name || 'foto-usulan',
+                    image: image,
+                    scale: baseScale,
+                    minScale: baseScale,
+                    maxScale: baseScale * 4,
+                    offsetX: (canvas.width - (image.width * baseScale)) / 2,
+                    offsetY: (canvas.height - (image.height * baseScale)) / 2,
+                    dragStartX: 0,
+                    dragStartY: 0,
+                    originX: 0,
+                    originY: 0
+                };
+
+                zoom.value = 100;
+                cropper.style.display = 'block';
+                renderPhotoCropCanvas(form);
+                scrollIntoViewWithin(getStepScrollContainer(form), cropper);
+            };
+            image.onerror = function () {
+                resetPhotoCropper(form, true);
+            };
+            image.src = modalState.photoCropObjectUrl;
+        }
+
+        function applyPhotoCrop(form) {
+            var input = form.querySelector('[data-photo-input]');
+            var cropper = form.querySelector('[data-photo-cropper]');
+            var canvas = form.querySelector('[data-photo-crop-canvas]');
+            if (!input || !cropper || !canvas || !modalState.photoCrop || !modalState.photoCrop.image) {
+                return;
+            }
+
+            var outputCanvas = document.createElement('canvas');
+            var outputSize = 800;
+            var state = modalState.photoCrop;
+            outputCanvas.width = outputSize;
+            outputCanvas.height = outputSize;
+
+            var outputContext = outputCanvas.getContext('2d');
+            outputContext.fillStyle = '#ffffff';
+            outputContext.fillRect(0, 0, outputSize, outputSize);
+
+            var scaleRatio = outputSize / canvas.width;
+            outputContext.drawImage(
+                state.image,
+                state.offsetX * scaleRatio,
+                state.offsetY * scaleRatio,
+                state.image.width * state.scale * scaleRatio,
+                state.image.height * state.scale * scaleRatio
+            );
+
+            var quality = 0.85;
+            var blob = null;
+            do {
+                blob = dataURLToBlob(outputCanvas.toDataURL('image/jpeg', quality));
+                if (blob.size <= 200 * 1024 || quality <= 0.45) {
+                    break;
+                }
+                quality -= 0.05;
+            } while (quality >= 0.45);
+
+            var baseName = (state.fileName || 'foto-usulan').replace(/\.[^.]+$/, '') || 'foto-usulan';
+            var croppedFile = new File([blob], baseName + '.jpg', {
+                type: 'image/jpeg',
+                lastModified: Date.now()
+            });
+
+            var dataTransfer = new DataTransfer();
+            dataTransfer.items.add(croppedFile);
+            input.files = dataTransfer.files;
+
+            showPhotoPreview(form, croppedFile);
+            cropper.style.display = 'none';
+            revokeObjectUrl('photoCropObjectUrl');
+            modalState.photoCrop = null;
+            setDirty(form);
         }
 
         function spouseTemplate(index) {
@@ -640,6 +843,9 @@
             var addSpouseButton = form.querySelector('[data-add-spouse]');
             var addChildButton = form.querySelector('[data-add-child]');
             var deceasedToggle = form.querySelector('[data-toggle-deceased]');
+            var photoInput = form.querySelector('[data-photo-input]');
+            var photoCanvas = form.querySelector('[data-photo-crop-canvas]');
+            var photoZoom = form.querySelector('[data-photo-crop-zoom]');
 
             initializeSelectEnhancements(form);
             modalState.initialSnapshot = serializeDraft(form);
@@ -684,12 +890,111 @@
                 });
             }
 
+            if (photoInput) {
+                photoInput.addEventListener('change', function (event) {
+                    var file = event.target.files && event.target.files[0];
+                    hidePhotoPreview(form);
+
+                    if (!file) {
+                        resetPhotoCropper(form, false);
+                        setDirty(form);
+                        return;
+                    }
+
+                    if (!/^image\//.test(file.type || '')) {
+                        resetPhotoCropper(form, true);
+                        return;
+                    }
+
+                    openPhotoCropper(form, file);
+                    setDirty(form);
+                });
+            }
+
+            if (photoZoom) {
+                photoZoom.addEventListener('input', function (event) {
+                    if (!modalState.photoCrop) {
+                        return;
+                    }
+
+                    var state = modalState.photoCrop;
+                    var nextScale = state.minScale * (Number(event.target.value || 100) / 100);
+                    var centerX = photoCanvas.width / 2;
+                    var centerY = photoCanvas.height / 2;
+                    var imageCenterX = (centerX - state.offsetX) / state.scale;
+                    var imageCenterY = (centerY - state.offsetY) / state.scale;
+
+                    state.scale = Math.min(state.maxScale, Math.max(state.minScale, nextScale));
+                    state.offsetX = centerX - (imageCenterX * state.scale);
+                    state.offsetY = centerY - (imageCenterY * state.scale);
+                    renderPhotoCropCanvas(form);
+                });
+            }
+
+            if (photoCanvas) {
+                var startDrag = function (pointX, pointY) {
+                    if (!modalState.photoCrop) {
+                        return;
+                    }
+
+                    modalState.photoCrop.dragStartX = pointX;
+                    modalState.photoCrop.dragStartY = pointY;
+                    modalState.photoCrop.originX = modalState.photoCrop.offsetX;
+                    modalState.photoCrop.originY = modalState.photoCrop.offsetY;
+                    photoCanvas.classList.add('is-dragging');
+                };
+
+                var moveDrag = function (pointX, pointY) {
+                    if (!modalState.photoCrop || !photoCanvas.classList.contains('is-dragging')) {
+                        return;
+                    }
+
+                    modalState.photoCrop.offsetX = modalState.photoCrop.originX + (pointX - modalState.photoCrop.dragStartX);
+                    modalState.photoCrop.offsetY = modalState.photoCrop.originY + (pointY - modalState.photoCrop.dragStartY);
+                    renderPhotoCropCanvas(form);
+                };
+
+                var endDrag = function () {
+                    photoCanvas.classList.remove('is-dragging');
+                };
+
+                photoCanvas.addEventListener('mousedown', function (event) {
+                    event.preventDefault();
+                    startDrag(event.clientX, event.clientY);
+                });
+
+                photoCanvas.addEventListener('mousemove', function (event) {
+                    moveDrag(event.clientX, event.clientY);
+                });
+
+                photoCanvas.addEventListener('mouseup', endDrag);
+                photoCanvas.addEventListener('mouseleave', endDrag);
+
+                photoCanvas.addEventListener('touchstart', function (event) {
+                    if (!event.touches.length) {
+                        return;
+                    }
+                    startDrag(event.touches[0].clientX, event.touches[0].clientY);
+                }, { passive: true });
+
+                photoCanvas.addEventListener('touchmove', function (event) {
+                    if (!event.touches.length) {
+                        return;
+                    }
+                    moveDrag(event.touches[0].clientX, event.touches[0].clientY);
+                }, { passive: true });
+
+                photoCanvas.addEventListener('touchend', endDrag, { passive: true });
+            }
+
             form.addEventListener('click', function (event) {
                 var removeButton = event.target.closest('[data-remove-repeat]');
                 var stepButton = event.target.closest('[data-step-target]');
                 var nextButton = event.target.closest('[data-step-next]');
                 var backButton = event.target.closest('[data-step-back]');
                 var advancedButton = event.target.closest('[data-advanced-toggle]');
+                var photoCropCancel = event.target.closest('[data-photo-crop-cancel]');
+                var photoCropApply = event.target.closest('[data-photo-crop-apply]');
 
                 if (removeButton) {
                     event.preventDefault();
@@ -725,6 +1030,20 @@
                 if (advancedButton) {
                     event.preventDefault();
                     toggleAdvanced(form);
+                    return;
+                }
+
+                if (photoCropCancel) {
+                    event.preventDefault();
+                    resetPhotoCropper(form, true);
+                    setDirty(form);
+                    return;
+                }
+
+                if (photoCropApply) {
+                    event.preventDefault();
+                    applyPhotoCrop(form);
+                    scheduleDraftSave(form);
                 }
             });
 
@@ -832,12 +1151,15 @@
         });
 
         window.jQuery(modal).on('hidden.bs.modal', function () {
+            revokeObjectUrl('photoPreviewUrl');
+            revokeObjectUrl('photoCropObjectUrl');
             modalState.activeTrigger = null;
             modalState.form = null;
             modalState.dirty = false;
             modalState.allowClose = false;
             modalState.currentStep = 1;
             modalState.initialSnapshot = '';
+            modalState.photoCrop = null;
             modalBody.innerHTML = '<div class="text-center text-muted" style="padding:30px 0;">Memuat formulir...</div>';
         });
 

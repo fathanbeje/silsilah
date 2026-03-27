@@ -36,15 +36,7 @@ class PublicUserEditRequestsController extends Controller
         $this->abortIfUserCannotSubmit();
         $this->abortIfUserOutsideScope($user);
         $user->loadMissing(['metadata']);
-        $existingMarriages = Couple::query()
-            ->with(['husband', 'wife'])
-            ->when((int) $user->gender_id === 1, function ($query) use ($user) {
-                $query->where('husband_id', $user->id);
-            }, function ($query) use ($user) {
-                $query->where('wife_id', $user->id);
-            })
-            ->orderByRaw('COALESCE(spouse_order, 999999), id')
-            ->get();
+        $existingMarriages = $this->existingMarriagesFor($user);
 
         return view('user-edit-requests.partials.public-form', [
             'user' => $user,
@@ -114,7 +106,7 @@ class PublicUserEditRequestsController extends Controller
         $validated = $validator->validated();
         $validated['is_deceased'] = !empty($validated['dod']) || !empty($validated['yod']) || !empty($validated['is_deceased']);
 
-        $user->loadMissing(['metadata', 'couples']);
+        $user->loadMissing(['metadata']);
 
         try {
             $proposedProfile = $this->extractChangedProfile($user, $validated);
@@ -238,7 +230,12 @@ class PublicUserEditRequestsController extends Controller
     private function extractNewChildren(array $rows, array $proposedSpouses, User $user): array
     {
         $validNewSpouseKeys = collect($proposedSpouses)->pluck('request_key')->all();
-        $validExistingContexts = $user->couples->pluck('pivot.id')->map(fn ($id) => 'existing:'.$id)->all();
+        $validExistingContexts = $this->existingMarriagesFor($user)
+            ->pluck('id')
+            ->filter()
+            ->map(fn ($id) => 'existing:'.$id)
+            ->values()
+            ->all();
 
         return collect($rows)->map(function ($row) use ($validNewSpouseKeys, $validExistingContexts) {
             $name = $this->normalizeValue('name', $row['name'] ?? null);
@@ -380,5 +377,18 @@ class PublicUserEditRequestsController extends Controller
         if (auth()->check() && is_system_admin(auth()->user())) {
             abort(403);
         }
+    }
+
+    private function existingMarriagesFor(User $user)
+    {
+        return Couple::query()
+            ->with(['husband', 'wife'])
+            ->when((int) $user->gender_id === 1, function ($query) use ($user) {
+                $query->where('husband_id', $user->id);
+            }, function ($query) use ($user) {
+                $query->where('wife_id', $user->id);
+            })
+            ->orderByRaw('COALESCE(spouse_order, 999999), id')
+            ->get();
     }
 }

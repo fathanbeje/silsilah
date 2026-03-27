@@ -5,9 +5,9 @@
     data-public-edit-request-form
     data-user-id="{{ $user->id }}"
     data-user-name="{{ e($user->display_name ?: $user->nickname) }}"
-    data-existing-spouses="{{ e(json_encode($existingSpouseOptions)) }}"
 >
     {{ csrf_field() }}
+    <script type="application/json" data-existing-spouses-json>@json($existingSpouseOptions)</script>
     @php
         $selectedGenderId = old('gender_id');
 
@@ -152,9 +152,34 @@
                                 <div class="col-sm-12">
                                     <div class="form-group form-group-sm">
                                         <label>Usulan foto baru</label>
-                                        <input type="file" name="photo" class="form-control" accept="image/*">
-                                        <p class="help-block">Foto akan dipotong persegi dan dikompres otomatis maksimal 200 KB.</p>
+                                        <input type="file" name="photo" class="form-control" accept="image/*" data-photo-input>
+                                        <p class="help-block">Setelah memilih file, Anda bisa mengatur crop 1:1 sebelum foto dikirim.</p>
                                         <div class="public-edit-request-field-error" data-field-error="photo"></div>
+                                    </div>
+                                    <div class="public-edit-request-photo-preview" data-photo-preview style="display:none;">
+                                        <div class="public-edit-request-photo-preview__media">
+                                            <img src="" alt="Preview foto usulan" data-photo-preview-image>
+                                        </div>
+                                        <div class="public-edit-request-photo-preview__meta" data-photo-preview-meta></div>
+                                    </div>
+                                    <div class="public-edit-request-photo-cropper" data-photo-cropper style="display:none;">
+                                        <div class="public-edit-request-photo-cropper__header">
+                                            <div class="public-edit-request-card__title">Atur crop foto 1:1</div>
+                                            <p class="public-edit-request-card__hint">Geser foto di dalam kotak dan atur zoom sampai wajah atau objek utama pas.</p>
+                                        </div>
+                                        <div class="public-edit-request-photo-cropper__canvas-wrap">
+                                            <canvas width="320" height="320" data-photo-crop-canvas></canvas>
+                                        </div>
+                                        <div class="public-edit-request-photo-cropper__controls">
+                                            <label class="public-edit-request-photo-cropper__control">
+                                                <span>Zoom</span>
+                                                <input type="range" min="100" max="400" value="100" data-photo-crop-zoom>
+                                            </label>
+                                        </div>
+                                        <div class="public-edit-request-photo-cropper__actions">
+                                            <button type="button" class="btn btn-default" data-photo-crop-cancel>Batal</button>
+                                            <button type="button" class="btn btn-primary" data-photo-crop-apply>Gunakan crop ini</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

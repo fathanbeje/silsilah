@@ -204,8 +204,38 @@ class UsersProfileTest extends TestCase
         $this->assertResponseOk();
         $content = $response->getContent();
         $this->assertStringContainsString('IBU CONTOH', $content);
-        $this->assertStringContainsString('data-existing-spouses=', $content);
+        $this->assertStringContainsString('data-existing-spouses-json', $content);
         $this->assertStringContainsString('Gunakan formulir ini untuk memperbaiki profil, menambah pasangan, atau menambah anak.', $content);
+    }
+
+    /** @test */
+    public function public_edit_request_store_accepts_existing_spouse_context_from_marriage_record()
+    {
+        $target = factory(User::class)->states('male')->create(['name' => 'AYAH CONTOH', 'nickname' => 'AYAH CONTOH']);
+        $spouse = factory(User::class)->states('female')->create(['name' => 'IBU CONTOH', 'nickname' => 'IBU CONTOH']);
+        $target->addWife($spouse);
+        $marriage = $target->marriages()->firstOrFail();
+
+        $response = $this->call('POST', route('user-edit-requests.store', $target), [
+            'requester_name' => 'PENGUSUL',
+            'requester_whatsapp' => '08123456789',
+            'nickname' => $target->nickname,
+            'gender_id' => (string) $target->gender_id,
+            'new_children' => [
+                [
+                    'name' => 'ANAK CONTOH',
+                    'nickname' => 'ANAK',
+                    'gender_id' => '1',
+                    'spouse_context' => 'existing:'.$marriage->id,
+                ],
+            ],
+        ], [], [], ['HTTP_X-Requested-With' => 'XMLHttpRequest']);
+
+        $this->assertEquals(200, $response->status());
+        $this->seeInDatabase('user_edit_requests', [
+            'target_user_id' => $target->id,
+            'requester_name' => 'PENGUSUL',
+        ]);
     }
 
     /** @test */
