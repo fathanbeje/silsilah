@@ -181,11 +181,31 @@ class UsersProfileTest extends TestCase
         $target = factory(User::class)->create();
 
         $this->visit(route('users.chart', $target))
-            ->see('Usulkan Perubahan Data');
+            ->see('Usulkan Perubahan Data')
+            ->see('Semua usulan akan ditinjau admin sebelum tampil di data live.');
 
         $this->get(route('user-edit-requests.create', $target));
         $this->assertResponseOk();
+        $this->see('Profil Utama');
+        $this->see('Keluarga');
+        $this->see('Pengaju & Konfirmasi');
         $this->see('Nama pengaju');
+        $this->see('Gunakan formulir ini untuk memperbaiki profil, menambah pasangan, atau menambah anak.');
+    }
+
+    /** @test */
+    public function public_edit_request_form_renders_existing_spouse_options_for_child_linking()
+    {
+        $target = factory(User::class)->states('male')->create(['name' => 'AYAH CONTOH', 'nickname' => 'AYAH CONTOH']);
+        $spouse = factory(User::class)->states('female')->create(['name' => 'IBU CONTOH', 'nickname' => 'IBU CONTOH']);
+        $target->addWife($spouse);
+
+        $response = $this->call('GET', route('user-edit-requests.create', $target));
+        $this->assertResponseOk();
+        $content = $response->getContent();
+        $this->assertStringContainsString('IBU CONTOH', $content);
+        $this->assertStringContainsString('data-existing-spouses=', $content);
+        $this->assertStringContainsString('Gunakan formulir ini untuk memperbaiki profil, menambah pasangan, atau menambah anak.', $content);
     }
 
     /** @test */

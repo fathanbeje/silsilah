@@ -182,6 +182,16 @@
         margin-bottom: 16px;
     }
 
+    .family-search-results-tip {
+        margin: 0 0 18px;
+        padding: 14px 16px;
+        border-radius: 18px;
+        background: #f6f8ef;
+        border: 1px solid #e0e5d2;
+        color: #55634f;
+        line-height: 1.6;
+    }
+
     @media (max-width: 767px) {
         .family-search-hero {
             padding: 22px 16px 18px;
@@ -276,6 +286,10 @@
         Hasil Pencarian
         <small class="pull-right">{!! trans('app.user_found', ['total' => $users->total(), 'keyword' => request('q')]) !!}</small>
     </h2>
+</div>
+<div class="family-search-results-tip">
+    Buka <strong>Bagan Keluarga</strong> untuk melihat hubungan keluarga. Jika ada data yang belum tepat, gunakan tombol
+    <strong>Usulkan Perubahan Data</strong> pada halaman bagan anggota tersebut.
 </div>
 {{ $users->appends(Request::except('page'))->render() }}
 @foreach ($users->chunk(4) as $chunkedUser)

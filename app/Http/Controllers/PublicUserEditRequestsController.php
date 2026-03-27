@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Couple;
 use App\Services\CemeteryLocationOptions;
 use App\Services\FamilyScopeResolver;
 use App\User;
@@ -34,16 +35,31 @@ class PublicUserEditRequestsController extends Controller
     {
         $this->abortIfUserCannotSubmit();
         $this->abortIfUserOutsideScope($user);
-        $user->loadMissing(['couples', 'metadata']);
+        $user->loadMissing(['metadata']);
+        $existingMarriages = Couple::query()
+            ->with(['husband', 'wife'])
+            ->when((int) $user->gender_id === 1, function ($query) use ($user) {
+                $query->where('husband_id', $user->id);
+            }, function ($query) use ($user) {
+                $query->where('wife_id', $user->id);
+            })
+            ->orderByRaw('COALESCE(spouse_order, 999999), id')
+            ->get();
 
         return view('user-edit-requests.partials.public-form', [
             'user' => $user,
-            'existingSpouseOptions' => $user->couples->map(function (User $spouse) {
+            'existingSpouseOptions' => $existingMarriages->map(function ($marriage) use ($user) {
+                $spouse = (int) $user->gender_id === 1 ? $marriage->wife : $marriage->husband;
+
+                if (! $spouse) {
+                    return null;
+                }
+
                 return [
-                    'value' => 'existing:'.$spouse->pivot->id,
+                    'value' => 'existing:'.$marriage->id,
                     'label' => $spouse->display_name,
                 ];
-            })->values(),
+            })->filter()->values(),
             'cemeteryLocationOptions' => $this->cemeteryLocationOptions->all(),
         ]);
     }
