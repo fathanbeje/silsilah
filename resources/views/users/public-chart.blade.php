@@ -175,10 +175,17 @@
                 return;
             }
 
+            var containerRect = container.getBoundingClientRect();
+            var targetRect = target.getBoundingClientRect();
+
             container.scrollTo({
-                top: Math.max(0, target.offsetTop - 18),
+                top: Math.max(0, container.scrollTop + (targetRect.top - containerRect.top) - 18),
                 behavior: 'smooth'
             });
+        }
+
+        function getStepScrollContainer(form) {
+            return modalBody || (form && form.querySelector('[data-public-edit-stepper-body]'));
         }
 
         function collectDraftData(form) {
@@ -359,7 +366,7 @@
             if (firstField) {
                 window.setTimeout(function () {
                     firstField.focus();
-                    scrollIntoViewWithin(form.querySelector('[data-public-edit-stepper-body]'), firstField.closest('.form-group') || firstField);
+                    scrollIntoViewWithin(getStepScrollContainer(form), firstField.closest('.form-group') || firstField);
                 }, 120);
             }
         }
@@ -402,16 +409,15 @@
         }
 
         function updateScrollHint(form) {
-            var body = form.querySelector('[data-public-edit-stepper-body]');
+            var body = getStepScrollContainer(form);
             var hint = form.querySelector('[data-public-edit-scroll-hint]');
-            var active = form.querySelector('[data-step-panel].is-active');
 
-            if (!body || !hint || !active) {
+            if (!body || !hint) {
                 return;
             }
 
-            var needsScroll = active.offsetHeight > body.clientHeight + 12;
-            var nearBottom = body.scrollTop + body.clientHeight >= active.offsetHeight - 16;
+            var needsScroll = body.scrollHeight > body.clientHeight + 12;
+            var nearBottom = body.scrollTop + body.clientHeight >= body.scrollHeight - 16;
             hint.classList.toggle('is-hidden', !needsScroll || nearBottom);
         }
 
@@ -435,7 +441,7 @@
             if (submitButton) submitButton.style.display = modalState.currentStep === 3 ? '' : 'none';
 
             updateSummary(form);
-            var body = form.querySelector('[data-public-edit-stepper-body]');
+            var body = getStepScrollContainer(form);
             if (body) {
                 body.scrollTop = 0;
             }
@@ -626,7 +632,7 @@
             modalState.currentStep = 1;
             modalState.allowClose = false;
 
-            var stepBody = form.querySelector('[data-public-edit-stepper-body]');
+            var stepBody = getStepScrollContainer(form);
             var spouseList = form.querySelector('[data-spouse-list]');
             var childList = form.querySelector('[data-child-list]');
             var spouseIndex = spouseList ? spouseList.children.length : 0;
