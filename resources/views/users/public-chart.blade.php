@@ -617,6 +617,7 @@
 
             var context = canvas.getContext('2d');
             var state = modalState.photoCrop;
+            clampPhotoCropState(state, canvas);
             context.clearRect(0, 0, canvas.width, canvas.height);
             context.fillStyle = '#eaf1f6';
             context.fillRect(0, 0, canvas.width, canvas.height);
@@ -627,6 +628,31 @@
                 state.image.width * state.scale,
                 state.image.height * state.scale
             );
+        }
+
+        function clampPhotoCropState(state, canvas) {
+            if (!state || !canvas) {
+                return;
+            }
+
+            var scaledWidth = state.image.width * state.scale;
+            var scaledHeight = state.image.height * state.scale;
+            var minOffsetX = Math.min(0, canvas.width - scaledWidth);
+            var minOffsetY = Math.min(0, canvas.height - scaledHeight);
+            var maxOffsetX = 0;
+            var maxOffsetY = 0;
+
+            if (scaledWidth <= canvas.width) {
+                state.offsetX = (canvas.width - scaledWidth) / 2;
+            } else {
+                state.offsetX = Math.min(maxOffsetX, Math.max(minOffsetX, state.offsetX));
+            }
+
+            if (scaledHeight <= canvas.height) {
+                state.offsetY = (canvas.height - scaledHeight) / 2;
+            } else {
+                state.offsetY = Math.min(maxOffsetY, Math.max(minOffsetY, state.offsetY));
+            }
         }
 
         function resetPhotoCropper(form, clearInput) {
@@ -673,7 +699,7 @@
                     image: image,
                     scale: baseScale,
                     minScale: baseScale,
-                    maxScale: baseScale * 4,
+                    maxScale: baseScale * 24,
                     offsetX: (canvas.width - (image.width * baseScale)) / 2,
                     offsetY: (canvas.height - (image.height * baseScale)) / 2,
                     dragStartX: 0,
@@ -927,6 +953,7 @@
                     state.scale = Math.min(state.maxScale, Math.max(state.minScale, nextScale));
                     state.offsetX = centerX - (imageCenterX * state.scale);
                     state.offsetY = centerY - (imageCenterY * state.scale);
+                    clampPhotoCropState(state, photoCanvas);
                     renderPhotoCropCanvas(form);
                 });
             }
@@ -951,6 +978,7 @@
 
                     modalState.photoCrop.offsetX = modalState.photoCrop.originX + (pointX - modalState.photoCrop.dragStartX);
                     modalState.photoCrop.offsetY = modalState.photoCrop.originY + (pointY - modalState.photoCrop.dragStartY);
+                    clampPhotoCropState(modalState.photoCrop, photoCanvas);
                     renderPhotoCropCanvas(form);
                 };
 

@@ -173,7 +173,7 @@
                                         <div class="public-edit-request-photo-cropper__controls">
                                             <label class="public-edit-request-photo-cropper__control">
                                                 <span>Zoom</span>
-                                                <input type="range" min="100" max="400" value="100" data-photo-crop-zoom>
+                                                <input type="range" min="100" max="2400" value="100" data-photo-crop-zoom>
                                             </label>
                                         </div>
                                         <div class="public-edit-request-photo-cropper__actions">

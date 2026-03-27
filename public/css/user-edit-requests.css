@@ -221,6 +221,10 @@
     gap: 18px;
 }
 
+.public-edit-request-grid > * {
+    min-width: 0;
+}
+
 .public-edit-request-grid--two {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -231,6 +235,17 @@
     border-radius: 22px;
     background: #fff;
     box-shadow: 0 14px 28px rgba(38, 61, 79, 0.06);
+}
+
+.public-edit-request-card .row {
+    margin-left: -8px;
+    margin-right: -8px;
+}
+
+.public-edit-request-card .row > [class*="col-"] {
+    min-width: 0;
+    padding-left: 8px;
+    padding-right: 8px;
 }
 
 .public-edit-request-card--compact {
@@ -850,19 +865,43 @@
 
     .public-edit-request-stepper__tab {
         flex: 0 0 auto;
-        min-width: 150px;
+        min-width: 120px;
         min-height: 46px;
-        padding: 9px 12px;
+        padding: 8px 10px;
         scroll-snap-align: start;
     }
 
     .public-edit-request-stepper__tab-text {
+        font-size: 13px;
         white-space: nowrap;
     }
 
     .public-edit-request-stepper__body {
         padding-top: 2px;
         padding-bottom: 18px;
+    }
+
+    .public-edit-request-grid--two {
+        grid-template-columns: 1fr !important;
+    }
+
+    .public-edit-request-card {
+        padding: 16px;
+        border-radius: 18px;
+    }
+
+    .public-edit-request-card__title {
+        font-size: 17px;
+    }
+
+    .public-edit-request-card .row {
+        margin-left: -4px;
+        margin-right: -4px;
+    }
+
+    .public-edit-request-card .row > [class*="col-"] {
+        padding-left: 4px;
+        padding-right: 4px;
     }
 
     .public-edit-request-card__header,
@@ -882,8 +921,24 @@
         padding: 16px;
     }
 
+    .public-edit-request-photo-cropper__canvas-wrap {
+        padding: 6px;
+        border-radius: 16px;
+    }
+
+    .public-edit-request-photo-cropper__canvas-wrap canvas {
+        width: min(100%, 270px);
+        border-radius: 14px;
+    }
+
     .public-edit-request-photo-cropper__actions .btn {
         width: 100%;
+    }
+
+    .public-edit-request-form .form-control,
+    .public-edit-request-form .select2-selection {
+        width: 100%;
+        max-width: 100%;
     }
 
     .public-edit-request-card__action {
